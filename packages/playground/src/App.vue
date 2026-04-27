@@ -223,7 +223,7 @@
 <script lang="ts" setup>
 import { inject, computed, ref, shallowRef } from 'vue'
 import { scrollWaiter } from './scrollWaiter'
-import { useLink, useRoute, RouterLink } from 'vue-router'
+import { useLink, useRoute, RouterLink } from 'vue-x-router'
 import AppLink from './AppLink.vue'
 
 const route = useRoute()

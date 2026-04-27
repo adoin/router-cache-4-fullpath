@@ -4,9 +4,9 @@ import {
   useRouter,
   type RouteLocationMatched,
   type RouteLocationNormalizedGeneric,
-} from 'vue-router'
-import { experimental_createRouter as createRouter } from 'vue-router/experimental'
-import { resolver, handleHotUpdate } from 'vue-router/auto-resolver'
+} from 'vue-x-router'
+import { experimental_createRouter as createRouter } from 'vue-x-router/experimental'
+import { resolver, handleHotUpdate } from 'vue-x-router/auto-resolver'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -14,7 +14,7 @@ export const router = createRouter({
 })
 
 export type RouteMetaGuard = 'auth' | 'admin'
-declare module 'vue-router' {
+declare module 'vue-x-router' {
   interface RouteMeta {
     guards?: RouteMetaGuard[]
   }

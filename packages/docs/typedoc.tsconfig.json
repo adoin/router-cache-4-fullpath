@@ -12,7 +12,7 @@
     "sourceMap": false,
     "noEmit": true,
     "paths": {
-      "vue-router": ["../router/src"]
+      "vue-x-router": ["../router/src"]
     },
 
     "target": "esnext",

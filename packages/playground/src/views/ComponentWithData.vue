@@ -8,7 +8,7 @@
 <script lang="ts">
 import { defineComponent, toRefs, reactive } from 'vue'
 import { getData, delay } from '../api'
-import { onBeforeRouteUpdate } from 'vue-router'
+import { onBeforeRouteUpdate } from 'vue-x-router'
 
 const ComponentWithData = defineComponent({
   name: 'ComponentWithData',

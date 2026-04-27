@@ -11,8 +11,8 @@
 以下是一个手动配置类型化路由的示例：
 
 ```ts
-// 要为你的路由添加类型，需要从 vue-router 导入 `RouteRecordInfo` 类型
-import type { RouteRecordInfo } from 'vue-router'
+// 要为你的路由添加类型，需要从 vue-x-router 导入 `RouteRecordInfo` 类型
+import type { RouteRecordInfo } from 'vue-x-router'
 
 // 定义一个路由的 interface
 export interface RouteNamedMap {
@@ -63,7 +63,7 @@ export interface RouteNamedMap {
 }
 
 // 最后，你需要把这份路由映射表扩展到 Vue Router 的类型定义中
-declare module 'vue-router' {
+declare module 'vue-x-router' {
   interface TypesConfig {
     RouteNamedMap: RouteNamedMap
   }

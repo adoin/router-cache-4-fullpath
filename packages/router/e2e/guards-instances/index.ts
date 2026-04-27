@@ -6,7 +6,7 @@ import {
   onBeforeRouteLeave,
   useRoute,
   useRouter,
-} from 'vue-router'
+} from 'vue-x-router'
 import { createApp, ref, reactive, defineComponent, computed } from 'vue'
 import { isArray } from '../../src/utils'
 

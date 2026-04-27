@@ -220,7 +220,7 @@ export function defineBasicLoader<Data>(
           if (d instanceof NavigationResult) {
             if (process.env.NODE_ENV !== 'production') {
               console.warn(
-                '[vue-router]: Returning a NavigationResult is deprecated. Use reroute() instead, which throws internally.'
+                '[vue-x-router]: Returning a NavigationResult is deprecated. Use reroute() instead, which throws internally.'
               )
               warnNonExposedLoader({ to, options, useDataLoader })
             }

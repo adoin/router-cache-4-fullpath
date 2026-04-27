@@ -20,7 +20,7 @@ List of things that haven't been added to the document yet:
 ## Summary
 
 There is no silver bullet to data fetching because of the different data fetching strategies and how they can define the architecture of the application and its UX. However, I think it's possible to find a solution that is flexible enough to **promote good practices** and **reduce the complexity** of data fetching in applications.
-That is the goal of this RFC, to standardize and improve data fetching with vue-router:
+That is the goal of this RFC, to standardize and improve data fetching with vue-x-router:
 
 - Integrate data fetching to the navigation cycle
   - Blocks navigation while fetching or _defer_ less important data (known as _lazy_ in Nuxt)
@@ -66,7 +66,7 @@ Exported from a non-setup `<script>` in a page component:
 <script lang="ts">
 // ---cut-start---
 import { defineComponent } from 'vue'
-import { defineBasicLoader as defineLoader } from 'vue-router/experimental'
+import { defineBasicLoader as defineLoader } from 'vue-x-router/experimental'
 // ---cut-end---
 // @moduleResolution: bundler
 import { getUserById } from '../api'
@@ -99,7 +99,7 @@ When a loader is exported by the page component, it is **automatically** picked 
 import './shims-vue.d'
 // ---cut---
 // @moduleResolution: bundler
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-x-router'
 import UserList from './pages/UserList.vue'
 // could be anywhere
 import { useUserList, useUserData, type User } from './loaders/users'
@@ -144,7 +144,7 @@ By default, **data loaders block the navigation**, meaning they _just work_ with
 The simplest of data loaders can be defined in just one line and types will be automatically inferred:
 
 ```ts twoslash
-import { defineBasicLoader as defineLoader } from 'vue-router/experimental'
+import { defineBasicLoader as defineLoader } from 'vue-x-router/experimental'
 interface Book {
   title: string
   isbn: string
@@ -162,7 +162,7 @@ Note that this syntax will intentionally be avoided in the RFC. Instead, we will
 
 ## Motivation
 
-There are currently too many ways of handling data fetching with vue-router and all of them have problems:
+There are currently too many ways of handling data fetching with vue-x-router and all of them have problems:
 
 - With navigation guards:
   - using `onBeforeRouteUpdate()`: only works on subsequent navigations. Cannot be properly combined with `beforeRouteEnter()`.
@@ -202,8 +202,8 @@ You might only be interested in trying out Data Loaders. In that case, check out
 
 ```ts{2,9}
 import { createApp } from 'vue'
-import { createRouter } from 'vue-router'
-import { DataLoaderPlugin } from 'vue-router/experimental'
+import { createRouter } from 'vue-x-router'
+import { DataLoaderPlugin } from 'vue-x-router/experimental'
 
 const router = createRouter({
   // ...
@@ -228,8 +228,8 @@ Data Loaders should be able to load data based **solely on the URL**. This ensur
 Data Loaders must accept an optional first parameter to type the route:
 
 ```ts twoslash
-import 'vue-router/auto-routes'
-import { defineBasicLoader as defineLoader } from 'vue-router/experimental'
+import 'vue-x-router/auto-routes'
+import { defineBasicLoader as defineLoader } from 'vue-x-router/experimental'
 // ---cut---
 import { getUserById } from '../api'
 
@@ -247,7 +247,7 @@ Within loaders there is no access to the current component or page instance, but
 Data Loaders are composables that return a set of properties:
 
 ```ts twoslash
-import 'vue-router/auto-routes'
+import 'vue-x-router/auto-routes'
 import { useUserData } from './loaders/users'
 // ---cut---
 const {
@@ -267,7 +267,7 @@ const {
 In practice, rename `data` (or others) to something more meaningful:
 
 ```ts twoslash
-import 'vue-router/auto-routes'
+import 'vue-x-router/auto-routes'
 import { useUserData } from './loaders/users'
 // ---cut---
 const { data: user } = useUserData()
@@ -278,7 +278,7 @@ const { data: user } = useUserData()
 - `lazy`: By default, loaders block the navigation. This means that the navigation is only allowed to continue once all loaders are resolved. Lazy loaders **do not block the navigation**. `data`, `error` and other properties might be updated after the navigation finishes. Setting this to `true` is useful for non-critical data fetching and will change the type of the returned `data` to `ShallowRef<T | undefined>`:
 
   ```ts twoslash
-  import { defineBasicLoader as defineLoader } from 'vue-router/experimental'
+  import { defineBasicLoader as defineLoader } from 'vue-x-router/experimental'
   interface Book {
     title: string
     isbn: string
@@ -299,7 +299,7 @@ const { data: user } = useUserData()
   delay the update of the data until all loaders are resolved (default). The latter is useful to avoid displaying partially up-to-date data and inconsistent state.
 
   ```ts twoslash
-  import { defineBasicLoader as defineLoader } from 'vue-router/experimental'
+  import { defineBasicLoader as defineLoader } from 'vue-x-router/experimental'
   interface Book {
     title: string
     isbn: string
@@ -319,7 +319,7 @@ const { data: user } = useUserData()
 - `server`: By default, loaders are executed on both, client, and server. Setting this to false will skip its execution on the server. Like `lazy: true`, this also changes the type of the returned `data` to `ShallowRef<T | undefined>`:
 
   ```ts twoslash
-  import { defineBasicLoader as defineLoader } from 'vue-router/experimental'
+  import { defineBasicLoader as defineLoader } from 'vue-x-router/experimental'
   interface Book {
     title: string
     isbn: string
@@ -347,8 +347,8 @@ Sometimes, requests depend on other fetched data (e.g. fetching additional user 
 Call **and `await`** the loader inside the one that needs it, it will only be fetched once no matter how many times it is called during a navigation:
 
 ```ts twoslash
-import 'vue-router/auto-routes'
-import { defineBasicLoader as defineLoader } from 'vue-router/experimental'
+import 'vue-x-router/auto-routes'
+import { defineBasicLoader as defineLoader } from 'vue-x-router/experimental'
 // ---cut---
 // import the loader for user information
 import { useUserData } from './loaders/users'
@@ -386,8 +386,8 @@ Two loaders cannot use each other as that would create a _dead lock_.
 This can get complex with multiple pages exposing the same loader and other pages using some of their _already exported_ loaders within other loaders. But it's not an issue, **the user shouldn't need to handle anything differently**, loaders are still only called once:
 
 ```ts twoslash
-import 'vue-router/auto-routes'
-import { defineBasicLoader as defineLoader } from 'vue-router/experimental'
+import 'vue-x-router/auto-routes'
+import { defineBasicLoader as defineLoader } from 'vue-x-router/experimental'
 // ---cut---
 import {
   getFriends,
@@ -510,7 +510,7 @@ Since the data fetching happens within a navigation guard, it's possible to cont
 - Any other returned value is considered as the _resolved data_
 
 ```ts{1,11,14}
-import { NavigationResult } from 'vue-router'
+import { NavigationResult } from 'vue-x-router'
 
 export const useUserData = defineLoader(
   async (to) => {
@@ -553,10 +553,10 @@ Throwing an error does not trigger the `selectNavigationResult()` method. Instea
 Since navigation loaders can run in parallel, they can return different navigation results as well. In this case, you can decide which result should be used by providing a `selectNavigationResult()` method to [`DataLoaderPlugin`](#data-loader-setup):
 
 ```ts{3-6} twoslash
-import 'vue-router/auto-routes'
+import 'vue-x-router/auto-routes'
 import { createApp } from 'vue'
-import { createRouter, createWebHistory } from 'vue-router'
-import { DataLoaderPlugin } from 'vue-router/experimental'
+import { createRouter, createWebHistory } from 'vue-x-router'
+import { DataLoaderPlugin } from 'vue-x-router/experimental'
 const app = createApp({})
 const router = createRouter({
   history: createWebHistory(),
@@ -590,7 +590,7 @@ By default, `selectNavigation` returns the first value of the array.
 If a loader wants to eagerly alter the navigation, it can `throw` the `NavigationResult` instead of returning it. This skips the `selectNavigationResult()` and take precedence without triggering `router.onError()`.
 
 ```ts{10-15}
-import { NavigationResult } from 'vue-router/experimental'
+import { NavigationResult } from 'vue-x-router/experimental'
 
 export const useUserData = defineLoader(
   async (to) => {
@@ -710,8 +710,8 @@ Types are automatically generated for the routes by [unplugin-vue-router][uvr] a
 ```vue twoslash
 <script lang="ts">
 // ---cut-start---
-import 'vue-router/auto-routes'
-import { defineBasicLoader as defineLoader } from 'vue-router/experimental'
+import 'vue-x-router/auto-routes'
+import { defineBasicLoader as defineLoader } from 'vue-x-router/experimental'
 // ---cut-end---
 import { getUserById } from '../api'
 
@@ -742,8 +742,8 @@ Also known as [lazy async data in Nuxt](https://v3.nuxtjs.org/api/composables/us
 ```vue{10,16-17} twoslash
 <script lang="ts">
 // ---cut-start---
-import 'vue-router/auto-routes'
-import { defineBasicLoader as defineLoader } from 'vue-router/experimental'
+import 'vue-x-router/auto-routes'
+import { defineBasicLoader as defineLoader } from 'vue-x-router/experimental'
 // ---cut-end---
 import { getUserById } from '../api'
 
@@ -791,7 +791,7 @@ Existing questions:
 The loader receives in a second argument access to an [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) that can be passed on to `fetch` and other Web APIs. If the navigation is cancelled because of errors or a new navigation, the signal aborts, causing any request using it to abort as well.
 
 ```ts twoslash
-import { defineBasicLoader as defineLoader } from 'vue-router/experimental'
+import { defineBasicLoader as defineLoader } from 'vue-x-router/experimental'
 interface Book {
   title: string
   isbn: string
@@ -940,7 +940,7 @@ On top of this it's important to note that this RFC doesn't limit you: you can s
   ```vue
   <script lang="ts" loader="useUserData">
   import { getUserById } from '~/api/users'
-  import { useRoute } from 'vue-router' // could be automatically imported
+  import { useRoute } from 'vue-x-router' // could be automatically imported
 
   const route = useRoute()
   // any variable created here is available in useLoader()

@@ -4,7 +4,7 @@ import type { ComponentPublicInstance } from 'vue'
 import { router, routerHistory } from './router'
 import { globalState } from './store'
 import App from './App.vue'
-import { useRoute, type ParamValue, type RouteRecordInfo } from 'vue-router'
+import { useRoute, type ParamValue, type RouteRecordInfo } from 'vue-x-router'
 
 declare global {
   interface Window {
@@ -86,7 +86,7 @@ export interface RouteNamedMap {
   >
 }
 
-declare module 'vue-router' {
+declare module 'vue-x-router' {
   interface TypesConfig {
     RouteNamedMap: RouteNamedMap
   }

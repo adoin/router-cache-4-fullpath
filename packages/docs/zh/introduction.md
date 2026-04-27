@@ -1,7 +1,7 @@
 # 介绍
 
 <VueSchoolLink
-  href="https://vueschool.io/courses/vue-router-4-for-everyone"
+  href="https://vueschool.io/courses/vue-x-router-4-for-everyone"
   title="Learn how to build powerful Single Page Applications with the Vue Router on Vue School"
 />
 

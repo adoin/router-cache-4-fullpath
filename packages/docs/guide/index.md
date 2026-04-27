@@ -1,7 +1,7 @@
 # Getting Started
 
 <VueSchoolLink
-href="https://vueschool.io/courses/vue-router-4-for-everyone"
+href="https://vueschool.io/courses/vue-x-router-4-for-everyone"
 title="Learn how to build powerful Single Page Applications with the Vue Router on Vue School">Watch a Free Vue Router Video Course</VueSchoolLink>
 
 Vue Router is the official client-side routing solution for Vue.
@@ -53,7 +53,7 @@ The example above also uses <code v-pre>{{ $route.fullPath }}</code>. You can us
 The router instance is created by calling the function `createRouter()`:
 
 ```js
-import { createMemoryHistory, createRouter } from 'vue-router'
+import { createMemoryHistory, createRouter } from 'vue-x-router'
 
 import HomeView from './HomeView.vue'
 import AboutView from './AboutView.vue'
@@ -127,7 +127,7 @@ With the Composition API, we don't have access to the component instance via `th
 ```vue
 <script setup>
 import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-x-router'
 
 const router = useRouter()
 const route = useRoute()
@@ -194,7 +194,7 @@ Similarly, the current route will be referred to as `route`. It can be accessed 
 
 ### `RouterView` and `RouterLink`
 
-The components `RouterView` and `RouterLink` are both [registered globally](https://vuejs.org/guide/components/registration.html#global-registration), so they don't need to be imported before using them in component templates. However, if you prefer, you can import them locally, e.g. `import { RouterLink } from 'vue-router'`.
+The components `RouterView` and `RouterLink` are both [registered globally](https://vuejs.org/guide/components/registration.html#global-registration), so they don't need to be imported before using them in component templates. However, if you prefer, you can import them locally, e.g. `import { RouterLink } from 'vue-x-router'`.
 
 In templates, component names can be written in either PascalCase or kebab-case. Vue's template compiler supports either format, so `<RouterView>` and `<router-view>` are usually equivalent. You should follow whatever convention is used within your project.
 

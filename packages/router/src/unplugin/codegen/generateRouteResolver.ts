@@ -91,10 +91,10 @@ export function generateRouteResolver(
     })
   )
 
-  importsMap.add('vue-router/experimental', 'createFixedResolver')
-  importsMap.add('vue-router/experimental', 'MatcherPatternPathStatic')
-  importsMap.add('vue-router/experimental', 'MatcherPatternPathDynamic')
-  importsMap.add('vue-router/experimental', 'normalizeRouteRecord')
+  importsMap.add('vue-x-router/experimental', 'createFixedResolver')
+  importsMap.add('vue-x-router/experimental', 'MatcherPatternPathStatic')
+  importsMap.add('vue-x-router/experimental', 'MatcherPatternPathDynamic')
+  importsMap.add('vue-x-router/experimental', 'normalizeRouteRecord')
 
   const normalizedDeclarations = generateNormalizedParamParsersDeclarations(
     paramParsersMap,
@@ -373,7 +373,7 @@ export function generateRouteRecordQuery({
     return ''
   }
 
-  importsMap.add('vue-router/experimental', 'MatcherPatternQueryParam')
+  importsMap.add('vue-x-router/experimental', 'MatcherPatternQueryParam')
 
   return `query: [
 ${queryParams
@@ -422,7 +422,7 @@ function generateRouteRecordMerge(
     return routeRecordObject
   }
 
-  importsMap.add('vue-router/experimental', '_mergeRouteRecord')
+  importsMap.add('vue-x-router/experimental', '_mergeRouteRecord')
 
   // Re-indent the route object to be 4 spaces (2 levels from normalizeRouteRecord)
   const indentedRouteObject = routeRecordObject

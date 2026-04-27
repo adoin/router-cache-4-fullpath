@@ -394,7 +394,7 @@ export interface _RouterLinkI {
   }
 
   /**
-   * Access to `useLink()` without depending on using vue-router
+   * Access to `useLink()` without depending on using vue-x-router
    *
    * @internal
    */

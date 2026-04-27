@@ -314,7 +314,7 @@ export function createRouterMatcher(
 
       if (__DEV__ && !path.startsWith('/')) {
         warn(
-          `The Matcher cannot resolve relative paths but received "${path}". Unless you directly called \`matcher.resolve("${path}")\`, this is probably a bug in vue-router. Please open an issue at https://github.com/vuejs/router/issues/new/choose.`
+          `The Matcher cannot resolve relative paths but received "${path}". Unless you directly called \`matcher.resolve("${path}")\`, this is probably a bug in vue-x-router. Please open an issue at https://github.com/vuejs/router/issues/new/choose.`
         )
       }
 

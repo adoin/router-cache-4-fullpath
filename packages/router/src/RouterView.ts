@@ -254,9 +254,11 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
           meta: matchedRoute.meta,
         }
 
-        const internalInstances = isArray(vnodeForDevtools.ref)
-          ? vnodeForDevtools.ref.map(r => r.i)
-          : [vnodeForDevtools.ref.i]
+        const internalInstances = (
+          isArray(vnodeForDevtools.ref)
+            ? vnodeForDevtools.ref.map(r => r.i)
+            : [vnodeForDevtools.ref.i]
+        ).filter((i): i is NonNullable<typeof i> => i != null)
 
         internalInstances.forEach(instance => {
           // @ts-expect-error

@@ -606,8 +606,8 @@ export interface EXPERIMENTAL_Router
  * Creates an experimental Router that allows passing a resolver instead of a
  * routes array. This router does not have `addRoute()` and `removeRoute()`
  * methods and is meant to be used with file-based routing thanks to
- * vue-router/vite or vue-router/unplugin resolver generation in
- * `'vue-router/auto-resolver'`.
+ * vue-x-router/vite or vue-x-router/unplugin resolver generation in
+ * `'vue-x-router/auto-resolver'`.
  *
  * @param options - Options to initialize the router
  */

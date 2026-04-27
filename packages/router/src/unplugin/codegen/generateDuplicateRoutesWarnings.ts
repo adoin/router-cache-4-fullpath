@@ -14,7 +14,7 @@ export function generateDuplicatedRoutesWarnings(tree: PrefixTree): string {
   return conflicts
     .flatMap(
       conflicts =>
-        `console.warn('[vue-router] Conflicting files found for route "${conflicts.at(0)!.node.fullPath}":\\n${conflicts.map(({ filePath }) => `- ${filePath}`).join('\\n')}')`
+        `console.warn('[vue-x-router] Conflicting files found for route "${conflicts.at(0)!.node.fullPath}":\\n${conflicts.map(({ filePath }) => `- ${filePath}`).join('\\n')}')`
     )
     .join('\n')
 }

@@ -20,7 +20,7 @@ import { tmpdir } from 'node:os'
 import { type FSWatcher } from 'chokidar'
 
 const FIXTURES_ROOT = pathe.resolve(
-  pathe.join(tmpdir(), 'vue-router-' + Date.now())
+  pathe.join(tmpdir(), 'vue-x-router-' + Date.now())
 )
 
 const TEST_TIMEOUT = 4000

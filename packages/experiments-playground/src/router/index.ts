@@ -1,4 +1,4 @@
-import { createWebHistory } from 'vue-router'
+import { createWebHistory } from 'vue-x-router'
 import {
   experimental_createRouter,
   createFixedResolver,
@@ -8,13 +8,13 @@ import {
   PARAM_PARSER_INT,
   MatcherPatternQueryParam,
   MatchMiss,
-} from 'vue-router/experimental'
+} from 'vue-x-router/experimental'
 import type {
   EXPERIMENTAL_RouteRecordNormalized_Matchable,
   MatcherPatternHash,
   MatcherPatternQuery,
   EmptyParams,
-} from 'vue-router/experimental'
+} from 'vue-x-router/experimental'
 import PageHome from '../pages/(home).vue'
 
 const PAGE_QUERY_PATTERN_MATCHER: MatcherPatternQuery<{ page: number }> = {

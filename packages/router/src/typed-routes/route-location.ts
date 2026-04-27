@@ -253,7 +253,7 @@ export type RouteLocationResolvedTypedList<
 }
 
 /**
- * Type safe versions of types that are exposed by vue-router. We have to use a generic check to allow for names to be `undefined` when no `RouteMap` is provided.
+ * Type safe versions of types that are exposed by vue-x-router. We have to use a generic check to allow for names to be `undefined` when no `RouteMap` is provided.
  */
 
 /**

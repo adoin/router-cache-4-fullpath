@@ -6,9 +6,9 @@ Any composables returned by _any_ `defineLoader` function share the same signatu
 
 ```vue twoslash
 <script lang="ts">
-import 'vue-router/auto-routes'
+import 'vue-x-router/auto-routes'
 // ---cut---
-import { defineBasicLoader } from 'vue-router/experimental'
+import { defineBasicLoader } from 'vue-x-router/experimental'
 import { getUserById } from '../api'
 
 export const useUserData = defineBasicLoader('/users/[id]', async to => {
@@ -39,8 +39,8 @@ The loader function is the _core_ of data loaders. They are asynchronous functio
 The `to` argument represents the location object we are navigating to. It should be used as the source of truth for all data fetching parameters.
 
 ```ts twoslash
-import 'vue-router/auto-routes'
-import { defineBasicLoader } from 'vue-router/experimental'
+import 'vue-x-router/auto-routes'
+import { defineBasicLoader } from 'vue-x-router/experimental'
 import { getUserById } from '../api'
 // ---cut---
 export const useUserData = defineBasicLoader('/users/[id]', async to => {
@@ -62,8 +62,8 @@ In the loader function, you can access global properties like the router instanc
 
 <!-- prettier-ignore -->
 ```ts twoslash
-import 'vue-router/auto-routes'
-import { defineBasicLoader } from 'vue-router/experimental'
+import 'vue-x-router/auto-routes'
+import { defineBasicLoader } from 'vue-x-router/experimental'
 import { getUserById } from '../api'
 // ---cut---
 import { inject } from 'vue'
@@ -93,7 +93,7 @@ Why doesn't this work?
 Since loaders happen within the context of a navigation, you can control the navigation by calling `reroute()`. This is similar to returning a value in a navigation guard. It throws internally, so execution stops immediately.
 
 ```ts{1,8,9}
-import { reroute } from 'vue-router/experimental'
+import { reroute } from 'vue-x-router/experimental'
 
 const useDashboardStats = defineBasicLoader('/admin', async (to) => {
   try {
@@ -139,8 +139,8 @@ By default, loaders are _non-lazy_, meaning they will block the navigation until
 ```vue{10,16} twoslash
 <script lang="ts">
 // ---cut-start---
-import 'vue-router/auto-routes'
-import { defineBasicLoader } from 'vue-router/experimental'
+import 'vue-x-router/auto-routes'
+import { defineBasicLoader } from 'vue-x-router/experimental'
 // ---cut-end---
 import { getUserById } from '../api'
 
@@ -203,7 +203,7 @@ By default, the data is updated only once all loaders are resolved. This is usef
 Sometimes you might want to immediately update the data as soon as it's available, even if other loaders are still pending. This can be achieved by changing the `commit` option:
 
 ```ts twoslash
-import { defineBasicLoader } from 'vue-router/experimental'
+import { defineBasicLoader } from 'vue-x-router/experimental'
 interface Book {
   title: string
   isbn: string
@@ -225,7 +225,7 @@ In the case of [lazy loaders](#lazy-loaders), they also default to `commit: 'aft
 During SSR, it might be more performant to avoid loading data that isn't critical for the initial render. This can be achieved by setting the `server` option to `false`. That will completely skip the loader during SSR.
 
 ```ts{3} twoslash
-import { defineBasicLoader } from 'vue-router/experimental'
+import { defineBasicLoader } from 'vue-x-router/experimental'
 interface Book {
   title: string
   isbn: string
@@ -252,7 +252,7 @@ The router needs to know what loaders should be ran with which page. This is ach
   ::: code-group
 
   ```ts{8} [router.ts]
-  import { createRouter, createWebHistory } from 'vue-router'
+  import { createRouter, createWebHistory } from 'vue-x-router'
 
   export const router = createRouter({
     history: createWebHistory(),
@@ -286,7 +286,7 @@ The router needs to know what loaders should be ran with which page. This is ach
   ::: code-group
 
   ```ts{2,10-12} [router.ts]
-  import { createRouter, createWebHistory } from 'vue-router'
+  import { createRouter, createWebHistory } from 'vue-x-router'
   import Settings, { useSettings } from './settings.vue'
 
   export const router = createRouter({

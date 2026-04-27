@@ -1,5 +1,5 @@
 {
-  "name": "vue-router",
+  "name": "vue-x-router",
   "version": "5.0.6",
   "homepage": "https://router.vuejs.org",
   "bugs": {
@@ -20,18 +20,18 @@
     "index.cjs",
     "README.md",
     "route.schema.json",
-    "vue-router-auto-resolver.d.mts",
-    "vue-router-auto-routes.d.mts",
-    "vue-router-auto.d.ts",
-    "vue-router.node.mjs",
+    "vue-x-router-auto-resolver.d.mts",
+    "vue-x-router-auto-routes.d.mts",
+    "vue-x-router-auto.d.ts",
+    "vue-x-router.node.mjs",
     "vetur/attributes.json",
     "vetur/tags.json"
   ],
   "type": "module",
   "sideEffects": false,
   "main": "index.cjs",
-  "module": "dist/vue-router.js",
-  "types": "dist/vue-router.d.ts",
+  "module": "dist/vue-x-router.js",
+  "types": "dist/vue-x-router.d.ts",
   "typesVersions": {
     "*": {
       "vite": [
@@ -48,24 +48,24 @@
       ]
     }
   },
-  "unpkg": "dist/vue-router.global.js",
-  "jsdelivr": "dist/vue-router.global.js",
+  "unpkg": "dist/vue-x-router.global.js",
+  "jsdelivr": "dist/vue-x-router.global.js",
   "exports": {
     ".": {
-      "types": "./dist/vue-router.d.ts",
+      "types": "./dist/vue-x-router.d.ts",
       "node": {
         "import": {
-          "production": "./vue-router.node.mjs",
-          "development": "./vue-router.node.mjs",
-          "default": "./vue-router.node.mjs"
+          "production": "./vue-x-router.node.mjs",
+          "development": "./vue-x-router.node.mjs",
+          "default": "./vue-x-router.node.mjs"
         },
         "require": {
-          "production": "./dist/vue-router.prod.cjs",
-          "development": "./dist/vue-router.cjs",
+          "production": "./dist/vue-x-router.prod.cjs",
+          "development": "./dist/vue-x-router.cjs",
           "default": "./index.cjs"
         }
       },
-      "import": "./dist/vue-router.js",
+      "import": "./dist/vue-x-router.js",
       "require": "./index.cjs"
     },
     "./dist/*": "./dist/*",
@@ -80,26 +80,26 @@
       "default": "./dist/experimental/pinia-colada.js"
     },
     "./auto-resolver": {
-      "types": "./vue-router-auto-resolver.d.mts"
+      "types": "./vue-x-router-auto-resolver.d.mts"
     },
     "./auto-routes": {
-      "types": "./vue-router-auto-routes.d.mts"
+      "types": "./vue-x-router-auto-routes.d.mts"
     },
     "./auto": {
-      "types": "./vue-router-auto.d.ts",
+      "types": "./vue-x-router-auto.d.ts",
       "node": {
         "import": {
-          "production": "./vue-router.node.mjs",
-          "development": "./vue-router.node.mjs",
-          "default": "./vue-router.node.mjs"
+          "production": "./vue-x-router.node.mjs",
+          "development": "./vue-x-router.node.mjs",
+          "default": "./vue-x-router.node.mjs"
         },
         "require": {
-          "production": "./dist/vue-router.prod.cjs",
-          "development": "./dist/vue-router.cjs",
+          "production": "./dist/vue-x-router.prod.cjs",
+          "development": "./dist/vue-x-router.cjs",
           "default": "./index.cjs"
         }
       },
-      "import": "./dist/vue-router.js",
+      "import": "./dist/vue-x-router.js",
       "require": "./index.cjs"
     },
     "./vite": {
@@ -121,6 +121,9 @@
       "types": "./dist/volar/sfc-typed-router.d.cts",
       "default": "./dist/volar/sfc-typed-router.cjs"
     }
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "dev": "vitest --ui",

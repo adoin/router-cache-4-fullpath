@@ -11,7 +11,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "vue-router": ["./src/index.ts"]
+      "vue-x-router": ["./src/index.ts"]
     },
     "rootDir": ".",
     "outDir": "dist",

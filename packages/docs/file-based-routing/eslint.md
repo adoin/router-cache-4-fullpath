@@ -1,11 +1,11 @@
 # ESLint
 
-If you are not using auto imports, you will need to tell ESLint about `vue-router/auto-routes`. Add these lines to your eslint configuration:
+If you are not using auto imports, you will need to tell ESLint about `vue-x-router/auto-routes`. Add these lines to your eslint configuration:
 
 ```json{3}
 {
   "settings": {
-    "import/core-modules": ["vue-router/auto-routes"]
+    "import/core-modules": ["vue-x-router/auto-routes"]
   }
 }
 ```

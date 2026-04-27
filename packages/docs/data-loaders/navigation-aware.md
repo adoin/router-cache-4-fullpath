@@ -12,8 +12,8 @@ Any other returned value is considered as the _resolved data_ and will appear in
 `reroute()` changes the current navigation from within a data loader. It accepts the same arguments as the [return value of a navigation guard](https://router.vuejs.org/guide/advanced/navigation-guards.html#Global-Before-Guards) **as long as it changes the navigation**. It doesn't accept `true` or `undefined` as these values do not change the navigation. It **throws internally** to immediately stop the loader execution.
 
 ```ts{1,6-8,16,18}
-import { reroute } from 'vue-router/experimental'
-import { defineBasicLoader } from 'vue-router/experimental'
+import { reroute } from 'vue-x-router/experimental'
+import { defineBasicLoader } from 'vue-x-router/experimental'
 
 export const useUserData = defineBasicLoader(
   async (to) => {

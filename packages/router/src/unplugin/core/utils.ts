@@ -9,7 +9,7 @@ export function warn(
   msg: string,
   type: 'warn' | 'error' | 'debug' = 'warn'
 ): void {
-  console[type](`⚠️  [vue-router]: ${msg}`)
+  console[type](`⚠️  [vue-x-router]: ${msg}`)
 }
 
 export function logTree(tree: TreeNode, log: (str: string) => any) {
@@ -304,7 +304,7 @@ export interface ImportEntry {
 
 export class ImportsMap {
   // path -> import as -> import name
-  // e.g map['vue-router']['myUseRouter'] = 'useRouter' -> import { useRouter as myUseRouter } from 'vue-router'
+  // e.g map['vue-x-router']['myUseRouter'] = 'useRouter' -> import { useRouter as myUseRouter } from 'vue-x-router'
   private map = new Map<string, Map<string, string>>()
 
   constructor() {}

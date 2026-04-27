@@ -10,16 +10,16 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      // directly point to the vue-router source code
-      'vue-router/experimental': fileURLToPath(
+      // directly point to the vue-x-router source code
+      'vue-x-router/experimental': fileURLToPath(
         new URL('../router/src/experimental/index.ts', import.meta.url)
       ),
-      'vue-router': fileURLToPath(
+      'vue-x-router': fileURLToPath(
         new URL('../router/src/index.ts', import.meta.url)
       ),
     },
   },
-  // to handle replacements added in vue-router source code
+  // to handle replacements added in vue-x-router source code
   define: {
     __DEV__: 'true',
     __BROWSER__: 'true',

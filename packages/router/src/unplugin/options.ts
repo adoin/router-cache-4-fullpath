@@ -123,7 +123,7 @@ export type _RoutesFolder = string | RoutesFolderOption
 export type RoutesFolder = _RoutesFolder[] | _RoutesFolder
 
 /**
- * vue-router plugin options.
+ * vue-x-router plugin options.
  */
 export interface Options {
   /**

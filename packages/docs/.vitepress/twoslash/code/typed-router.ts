@@ -1,7 +1,7 @@
 /* prettier-ignore */
-import type { RouteRecordInfo } from 'vue-router'
+import type { RouteRecordInfo } from 'vue-x-router'
 
-declare module 'vue-router/auto-routes' {
+declare module 'vue-x-router/auto-routes' {
   export interface RouteNamedMap {
     '/': RouteRecordInfo<
       '/',

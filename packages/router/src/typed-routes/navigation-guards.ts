@@ -34,7 +34,7 @@ export interface NavigationGuardWithThis<T> {
 /**
  * In `router.beforeResolve((to) => {})`, the `to` is typed as `RouteLocationNormalizedLoaded`, not
  * `RouteLocationNormalized` like in `router.beforeEach()`. In practice it doesn't change much as users do not rely on
- * the difference between them but if we update the type in vue-router, we will have to update this type too.
+ * the difference between them but if we update the type in vue-x-router, we will have to update this type too.
  * @internal
  */
 export interface _NavigationGuardResolved {

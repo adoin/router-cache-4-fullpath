@@ -1,12 +1,12 @@
 import '../global.css'
 import type {
-  RouteLocationNormalizedLoaded} from 'vue-router';
+  RouteLocationNormalizedLoaded} from 'vue-x-router';
 import {
   createRouter,
   createWebHistory,
   useRoute,
   loadRouteLocation,
-} from 'vue-router'
+} from 'vue-x-router'
 import {
   createApp,
   readonly,

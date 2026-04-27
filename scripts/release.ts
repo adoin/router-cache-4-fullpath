@@ -72,7 +72,7 @@ Flags:
 //   (semver.prerelease(currentVersion) && semver.prerelease(currentVersion)[0])
 const EXPECTED_BRANCH = 'main'
 // this package will use tags like v1.0.0 while the rest will use the full package name like @pinia/testing@1.0.0
-const MAIN_PKG_NAME = 'vue-router'
+const MAIN_PKG_NAME = 'vue-x-router'
 // whether the main package is at the root of the mono repo or true if this is not a mono repo
 const IS_MAIN_PKG_AT_ROOT = false
 // array of folders of packages to release

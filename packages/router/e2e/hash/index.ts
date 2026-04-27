@@ -1,11 +1,11 @@
 import '../global.css'
 import type {
-  RouteComponent} from 'vue-router';
+  RouteComponent} from 'vue-x-router';
 import {
   createRouter,
   useRoute,
   createWebHashHistory
-} from 'vue-router'
+} from 'vue-x-router'
 import { createApp } from 'vue'
 
 const Home: RouteComponent = {

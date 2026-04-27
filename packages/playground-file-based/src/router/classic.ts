@@ -5,8 +5,8 @@ import {
   useRouter,
   type RouteLocationMatched,
   type RouteLocationNormalizedGeneric,
-} from 'vue-router'
-import { routes, handleHotUpdate } from 'vue-router/auto-routes'
+} from 'vue-x-router'
+import { routes, handleHotUpdate } from 'vue-x-router/auto-routes'
 
 export const router = createRouter({
   history: createWebHistory(),

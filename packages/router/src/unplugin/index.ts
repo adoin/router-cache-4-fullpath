@@ -67,7 +67,7 @@ export default createUnplugin<Options | undefined>((opt = {}, _meta) => {
 
   const plugins: UnpluginOptions[] = [
     {
-      name: 'vue-router',
+      name: 'vue-x-router',
       enforce: 'pre',
 
       resolveId: {
@@ -81,8 +81,8 @@ export default createUnplugin<Options | undefined>((opt = {}, _meta) => {
           },
         },
         handler(id) {
-          // vue-router/auto-routes
-          // vue-router/auto-resolver
+          // vue-x-router/auto-routes
+          // vue-x-router/auto-resolver
           if (id === MODULE_ROUTES_PATH || id === MODULE_RESOLVER_PATH) {
             // must be a virtual module
             return asVirtualId(id)
@@ -136,17 +136,17 @@ export default createUnplugin<Options | undefined>((opt = {}, _meta) => {
             }
           }
 
-          // we need to use a virtual module so that vite resolves the vue-router/auto-routes
+          // we need to use a virtual module so that vite resolves the vue-x-router/auto-routes
           // dependency correctly
           const resolvedId = getVirtualId(id)
 
-          // vue-router/auto-routes
+          // vue-x-router/auto-routes
           if (resolvedId === MODULE_ROUTES_PATH) {
             ROUTES_LAST_LOAD_TIME.update()
             return ctx.generateRoutes()
           }
 
-          // vue-router/auto-resolver
+          // vue-x-router/auto-resolver
           if (resolvedId === MODULE_RESOLVER_PATH) {
             ROUTES_LAST_LOAD_TIME.update()
             return ctx.generateResolver()
@@ -194,7 +194,7 @@ export { EditableTreeNode } from './core/extendRoutes'
  * Adds useful auto imports to the AutoImport config:
  * @example
  * ```js
- * import { VueRouterAutoImports } from 'vue-router/unplugin'
+ * import { VueRouterAutoImports } from 'vue-x-router/unplugin'
  *
  * AutoImport({
  *   imports: [VueRouterAutoImports],
@@ -205,13 +205,13 @@ export const VueRouterAutoImports: Record<
   string,
   Array<string | [importName: string, alias: string]>
 > = {
-  'vue-router': [
+  'vue-x-router': [
     'useRoute',
     'useRouter',
     'onBeforeRouteUpdate',
     'onBeforeRouteLeave',
-    // NOTE: the typing seems broken locally, so instead we export it directly from vue-router/experimental
+    // NOTE: the typing seems broken locally, so instead we export it directly from vue-x-router/experimental
     // 'definePage',
   ],
-  'vue-router/experimental': ['definePage'],
+  'vue-x-router/experimental': ['definePage'],
 }

@@ -35,7 +35,7 @@ export function extractLoadersToExport(
   return importNames
 }
 
-const PLUGIN_NAME = 'vue-router:data-loaders-auto-export'
+const PLUGIN_NAME = 'vue-x-router:data-loaders-auto-export'
 
 /**
  * {@link AutoExportLoaders} options.

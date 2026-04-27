@@ -1,11 +1,11 @@
 # ESLint
 
-如果你不使用自动导入，你需要告诉 ESLint 关于 `vue-router/auto-routes` 的信息。将这些行添加到你的 eslint 配置中：
+如果你不使用自动导入，你需要告诉 ESLint 关于 `vue-x-router/auto-routes` 的信息。将这些行添加到你的 eslint 配置中：
 
 ```json{3}
 {
   "settings": {
-    "import/core-modules": ["vue-router/auto-routes"]
+    "import/core-modules": ["vue-x-router/auto-routes"]
   }
 }
 ```

@@ -18,11 +18,11 @@ const commonOptions = {
   sourcemap: false,
   format: ['esm'],
   entry: {
-    'vue-router': './src/index.ts',
+    'vue-x-router': './src/index.ts',
   },
   outputOptions: {
     banner,
-    name: 'VueRouter',
+    name: 'VueXRouter',
     globals: {
       vue: 'Vue',
       '@vue/devtools-api': 'VueDevtoolsApi',
@@ -43,17 +43,17 @@ const commonOptions = {
   dts: false,
   // TODO: remove in v5
   async onSuccess() {
-    // write a stub file for vue-router.esm-bundler.js
+    // write a stub file for vue-x-router.esm-bundler.js
     await fs.writeFile(
-      resolve(__dirname, 'dist/vue-router.esm-bundler.js'),
+      resolve(__dirname, 'dist/vue-x-router.esm-bundler.js'),
       `
-console.warn("[vue-router]: importing from 'vue-router/dist/vue-router.esm-bundler.js' is deprecated. Use 'vue-router' directly.")
-export * from './vue-router.js'
+console.warn("[vue-x-router]: importing from 'vue-x-router/dist/vue-x-router.esm-bundler.js' is deprecated. Use 'vue-x-router' directly.")
+export * from './vue-x-router.js'
 `.trimStart()
     )
   },
   // Externalize everything and avoid mistakenly including dependencies in the
-  // bundle of vue-router runtime
+  // bundle of vue-x-router runtime
   skipNodeModulesBundle: true,
 } satisfies InlineConfig
 
@@ -75,7 +75,7 @@ const esmBrowser = {
   outputOptions: {
     ...commonOptions.outputOptions,
     dir: undefined, // must be unset with file
-    file: 'dist/vue-router.esm-browser.js',
+    file: 'dist/vue-x-router.esm-browser.js',
   },
   define: {
     ...commonOptions.define,
@@ -90,7 +90,7 @@ const esmBrowserProd = {
   minify: true,
   outputOptions: {
     ...esmBrowser.outputOptions,
-    file: 'dist/vue-router.esm-browser.prod.js',
+    file: 'dist/vue-x-router.esm-browser.prod.js',
   },
   define: {
     ...esmBrowser.define,
@@ -105,7 +105,7 @@ const cjs = {
   outputOptions: {
     ...commonOptions.outputOptions,
     dir: undefined, // must be unset with file
-    file: 'dist/vue-router.cjs',
+    file: 'dist/vue-x-router.cjs',
   },
   define: {
     ...commonOptions.define,
@@ -120,7 +120,7 @@ const cjsProd = {
   minify: true,
   outputOptions: {
     ...cjs.outputOptions,
-    file: 'dist/vue-router.prod.cjs',
+    file: 'dist/vue-x-router.prod.cjs',
   },
 } satisfies InlineConfig
 
@@ -130,7 +130,7 @@ const iife = {
   outputOptions: {
     ...commonOptions.outputOptions,
     dir: undefined, // must be unset with file
-    file: 'dist/vue-router.global.js',
+    file: 'dist/vue-x-router.global.js',
   },
   define: {
     ...commonOptions.define,
@@ -147,7 +147,7 @@ const iifeProd = {
   minify: true,
   outputOptions: {
     ...iife.outputOptions,
-    file: 'dist/vue-router.global.prod.js',
+    file: 'dist/vue-x-router.global.prod.js',
   },
   define: {
     ...iife.define,

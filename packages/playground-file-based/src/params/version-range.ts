@@ -1,4 +1,4 @@
-import { definePathParamParser, miss } from 'vue-router/experimental'
+import { definePathParamParser, miss } from 'vue-x-router/experimental'
 import { parse, type SemVer, Range, validRange } from 'semver'
 
 export const parser = definePathParamParser({

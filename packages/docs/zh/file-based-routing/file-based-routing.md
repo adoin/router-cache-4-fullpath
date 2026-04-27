@@ -185,7 +185,7 @@ VueRouter({
 你也可以为每个文件夹提供一个路径前缀，它将 _按原样_ 使用，**不能以 `/` 开头**，但可以包含任何你想要的参数，甚至 **不以 `/` 结尾**：
 
 ```ts
-import VueRouter from 'vue-router/vite'
+import VueRouter from 'vue-x-router/vite'
 
 VueRouter({
   routesFolder: [
@@ -219,7 +219,7 @@ VueRouter({
 虽然大多数时候你只会使用 `.vue` 文件，但你也可以指定自定义扩展名作为页面。例如，你可以使用 _markdown_ 文件作为页面：
 
 ```ts
-import VueRouter from 'vue-router/vite'
+import VueRouter from 'vue-x-router/vite'
 
 VueRouter({
   // 全局设置扩展名

@@ -7,7 +7,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "vue-router": ["../router/src"]
+      "vue-x-router": ["../router/src"]
     }
   },
   "references": [

@@ -17,13 +17,13 @@ export default defineConfig({
         replacement: fileURLToPath(new URL('./src', import.meta.url)),
       },
       {
-        find: /^vue-router\/experimental$/,
+        find: /^vue-x-router\/experimental$/,
         replacement: fileURLToPath(
           new URL('../../../../src/experimental/index.ts', import.meta.url)
         ),
       },
       {
-        find: /^vue-router$/,
+        find: /^vue-x-router$/,
         replacement: fileURLToPath(new URL('../../../../src', import.meta.url)),
       },
     ],

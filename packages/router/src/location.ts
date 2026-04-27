@@ -299,7 +299,7 @@ export function resolveRelativePath(to: string, from: string): string {
  *
  * @example
  * ```js
- * import { START_LOCATION } from 'vue-router'
+ * import { START_LOCATION } from 'vue-x-router'
  *
  * router.beforeEach((to, from) => {
  *   if (from === START_LOCATION) {

@@ -38,7 +38,7 @@ async function checkFileSize(filePath) {
       ),
       path.resolve(
         __dirname,
-        '../packages/router/dist/vue-router.global.prod.js'
+        '../packages/router/dist/vue-x-router.global.prod.js'
       ),
       path.resolve(
         __dirname,

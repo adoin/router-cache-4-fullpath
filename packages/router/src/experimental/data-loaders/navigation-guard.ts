@@ -54,7 +54,7 @@ export function setupLoaderGuard({
   if (router[LOADER_ENTRIES_KEY] != null) {
     if (process.env.NODE_ENV !== 'production') {
       console.warn(
-        '[vue-router]: Data Loader was setup twice. Make sure to setup only once.'
+        '[vue-x-router]: Data Loader was setup twice. Make sure to setup only once.'
       )
     }
     return () => {}
@@ -63,7 +63,7 @@ export function setupLoaderGuard({
   // explicit dev to avoid warnings in tests
   if (process.env.NODE_ENV === 'development' && !isSSR) {
     console.warn(
-      '[vue-router]: Data Loader is experimental and subject to breaking changes in the future.'
+      '[vue-x-router]: Data Loader is experimental and subject to breaking changes in the future.'
     )
   }
 
@@ -84,7 +84,7 @@ export function setupLoaderGuard({
   const removeLoaderGuard = router.beforeEach(to => {
     // Abort any pending navigation. For cancelled navigations, this will happen before the `router.afterEach()`
     if (router[PENDING_LOCATION_KEY]) {
-      // we could craft a navigation failure here but vue-router doesn't expose createRouterError() (yet?) and we don't
+      // we could craft a navigation failure here but vue-x-router doesn't expose createRouterError() (yet?) and we don't
       // seem to actually need a reason within loaders
       router[PENDING_LOCATION_KEY].meta[ABORT_CONTROLLER_KEY]?.abort()
     }
@@ -202,7 +202,7 @@ export function setupLoaderGuard({
           for (const result of results as unknown[]) {
             if (result instanceof NavigationResult) {
               console.warn(
-                '[vue-router]: Returning a NavigationResult from a loader is deprecated. Use reroute() instead, which throws internally.'
+                '[vue-x-router]: Returning a NavigationResult from a loader is deprecated. Use reroute() instead, which throws internally.'
               )
               throw result
             }

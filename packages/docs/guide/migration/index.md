@@ -14,8 +14,8 @@ Vue Router is no longer a class but a set of functions. Instead of writing `new 
 
 ```js
 // previously was
-// import Router from 'vue-router'
-import { createRouter } from 'vue-router'
+// import Router from 'vue-x-router'
+import { createRouter } from 'vue-x-router'
 
 const router = createRouter({
   // ...
@@ -33,7 +33,7 @@ The `mode: 'history'` option has been replaced with a more flexible one named `h
 Here is a full snippet:
 
 ```js
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-x-router'
 // there is also createWebHashHistory and createMemoryHistory
 
 createRouter({
@@ -62,7 +62,7 @@ router.isReady().then(() => {
 The `base` option is now passed as the first argument to `createWebHistory` (and other histories):
 
 ```js
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-x-router'
 createRouter({
   history: createWebHistory('/base-directory/'),
   routes: [],
@@ -119,7 +119,7 @@ You don't need to add the `*` for repeated params if you don't plan to directly 
 
 Previously the properties of the [`currentRoute`](https://v3.router.vuejs.org/api/#router-currentroute) object on a router instance could be accessed directly.
 
-With the introduction of vue-router v4, the underlying type of the `currentRoute` object on the router instance has changed to `Ref<RouteLocationNormalizedLoaded>`, which comes from the newer [reactivity fundamentals](https://vuejs.org/guide/essentials/reactivity-fundamentals.html) introduced in Vue 3.
+With the introduction of vue-x-router v4, the underlying type of the `currentRoute` object on the router instance has changed to `Ref<RouteLocationNormalizedLoaded>`, which comes from the newer [reactivity fundamentals](https://vuejs.org/guide/essentials/reactivity-fundamentals.html) introduced in Vue 3.
 
 While this doesn't change anything if you're reading the route with `useRoute()` or `this.$route`, if you're accessing it directly on the router instance, you will need to access the actual route object via `currentRoute.value`:
 
@@ -218,7 +218,7 @@ If you wish to customize this behavior, e.g. take into account the `hash` sectio
 
 ### Navigation guards in mixins are ignored
 
-At the moment navigation guards in mixins are not supported. You can track its support at [vue-router#454](https://github.com/vuejs/router/issues/454).
+At the moment navigation guards in mixins are not supported. You can track its support at [vue-x-router#454](https://github.com/vuejs/router/issues/454).
 
 ### Removal of `router.match` and changes to `router.resolve`
 
@@ -455,11 +455,11 @@ Previously, `$router.push()` and `$router.replace()` accepted two callbacks, `on
 
 To make typings more consistent and expressive, some types have been renamed:
 
-| `vue-router@3` | `vue-router@4`          |
-| -------------- | ----------------------- |
-| RouteConfig    | RouteRecordRaw          |
-| Location       | RouteLocation           |
-| Route          | RouteLocationNormalized |
+| `vue-x-router@3` | `vue-x-router@4`        |
+| ---------------- | ----------------------- |
+| RouteConfig      | RouteRecordRaw          |
+| Location         | RouteLocation           |
+| Route            | RouteLocationNormalized |
 
 ## New Features
 

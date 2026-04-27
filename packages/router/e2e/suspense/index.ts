@@ -6,7 +6,7 @@ import {
   onBeforeRouteLeave,
   RouterView,
   useRoute,
-} from 'vue-router'
+} from 'vue-x-router'
 import type {
   FunctionalComponent} from 'vue';
 import {

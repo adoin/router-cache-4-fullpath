@@ -5,7 +5,7 @@ sidebarDepth: 0
 # Programmatic Navigation
 
 <VueSchoolLink
-  href="https://vueschool.io/lessons/vue-router-4-programmatic-navigation"
+  href="https://vueschool.io/lessons/vue-x-router-4-programmatic-navigation"
   title="Learn how to navigate programmatically"
 />
 

@@ -1,9 +1,9 @@
-export { createWebHistory } from '../dist/vue-router.js'
+export { createWebHistory } from '../dist/vue-x-router.js'
 export {
   //
   RouterLink,
   RouterView,
-} from '../dist/vue-router.js'
+} from '../dist/vue-x-router.js'
 export {
   createFixedResolver,
   experimental_createRouter,

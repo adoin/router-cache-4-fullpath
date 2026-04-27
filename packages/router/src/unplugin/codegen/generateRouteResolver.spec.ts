@@ -136,7 +136,7 @@ describe('generateRouteRecordQuery', () => {
     generateRouteRecordQuery({ importsMap, node, paramParsersMap: new Map() })
 
     expect(
-      importsMap.has('vue-router/experimental', 'MatcherPatternQueryParam')
+      importsMap.has('vue-x-router/experimental', 'MatcherPatternQueryParam')
     ).toBe(true)
   })
 

@@ -1,7 +1,7 @@
 # Waiting for the result of a Navigation
 
 <VueSchoolLink
-  href="https://vueschool.io/lessons/vue-router-4-detecting-navigation-failures"
+  href="https://vueschool.io/lessons/vue-x-router-4-detecting-navigation-failures"
   title="Learn how to detect navigation failures"
 />
 
@@ -49,7 +49,7 @@ if (navigationResult) {
 _Navigation Failures_ are `Error` instances with a few extra properties that gives us enough information to know what navigation was prevented and why. To check the nature of a navigation result, use the `isNavigationFailure` function:
 
 ```js
-import { NavigationFailureType, isNavigationFailure } from 'vue-router'
+import { NavigationFailureType, isNavigationFailure } from 'vue-x-router'
 
 // trying to leave the editing page of an article without saving
 const failure = await router.push('/articles/2')

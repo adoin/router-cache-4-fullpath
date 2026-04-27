@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute } from 'vue-x-router'
 
 const route = useRoute()
 const n = ref(0)

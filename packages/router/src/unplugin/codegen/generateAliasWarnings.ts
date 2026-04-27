@@ -14,7 +14,7 @@ export function generateAliasWarnings(tree: PrefixTree): string {
     for (const alias of node.value.alias) {
       if (!alias.startsWith('/')) {
         warnings.push(
-          `console.warn('[vue-router] Alias "${alias}" for route "${node.value.fullPath}" must be absolute (start with "/"). Relative aliases are not supported in file-based routing.')`
+          `console.warn('[vue-x-router] Alias "${alias}" for route "${node.value.fullPath}" must be absolute (start with "/"). Relative aliases are not supported in file-based routing.')`
         )
       }
     }

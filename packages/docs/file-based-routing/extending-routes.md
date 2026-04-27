@@ -5,7 +5,7 @@
 You can extend the routes at build time with the `extendRoute` or the `beforeWriteFiles` options. Both can return a Promise:
 
 ```ts
-import VueRouter from 'vue-router/vite'
+import VueRouter from 'vue-x-router/vite'
 import path from 'node:path'
 
 VueRouter({
@@ -29,7 +29,7 @@ It's possible to override the route configuration directly in the page component
 
 ### `definePage()`
 
-You can modify and extend any page component with the `definePage()` macro. This is useful for adding meta information, or modifying the route object. It's globally available in Vue components but you can import it from `vue-router` if needed.
+You can modify and extend any page component with the `definePage()` macro. This is useful for adding meta information, or modifying the route object. It's globally available in Vue components but you can import it from `vue-x-router` if needed.
 
 ```vue{2-7}
 <script setup lang="ts">
@@ -78,8 +78,8 @@ Note you can specify the language to use with `<route lang="yaml">`. By default,
 As an escape-hatch, it's possible to extend the routes **at runtime** by simply changing or cloning the `routes` array before passing it to `createRouter()`. Since these changes are made at runtime, they are not reflected in the generated `typed-router.d.ts` file.
 
 ```js{4-9}
-import { createWebHistory, createRouter } from 'vue-router'
-import { routes } from 'vue-router/auto-routes'
+import { createWebHistory, createRouter } from 'vue-x-router'
+import { routes } from 'vue-x-router/auto-routes'
 
 for (const route of routes) {
   if (route.name === '/admin') {
@@ -103,8 +103,8 @@ As this plugin evolves, this should be used less and less and only become necess
 One example of this is using [vite-plugin-vue-layouts](https://github.com/JohnCampionJr/vite-plugin-vue-layouts) which can only be used this way:
 
 ```ts
-import { createRouter } from 'vue-router'
-import { routes } from 'vue-router/auto-routes'
+import { createRouter } from 'vue-x-router'
+import { routes } from 'vue-x-router/auto-routes'
 import { setupLayouts } from 'virtual:generated-layouts'
 
 const router = createRouter({
@@ -116,7 +116,7 @@ const router = createRouter({
 Another one is adding _redirect_ records to the router:
 
 ```ts
-import { routes } from 'vue-router/auto-routes'
+import { routes } from 'vue-x-router/auto-routes'
 
 routes.push({
   path: '/path-to-redirect',

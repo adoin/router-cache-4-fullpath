@@ -155,7 +155,7 @@ export function createRouterError<E extends RouterError>(
  *
  * @example
  * ```js
- * import { isNavigationFailure, NavigationFailureType } from 'vue-router'
+ * import { isNavigationFailure, NavigationFailureType } from 'vue-x-router'
  *
  * router.afterEach((to, from, failure) => {
  *   // Any kind of navigation failure

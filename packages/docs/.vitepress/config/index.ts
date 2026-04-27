@@ -13,12 +13,12 @@ export default defineConfig({
     pt: {
       label: 'Português',
       lang: 'pt-PT',
-      link: 'https://vue-router-docs-pt.netlify.app/',
+      link: 'https://vue-x-router-docs-pt.netlify.app/',
     },
     ru: {
       label: 'Русский',
       lang: 'ru-RU',
-      link: 'https://vue-router-ru.netlify.app',
+      link: 'https://vue-x-router-ru.netlify.app',
     },
   },
 })

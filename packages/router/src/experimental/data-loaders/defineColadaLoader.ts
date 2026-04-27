@@ -289,7 +289,7 @@ export function defineColadaLoader<Data>(
             if (newData instanceof NavigationResult) {
               if (process.env.NODE_ENV !== 'production') {
                 console.warn(
-                  '[vue-router]: Returning a NavigationResult is deprecated. Use reroute() instead, which throws internally.'
+                  '[vue-x-router]: Returning a NavigationResult is deprecated. Use reroute() instead, which throws internally.'
                 )
               }
               // prevent commit from running in finally

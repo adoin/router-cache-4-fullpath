@@ -108,7 +108,7 @@ ${startIndent}}`
   if (definePageDataList.length > 0) {
     // remove one tab
     const mergeCallIndent = startIndent.slice(2)
-    importsMap.add('vue-router/experimental', '_mergeRouteRecord')
+    importsMap.add('vue-x-router/experimental', '_mergeRouteRecord')
     return `${mergeCallIndent}_mergeRouteRecord(
 ${routeRecord},
 ${definePageDataList.map(s => startIndent + s).join(',\n')}

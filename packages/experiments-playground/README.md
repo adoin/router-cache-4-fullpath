@@ -1,6 +1,6 @@
 # Experiments playground
 
-This is a playground for the `vue-router/experimental` features.
+This is a playground for the `vue-x-router/experimental` features.
 
 ## Setup
 

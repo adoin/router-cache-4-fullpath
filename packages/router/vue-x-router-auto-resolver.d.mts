@@ -6,7 +6,7 @@
 import type {
   EXPERIMENTAL_Router,
   EXPERIMENTAL_RouterOptions,
-} from 'vue-router/experimental'
+} from 'vue-x-router/experimental'
 
 /**
  * Handles HMR.
@@ -23,5 +23,5 @@ export declare const resolver: EXPERIMENTAL_RouterOptions['resolver']
 // TODO:move to the generated route map so it can import the correct version (custom resolvers or not)
 // Make the macros globally available
 // declare global {
-//   const definePage: (typeof import("vue-router/experimental"))["definePage"];
+//   const definePage: (typeof import("vue-x-router/experimental"))["definePage"];
 // }

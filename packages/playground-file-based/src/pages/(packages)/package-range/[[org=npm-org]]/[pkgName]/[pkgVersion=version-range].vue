@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useRoute } from 'vue-router'
+import { useRoute } from 'vue-x-router'
 import { SemVer } from 'semver'
 import SemVerInfo from '@/components/SemVerInfo.vue'
 

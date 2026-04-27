@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute } from 'vue-x-router'
 import { z } from 'zod'
 import { parse, valid } from 'semver'
 import SemVerInfo from '@/components/SemVerInfo.vue'

@@ -4,7 +4,7 @@
     "noEmit": true,
     "declaration": true,
     "paths": {
-      "vue-router": ["../dist"]
+      "vue-x-router": ["../dist"]
     },
     "noImplicitReturns": false
   },

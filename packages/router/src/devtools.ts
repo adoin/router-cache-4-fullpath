@@ -70,7 +70,7 @@ export function addDevtools(app: App, router: Router, matcher: RouterMatcher) {
     {
       id: 'org.vuejs.router' + (id ? '.' + id : ''),
       label: 'Vue Router',
-      packageName: 'vue-router',
+      packageName: 'vue-x-router',
       homepage: 'https://router.vuejs.org',
       logo: 'https://router.vuejs.org/logo.png',
       componentStateTypes: ['Routing'],

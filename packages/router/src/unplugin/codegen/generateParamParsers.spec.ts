@@ -406,7 +406,7 @@ describe('generateParamParserOptions', () => {
     const result = generateParamParserOptions(param, importsMap, paramParsers)
     expect(result).toBe('PARAM_PARSER_INT')
     expect(importsMap.toString()).toContain(
-      `import { PARAM_PARSER_INT } from 'vue-router/experimental'`
+      `import { PARAM_PARSER_INT } from 'vue-x-router/experimental'`
     )
   })
 
@@ -425,7 +425,7 @@ describe('generateParamParserOptions', () => {
     const result = generateParamParserOptions(param, importsMap, paramParsers)
     expect(result).toBe('PARAM_PARSER_BOOL')
     expect(importsMap.toString()).toContain(
-      `import { PARAM_PARSER_BOOL } from 'vue-router/experimental'`
+      `import { PARAM_PARSER_BOOL } from 'vue-x-router/experimental'`
     )
   })
 
@@ -719,7 +719,7 @@ describe('generateNormalizedParamParsersDeclarations', () => {
       'const _normalized_PARAM_PARSER__uuid = _normalizeParamParser(PARAM_PARSER__uuid)'
     )
     expect(importsMap.toString()).toContain(
-      `import { _normalizeParamParser } from 'vue-router/experimental'`
+      `import { _normalizeParamParser } from 'vue-x-router/experimental'`
     )
     expect(importsMap.toString()).toContain(
       `import { parser as PARAM_PARSER__uuid } from '/path/to/parsers/uuid'`

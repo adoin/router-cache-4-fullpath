@@ -100,7 +100,7 @@ export class NavigationResult extends NavResult {
   constructor(...args: ConstructorParameters<typeof NavResult>) {
     super(...args)
     console.warn(
-      `[vue-router]: new NavigationResult(to) is deprecated. Use reroute(to) instead.`
+      `[vue-x-router]: new NavigationResult(to) is deprecated. Use reroute(to) instead.`
     )
   }
 }
@@ -126,7 +126,7 @@ export {
 
 // in the new experimental router, there are only parents
 // this should create type errors if someone is relying on children
-// declare module 'vue-router' {
+// declare module 'vue-x-router' {
 //   export interface RouteLocationMatched {
 //     /**
 //      * The experimental router uses a `parent` property instead of `children`.

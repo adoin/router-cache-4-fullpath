@@ -21,7 +21,7 @@
     "esModuleInterop": true,
     "types": ["vite/client"],
     "paths": {
-      "vue-router": ["../src"]
+      "vue-x-router": ["../src"]
     }
   }
 }

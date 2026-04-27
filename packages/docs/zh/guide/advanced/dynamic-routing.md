@@ -1,7 +1,7 @@
 # 动态路由
 
 <VueSchoolLink
-  href="https://vueschool.io/lessons/vue-router-4-dynamic-routing"
+  href="https://vueschool.io/lessons/vue-x-router-4-dynamic-routing"
   title="Learn how to add routes at runtime"
 />
 

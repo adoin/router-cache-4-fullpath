@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-x-router'
 import doc from '../main.ts?raw'
 
 const route = useRoute()

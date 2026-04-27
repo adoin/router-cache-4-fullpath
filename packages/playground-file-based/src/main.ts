@@ -4,8 +4,8 @@ import App from './App.vue'
 import { createPinia } from 'pinia'
 import { PiniaColada } from '@pinia/colada'
 import { router } from './router/resolver'
-import { DataLoaderPlugin } from 'vue-router/experimental'
-import { RouterLink, RouterView } from 'vue-router'
+import { DataLoaderPlugin } from 'vue-x-router/experimental'
+import { RouterLink, RouterView } from 'vue-x-router'
 
 const app = createApp(App)
 

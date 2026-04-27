@@ -211,7 +211,7 @@ export function createRoutesContext(options: ResolvedOptions) {
     }
     await writeRouteInfoToNode(node, filePath)
     await options.extendRoute?.(new EditableTreeNode(node))
-    // no need to manually trigger the update of vue-router/auto-routes because
+    // no need to manually trigger the update of vue-x-router/auto-routes because
     // the change of the vue file will trigger HMR
     // server?.invalidate(filePath)
     server?.updateRoutes()
@@ -294,7 +294,7 @@ export function createRoutesContext(options: ResolvedOptions) {
         missingParsers
           .map(
             ({ parser, routePath, filePaths }) =>
-              `console.error('[vue-router] Parameter parser "${parser}" not found for route "${routePath}". File: ${filePaths.join(', ')}')`
+              `console.error('[vue-x-router] Parameter parser "${parser}" not found for route "${routePath}". File: ${filePaths.join(', ')}')`
           )
           .join('\n') +
         '\n'
@@ -315,7 +315,7 @@ if (import.meta.hot) {
   import.meta.hot.accept((mod) => {
     const router = import.meta.hot.data.router
     if (!router) {
-      import.meta.hot.invalidate('[vue-router:HMR] Cannot replace the resolver because there is no active router. Reloading.')
+      import.meta.hot.invalidate('[vue-x-router:HMR] Cannot replace the resolver because there is no active router. Reloading.')
       return
     }
     router._hmrReplaceResolver(mod.resolver)
@@ -358,7 +358,7 @@ if (import.meta.hot) {
   import.meta.hot.accept((mod) => {
     const router = import.meta.hot.data.router
     if (!router) {
-      import.meta.hot.invalidate('[vue-router:HMR] Cannot replace the routes because there is no active router. Reloading.')
+      import.meta.hot.invalidate('[vue-x-router:HMR] Cannot replace the routes because there is no active router. Reloading.')
       return
     }
     router.clearRoutes()

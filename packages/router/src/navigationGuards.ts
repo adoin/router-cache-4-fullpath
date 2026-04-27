@@ -58,7 +58,7 @@ function registerGuard(
     if (__DEV__ && !newRecord) {
       warn(
         'No active route record was found when reactivating component with navigation guard. ' +
-          'This is likely a bug in vue-router. Please report it.'
+          'This is likely a bug in vue-x-router. Please report it.'
       )
     }
     if (newRecord) {

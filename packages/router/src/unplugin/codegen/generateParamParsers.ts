@@ -109,7 +109,7 @@ export function generateParamParserOptions(
     return `_normalized_PARAM_PARSER__${name}`
   } else if (NATIVE_PARAM_PARSERS.includes(param.parser)) {
     const varName = `PARAM_PARSER_${param.parser.toUpperCase()}`
-    importsMap.add('vue-router/experimental', varName)
+    importsMap.add('vue-x-router/experimental', varName)
     return varName
   }
   return ''
@@ -123,7 +123,7 @@ export function generateNormalizedParamParsersDeclarations(
   for (const [, { name, absolutePath }] of paramParsers) {
     const rawVar = `PARAM_PARSER__${name}`
     const normalizedVar = `_normalized_PARAM_PARSER__${name}`
-    importsMap.add('vue-router/experimental', '_normalizeParamParser')
+    importsMap.add('vue-x-router/experimental', '_normalizeParamParser')
     importsMap.add(absolutePath, { name: 'parser', as: rawVar })
     declarations.push(
       `const ${normalizedVar} = _normalizeParamParser(${rawVar})`

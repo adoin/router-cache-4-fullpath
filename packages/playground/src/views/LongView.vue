@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+import { useRoute } from 'vue-x-router'
 
 const route = useRoute<'long'>()
 </script>

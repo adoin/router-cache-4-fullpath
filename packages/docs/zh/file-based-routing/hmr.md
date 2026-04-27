@@ -6,11 +6,11 @@
 
 <!-- prettier-ignore -->
 ```ts [src/router.ts]
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-x-router'
 import {
   routes,
   handleHotUpdate, // [!code ++]
-} from 'vue-router/auto-routes'
+} from 'vue-x-router/auto-routes'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -29,8 +29,8 @@ if (import.meta.hot) { // [!code ++]
 
 <!-- prettier-ignore -->
 ```ts [src/router.ts]
-import { createRouter, createWebHistory } from 'vue-router'
-import { routes, handleHotUpdate } from 'vue-router/auto-routes'
+import { createRouter, createWebHistory } from 'vue-x-router'
+import { routes, handleHotUpdate } from 'vue-x-router/auto-routes'
 
 export const router = createRouter({
   history: createWebHistory(),

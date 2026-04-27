@@ -5,7 +5,7 @@
 你可以使用 `extendRoute` 或 `beforeWriteFiles` 选项在构建时扩展路由。两者都可以返回 Promise：
 
 ```ts
-import VueRouter from 'vue-router/vite'
+import VueRouter from 'vue-x-router/vite'
 import path from 'node:path'
 
 VueRouter({
@@ -29,7 +29,7 @@ VueRouter({
 
 ### `definePage()`
 
-你可以使用 `definePage()` 宏修改和扩展任何页面组件。这对于添加 meta 信息或修改路由对象很有用。它在 Vue 组件中全局可用，但如果需要，你可以从 `vue-router` 导入它。
+你可以使用 `definePage()` 宏修改和扩展任何页面组件。这对于添加 meta 信息或修改路由对象很有用。它在 Vue 组件中全局可用，但如果需要，你可以从 `vue-x-router` 导入它。
 
 ```vue{2-7}
 <script setup lang="ts">
@@ -78,8 +78,8 @@ definePage({
 作为一种权宜之计，可以在**运行时**通过简单地更改或克隆 `routes` 数组并将其传递给 `createRouter()` 之前扩展路由。由于这些更改是在运行时进行的，因此它们不会反映在生成的 `typed-router.d.ts` 文件中。
 
 ```js{4-9}
-import { createWebHistory, createRouter } from 'vue-router'
-import { routes } from 'vue-router/auto-routes'
+import { createWebHistory, createRouter } from 'vue-x-router'
+import { routes } from 'vue-x-router/auto-routes'
 
 for (const route of routes) {
   if (route.name === '/admin') {
@@ -103,8 +103,8 @@ const router = createRouter({
 一个例子是使用 [vite-plugin-vue-layouts](https://github.com/JohnCampionJr/vite-plugin-vue-layouts)，它只能这样使用：
 
 ```ts
-import { createRouter } from 'vue-router'
-import { routes } from 'vue-router/auto-routes'
+import { createRouter } from 'vue-x-router'
+import { routes } from 'vue-x-router/auto-routes'
 import { setupLayouts } from 'virtual:generated-layouts'
 
 const router = createRouter({
@@ -116,7 +116,7 @@ const router = createRouter({
 另一个例子是向路由器添加 _重定向_ 记录：
 
 ```ts
-import { routes } from 'vue-router/auto-routes'
+import { routes } from 'vue-x-router/auto-routes'
 
 routes.push({
   path: '/path-to-redirect',

@@ -1,4 +1,4 @@
-import { defineParamParser, miss } from 'vue-router/experimental'
+import { defineParamParser, miss } from 'vue-x-router/experimental'
 
 export const parser = defineParamParser({
   get: value => {

@@ -9,7 +9,7 @@ However, if the loader is **not navigation-aware**, the error cannot be intercep
 To be able to intercept errors in non-lazy loaders, we can specify a list of error classes that are considered _expected errors_. This allows blocking loader to **not abort the navigation** and instead keep the error in the `error` property of the loader and let the page locally display the error state.
 
 ```ts{3-10,14,18} twoslash
-import { defineBasicLoader } from 'vue-router/experimental'
+import { defineBasicLoader } from 'vue-x-router/experimental'
 // custom error class
 class MyError extends Error {
   // override is only needed in TS
@@ -38,8 +38,8 @@ You can also specify _expected errors_ globally for all loaders by providing the
 
 ```ts{4} twoslash
 import { createApp } from 'vue'
-import type { Router } from 'vue-router'
-import { DataLoaderPlugin } from 'vue-router/experimental'
+import type { Router } from 'vue-x-router'
+import { DataLoaderPlugin } from 'vue-x-router/experimental'
 const app = createApp({})
 const router = {} as Router
 class MyError extends Error {
@@ -60,7 +60,7 @@ app.use(DataLoaderPlugin, {
 Then you need to opt-in in the loader by setting the `errors` option to `true` to keep the error in the `error` property of the loader.
 
 ```ts{7} twoslash
-import { defineBasicLoader } from 'vue-router/experimental'
+import { defineBasicLoader } from 'vue-x-router/experimental'
 // ---cut---
 export const useUserData = defineBasicLoader(
   async (to) => {
@@ -81,7 +81,7 @@ export const useUserData = defineBasicLoader(
 One of the benefits of Data Loaders is that they ensure the `data` to be ready before the component is rendered. With expected errors, this is no longer true and `data` can be `undefined`:
 
 ```ts{11} twoslash
-import { defineBasicLoader } from 'vue-router/experimental'
+import { defineBasicLoader } from 'vue-x-router/experimental'
 // ---cut---
 export const useDataWithErrors = defineBasicLoader(
   async (to) => {
@@ -108,7 +108,7 @@ If you need more control over the error handling, you can provide a function to 
 ```ts{3-9} twoslash
 // @errors: 2769
 import { createApp } from 'vue'
-import { DataLoaderPlugin } from 'vue-router/experimental'
+import { DataLoaderPlugin } from 'vue-x-router/experimental'
 const app = createApp({})
 const router = {} as any
 // ---cut---
@@ -153,10 +153,10 @@ If you want to be even stricter, you can override the default `Error` type with 
 
 ```ts
 // types-extension.d.ts
-import 'vue-router'
+import 'vue-x-router'
 export {}
 
-declare module 'vue-router' {
+declare module 'vue-x-router' {
   interface TypesConfig {
     Error: unknown
   }

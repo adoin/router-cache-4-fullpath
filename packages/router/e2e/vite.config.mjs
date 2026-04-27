@@ -32,7 +32,7 @@ const config = env => {
     resolve: {
       alias: {
         vue: resolve(__dirname, '../node_modules/vue/dist/vue.esm-bundler.js'),
-        'vue-router': join(__dirname, '..', 'src'),
+        'vue-x-router': join(__dirname, '..', 'src'),
       },
       // Add `.ts` and `.tsx` as a resolvable extension.
       extensions: ['.ts', '.tsx', '.js', '.vue'],
