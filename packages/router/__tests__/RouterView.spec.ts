@@ -5,7 +5,7 @@ import { RouterView } from '../src/RouterView'
 import type { RouteLocationNormalizedLoose } from './utils'
 import { components } from './utils'
 import { START_LOCATION_NORMALIZED } from '../src/location'
-import { markRaw } from 'vue'
+import { h, markRaw, type VNode } from 'vue'
 import { createMockedRoute } from './mount'
 import { mount } from '@vue/test-utils'
 import type { RouteLocationNormalized } from '../src'
@@ -557,6 +557,66 @@ describe('RouterView', () => {
       expect(wrapper.html()).toMatchInlineSnapshot(`"<div>Home</div>"`)
       await route.set(routes.foo)
       expect(wrapper.html()).toMatchInlineSnapshot(`"<div>Foo</div>"`)
+    })
+  })
+
+  describe('cacheComponentName', () => {
+    it('exposes a slot Component whose type name from a custom function (e.g. per pageId)', async () => {
+      const route = createMockedRoute({
+        ...routes.root,
+        fullPath: '/fb/123',
+        path: '/fb/123',
+        params: { pageId: '123' },
+        matched: routes.root.matched,
+      })
+      const wrapper = await mount(RouterView as any, {
+        props: {
+          cacheComponentName: (r: { params: { pageId?: string } }) =>
+            `FacebookAdEdit-${r.params.pageId ?? ''}`,
+        },
+        global: {
+          provide: route.provides,
+        },
+        slots: {
+          default: (props: {
+            Component: VNode
+            route: RouteLocationNormalized
+          }) => {
+            const t = props.Component?.type as { name?: string }
+            return h('div', { 'data-cache-name': t?.name ?? 'missing' })
+          },
+        },
+      })
+      expect(
+        wrapper.get('[data-cache-name]').attributes('data-cache-name')
+      ).toBe('FacebookAdEdit-123')
+    })
+
+    it('exposes a slot Component whose type name is route.fullPath for keep-alive include', async () => {
+      const route = createMockedRoute(routes.root)
+      const wrapper = await mount(RouterView as any, {
+        props: { cacheComponentName: 'fullPath' },
+        global: {
+          provide: route.provides,
+        },
+        slots: {
+          default: (props: {
+            Component: VNode
+            route: RouteLocationNormalized
+          }) => {
+            const t = props.Component?.type as { name?: string }
+            return h('div', { 'data-cache-name': t?.name ?? 'missing' })
+          },
+        },
+      })
+      expect(
+        wrapper.get('[data-cache-name]').attributes('data-cache-name')
+      ).toBe('/')
+      await route.set(routes.foo)
+      await wrapper.vm.$nextTick()
+      expect(
+        wrapper.get('[data-cache-name]').attributes('data-cache-name')
+      ).toBe('/foo')
     })
   })
 })

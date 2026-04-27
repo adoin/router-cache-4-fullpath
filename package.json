@@ -61,7 +61,7 @@
   "volta": {
     "node": "24.7.0"
   },
-  "packageManager": "pnpm@10.30.0",
+  "packageManager": "pnpm@10.33.2",
   "pnpm": {
     "overrides": {
       "@types/node": "^24.10.4",

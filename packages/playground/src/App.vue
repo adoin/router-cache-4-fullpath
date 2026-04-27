@@ -34,6 +34,16 @@
     <hr />
 
     <label>
+      <input type="checkbox" v-model="demoFullPathCache" />
+      启用 <code>cache-component-name="fullPath"</code> + KeepAlive 实验
+      <span>（/ka/cache-a 与 /ka/cache-b 来回切换，计数应被保留）</span>
+    </label>
+    <ul v-if="demoFullPathCache">
+      <li><router-link to="/ka/cache-a">/ka/cache-a</router-link></li>
+      <li><router-link to="/ka/cache-b">/ka/cache-b</router-link></li>
+    </ul>
+
+    <label>
       <input type="checkbox" v-model="state.cancelNextNavigation" /> Cancel Next
       Navigation
     </label>
@@ -170,8 +180,24 @@
         <router-link to="/features/one">Go to Feature one</router-link>
       </li>
     </ul>
-    <button @click="toggleViewName">Toggle view</button>
-    <RouterView :name="viewName" v-slot="{ Component, route }">
+    <button v-if="!demoFullPathCache" @click="toggleViewName">
+      Toggle view
+    </button>
+
+    <RouterView
+      v-if="demoFullPathCache"
+      v-slot="{ Component, route }"
+      cache-component-name="fullPath"
+    >
+      <keep-alive :include="kaCacheInclude">
+        <component
+          :is="Component"
+          :key="route.name === 'repeat' ? route.path : route.meta.key"
+        />
+      </keep-alive>
+    </RouterView>
+
+    <RouterView v-else :name="viewName" v-slot="{ Component, route }">
       <Transition
         :name="route.meta.transition || 'fade'"
         mode="out-in"
@@ -195,7 +221,7 @@
 </template>
 
 <script lang="ts" setup>
-import { inject, computed, ref } from 'vue'
+import { inject, computed, ref, shallowRef } from 'vue'
 import { scrollWaiter } from './scrollWaiter'
 import { useLink, useRoute, RouterLink } from 'vue-router'
 import AppLink from './AppLink.vue'
@@ -203,6 +229,9 @@ import AppLink from './AppLink.vue'
 const route = useRoute()
 const state = inject('state')
 const viewName = ref('default')
+const demoFullPathCache = ref(false)
+/** 与 <keep-alive> 的 include 一致：按「当前 location 的 fullPath」 */
+const kaCacheInclude = shallowRef(['/ka/cache-a', '/ka/cache-b'] as const)
 
 useLink({ to: '/' })
 useLink({ to: '/documents/hello' })

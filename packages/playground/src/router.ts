@@ -15,6 +15,7 @@ import ComponentWithData from './views/ComponentWithData.vue'
 import { globalState } from './store'
 import { scrollWaiter } from './scrollWaiter'
 import RepeatedParams from './views/RepeatedParams.vue'
+import KeepAliveProbe from './views/KeepAliveProbe.vue'
 let removeRoute: (() => void) | undefined
 
 export const routerHistory = createWebHistory()
@@ -83,6 +84,9 @@ export const router = createRouter({
       ],
     },
     { path: '/with-data', component: ComponentWithData, name: 'WithData' },
+    /** 用于本地验证 cache-component-name="fullPath" + keep-alive :include */
+    { path: '/ka/cache-a', name: 'ka-cache-a', component: KeepAliveProbe },
+    { path: '/ka/cache-b', name: 'ka-cache-b', component: KeepAliveProbe },
     { path: '/rep/:a*', component: RepeatedParams, name: 'repeat' },
     { path: '/:data(.*)', component: NotFound, name: 'NotFound' },
     {

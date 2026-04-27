@@ -37,6 +37,22 @@ export interface RouterViewProps {
   name?: string
   // allow looser type for user facing api
   route?: RouteLocationNormalized
+  /**
+   * When set, wraps the route component in a stable shell whose **component name** is
+   * used by `<keep-alive :include> / :exclude>`. The inner page can stay the same
+   * SFC while each tab (e.g. `.../:pageId`) gets a **distinct** cache key.
+   * - `'fullPath' | 'path'`: use `route.fullPath` or `route.path` as the shell name.
+   * - `(route) => string | null | undefined`: custom key, e.g. `` `FacebookAdEdit-${route.params.pageId}` ``
+   *   so multiple opens of the same **route name** are separate in KeepAlive; keep
+   *   `include` in sync with your open tabs and **remove** the key when closing a tab
+   *   to drop that cache instance. If the function returns a falsy value, no shell is
+   *   applied (same as off).
+   * `ref` stays on the real route component so guards / `instances` are unchanged.
+   */
+  cacheComponentName?:
+    | 'fullPath'
+    | 'path'
+    | ((route: RouteLocationNormalizedLoaded) => string | null | undefined)
 }
 
 export interface RouterViewDevtoolsContext extends Pick<
@@ -44,6 +60,27 @@ export interface RouterViewDevtoolsContext extends Pick<
   'path' | 'name' | 'meta'
 > {
   depth: number
+}
+
+const keepAliveShellByKey = new Map<string, Component>()
+
+/**
+ * One component type per cache key so KeepAlive identity is stable for a given URL
+ * segment (see `cacheComponentName` on RouterView).
+ */
+function getKeepAliveShellForKey(cacheName: string): Component {
+  let shell = keepAliveShellByKey.get(cacheName)
+  if (!shell) {
+    shell = defineComponent({
+      name: cacheName,
+      inheritAttrs: false,
+      setup(_, { slots }) {
+        return () => slots.default?.() ?? null
+      },
+    })
+    keepAliveShellByKey.set(cacheName, shell)
+  }
+  return shell
 }
 
 export const RouterViewImpl = /*#__PURE__*/ defineComponent({
@@ -56,6 +93,12 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
       default: 'default',
     },
     route: Object as PropType<RouteLocationNormalizedLoaded>,
+    cacheComponentName: [String, Function] as PropType<
+      | 'fullPath'
+      | 'path'
+      | ((route: RouteLocationNormalizedLoaded) => string | null | undefined)
+      | undefined
+    >,
   },
 
   // Better compat for @vue/compat users
@@ -169,7 +212,20 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
         }
       }
 
-      const component = h(
+      const c = props.cacheComponentName
+      const cacheName =
+        typeof c === 'function'
+          ? (() => {
+              const key = c(route)
+              return key == null || key === '' ? undefined : String(key)
+            })()
+          : c === 'fullPath'
+            ? route.fullPath
+            : c === 'path'
+              ? route.path
+              : undefined
+
+      const innerComponent = h(
         ViewComponent,
         assign({}, routeProps, attrs, {
           onVnodeUnmounted,
@@ -177,10 +233,18 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
         })
       )
 
+      const component = cacheName
+        ? h(getKeepAliveShellForKey(cacheName), null, {
+            default: () => innerComponent,
+          })
+        : innerComponent
+
+      const vnodeForDevtools = cacheName ? innerComponent : component
+
       if (
         (__DEV__ || __FEATURE_PROD_DEVTOOLS__) &&
         isBrowser &&
-        component.ref
+        vnodeForDevtools.ref
       ) {
         // TODO: can display if it's an alias, its props
         const info: RouterViewDevtoolsContext = {
@@ -190,9 +254,9 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
           meta: matchedRoute.meta,
         }
 
-        const internalInstances = isArray(component.ref)
-          ? component.ref.map(r => r.i)
-          : [component.ref.i]
+        const internalInstances = isArray(vnodeForDevtools.ref)
+          ? vnodeForDevtools.ref.map(r => r.i)
+          : [vnodeForDevtools.ref.i]
 
         internalInstances.forEach(instance => {
           // @ts-expect-error
