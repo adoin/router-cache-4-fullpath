@@ -17,6 +17,7 @@
   "funding": "https://github.com/sponsors/posva",
   "files": [
     "dist",
+    "docs",
     "index.cjs",
     "README.md",
     "route.schema.json",
