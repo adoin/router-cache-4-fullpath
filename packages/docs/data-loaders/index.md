@@ -21,9 +21,9 @@ Install the `DataLoaderPlugin` **before the `router`**.
 ```ts{12-15} twoslash
 // @errors: 2769 2345
 import { createApp } from 'vue'
-import { routes } from 'vue-x-router/auto-routes'
-import { createRouter, createWebHistory } from 'vue-x-router'
-import { DataLoaderPlugin } from 'vue-x-router/experimental' // [!code ++]
+import { routes } from 'vue-smart-router/auto-routes'
+import { createRouter, createWebHistory } from 'vue-smart-router'
+import { DataLoaderPlugin } from 'vue-smart-router/experimental' // [!code ++]
 
 const router = createRouter({
   history: createWebHistory(),
@@ -50,10 +50,10 @@ To get started, _define_ and _**export**_ a loader from a **page** component:
 
 ```vue{2,5-7,11-16} twoslash [src/pages/users/[id].vue]
 <script lang="ts">
-import 'vue-x-router/auto-routes'
+import 'vue-smart-router/auto-routes'
 // @errors: 2339
 // ---cut---
-import { defineBasicLoader } from 'vue-x-router/experimental'
+import { defineBasicLoader } from 'vue-smart-router/experimental'
 import { getUserById } from '../api'
 
 export const useUserData = defineBasicLoader('/users/[id]', async (route) => {

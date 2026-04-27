@@ -1,1 +1,1 @@
-/// <reference path="vue-x-router/types" />
+/// <reference path="vue-smart-router/types" />

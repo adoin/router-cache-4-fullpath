@@ -1,38 +1,37 @@
-import type { ResolvedOptions } from '../options'
-import type { TreeNode } from './tree'
-import { PrefixTree } from './tree'
+import { watch as fsWatch, type FSWatcher } from 'chokidar'
 import { promises as fs } from 'node:fs'
-import { asRoutePath, ImportsMap, logTree, throttle } from './utils'
-import { generateRouteNamedMap } from '../codegen/generateRouteMap'
-import { generateRouteFileInfoMap } from '../codegen/generateRouteFileInfoMap'
-import { MODULE_ROUTES_PATH } from './moduleConstants'
-import { generateRouteRecords } from '../codegen/generateRouteRecords'
-import { glob } from 'tinyglobby'
 import { dirname, parse as parsePathe, relative, resolve } from 'pathe'
-import type { ServerContext } from '../options'
-import { getRouteBlock } from './customBlock'
-import type { HandlerContext } from './RoutesFolderWatcher'
-import {
-  RoutesFolderWatcher,
-  resolveFolderOptions,
-} from './RoutesFolderWatcher'
-import { generateDTS as _generateDTS } from '../codegen/generateDTS'
-import { definePageTransform, extractDefinePageInfo } from './definePage'
-import { EditableTreeNode } from './extendRoutes'
-import { ts } from '../utils'
-import { generateRouteResolver } from '../codegen/generateRouteResolver'
-import { generateDuplicatedRoutesWarnings } from '../codegen/generateDuplicateRoutesWarnings'
-import { generateAliasWarnings } from '../codegen/generateAliasWarnings'
-import { type FSWatcher, watch as fsWatch } from 'chokidar'
-import type { ParamParsersMap } from '../codegen/generateParamParsers'
-import {
-  generateParamParsersTypesDeclarations,
-  generateCustomParamParsersList,
-  warnMissingParamParsers,
-  collectMissingParamParsers,
-} from '../codegen/generateParamParsers'
 import picomatch from 'picomatch'
 import { camelCase } from 'scule'
+import { glob } from 'tinyglobby'
+import { generateAliasWarnings } from '../codegen/generateAliasWarnings'
+import { generateDTS as _generateDTS } from '../codegen/generateDTS'
+import { generateDuplicatedRoutesWarnings } from '../codegen/generateDuplicateRoutesWarnings'
+import type { ParamParsersMap } from '../codegen/generateParamParsers'
+import {
+  collectMissingParamParsers,
+  generateCustomParamParsersList,
+  generateParamParsersTypesDeclarations,
+  warnMissingParamParsers,
+} from '../codegen/generateParamParsers'
+import { generateRouteFileInfoMap } from '../codegen/generateRouteFileInfoMap'
+import { generateRouteNamedMap } from '../codegen/generateRouteMap'
+import { generateRouteRecords } from '../codegen/generateRouteRecords'
+import { generateRouteResolver } from '../codegen/generateRouteResolver'
+import type { ResolvedOptions, ServerContext } from '../options'
+import { ts } from '../utils'
+import { getRouteBlock } from './customBlock'
+import { definePageTransform, extractDefinePageInfo } from './definePage'
+import { EditableTreeNode } from './extendRoutes'
+import { MODULE_ROUTES_PATH } from './moduleConstants'
+import type { HandlerContext } from './RoutesFolderWatcher'
+import {
+  resolveFolderOptions,
+  RoutesFolderWatcher,
+} from './RoutesFolderWatcher'
+import type { TreeNode } from './tree'
+import { PrefixTree } from './tree'
+import { asRoutePath, ImportsMap, logTree, throttle } from './utils'
 
 export function createRoutesContext(options: ResolvedOptions) {
   const { dts: preferDTS, root, routesFolder } = options
@@ -211,7 +210,7 @@ export function createRoutesContext(options: ResolvedOptions) {
     }
     await writeRouteInfoToNode(node, filePath)
     await options.extendRoute?.(new EditableTreeNode(node))
-    // no need to manually trigger the update of vue-x-router/auto-routes because
+    // no need to manually trigger the update of vue-smart-router/auto-routes because
     // the change of the vue file will trigger HMR
     // server?.invalidate(filePath)
     server?.updateRoutes()
@@ -294,7 +293,7 @@ export function createRoutesContext(options: ResolvedOptions) {
         missingParsers
           .map(
             ({ parser, routePath, filePaths }) =>
-              `console.error('[vue-x-router] Parameter parser "${parser}" not found for route "${routePath}". File: ${filePaths.join(', ')}')`
+              `console.error('[vue-smart-router] Parameter parser "${parser}" not found for route "${routePath}". File: ${filePaths.join(', ')}')`
           )
           .join('\n') +
         '\n'
@@ -315,7 +314,7 @@ if (import.meta.hot) {
   import.meta.hot.accept((mod) => {
     const router = import.meta.hot.data.router
     if (!router) {
-      import.meta.hot.invalidate('[vue-x-router:HMR] Cannot replace the resolver because there is no active router. Reloading.')
+      import.meta.hot.invalidate('[vue-smart-router:HMR] Cannot replace the resolver because there is no active router. Reloading.')
       return
     }
     router._hmrReplaceResolver(mod.resolver)
@@ -358,7 +357,7 @@ if (import.meta.hot) {
   import.meta.hot.accept((mod) => {
     const router = import.meta.hot.data.router
     if (!router) {
-      import.meta.hot.invalidate('[vue-x-router:HMR] Cannot replace the routes because there is no active router. Reloading.')
+      import.meta.hot.invalidate('[vue-smart-router:HMR] Cannot replace the routes because there is no active router. Reloading.')
       return
     }
     router.clearRoutes()

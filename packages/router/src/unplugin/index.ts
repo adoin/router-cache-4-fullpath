@@ -1,39 +1,39 @@
+import { join } from 'pathe'
 import { createUnplugin, type UnpluginOptions } from 'unplugin'
+import { createAutoExportPlugin } from '../experimental/data-loaders/auto-exports'
 import { createRoutesContext } from './core/context'
 import {
-  MODULE_ROUTES_PATH,
-  getVirtualId as _getVirtualId,
   asVirtualId as _asVirtualId,
-  routeBlockQueryRE,
-  ROUTE_BLOCK_ID,
-  ROUTES_LAST_LOAD_TIME,
-  VIRTUAL_PREFIX,
+  getVirtualId as _getVirtualId,
   DEFINE_PAGE_QUERY_RE,
   MODULE_RESOLVER_PATH,
+  MODULE_ROUTES_PATH,
+  ROUTE_BLOCK_ID,
+  routeBlockQueryRE,
+  ROUTES_LAST_LOAD_TIME,
+  VIRTUAL_PREFIX,
 } from './core/moduleConstants'
-import type { Options } from './options'
-import { resolveOptions, DEFAULT_OPTIONS, mergeAllExtensions } from './options'
-import { createViteContext } from './core/vite'
-import { join } from 'pathe'
 import { appendExtensionListToPattern } from './core/utils'
-import { createAutoExportPlugin } from '../experimental/data-loaders/auto-exports'
+import { createViteContext } from './core/vite'
+import type { Options } from './options'
+import { DEFAULT_OPTIONS, mergeAllExtensions, resolveOptions } from './options'
 
+export type { TreeNode } from './core/tree'
+export type {
+  TreeNodeValue,
+  TreeNodeValueGroup,
+  TreeNodeValueParam,
+  TreeNodeValueStatic,
+} from './core/treeNodeValue'
+export { resolveOptions } from './options'
 export type {
   Options,
+  ParamParsersOptions,
   ResolvedOptions,
   RoutesFolder,
   RoutesFolderOption,
   RoutesFolderOptionResolved,
-  ParamParsersOptions,
 } from './options'
-export { resolveOptions } from './options'
-export type { TreeNode } from './core/tree'
-export type {
-  TreeNodeValue,
-  TreeNodeValueStatic,
-  TreeNodeValueParam,
-  TreeNodeValueGroup,
-} from './core/treeNodeValue'
 
 export { DEFAULT_OPTIONS }
 
@@ -67,7 +67,7 @@ export default createUnplugin<Options | undefined>((opt = {}, _meta) => {
 
   const plugins: UnpluginOptions[] = [
     {
-      name: 'vue-x-router',
+      name: 'vue-smart-router',
       enforce: 'pre',
 
       resolveId: {
@@ -81,8 +81,8 @@ export default createUnplugin<Options | undefined>((opt = {}, _meta) => {
           },
         },
         handler(id) {
-          // vue-x-router/auto-routes
-          // vue-x-router/auto-resolver
+          // vue-smart-router/auto-routes
+          // vue-smart-router/auto-resolver
           if (id === MODULE_ROUTES_PATH || id === MODULE_RESOLVER_PATH) {
             // must be a virtual module
             return asVirtualId(id)
@@ -136,17 +136,17 @@ export default createUnplugin<Options | undefined>((opt = {}, _meta) => {
             }
           }
 
-          // we need to use a virtual module so that vite resolves the vue-x-router/auto-routes
+          // we need to use a virtual module so that vite resolves the vue-smart-router/auto-routes
           // dependency correctly
           const resolvedId = getVirtualId(id)
 
-          // vue-x-router/auto-routes
+          // vue-smart-router/auto-routes
           if (resolvedId === MODULE_ROUTES_PATH) {
             ROUTES_LAST_LOAD_TIME.update()
             return ctx.generateRoutes()
           }
 
-          // vue-x-router/auto-resolver
+          // vue-smart-router/auto-resolver
           if (resolvedId === MODULE_RESOLVER_PATH) {
             ROUTES_LAST_LOAD_TIME.update()
             return ctx.generateResolver()
@@ -183,18 +183,18 @@ export default createUnplugin<Options | undefined>((opt = {}, _meta) => {
   return plugins
 })
 
-export { createRoutesContext }
 export { getFileBasedRouteName, getPascalCaseRouteName } from './core/utils'
+export { createRoutesContext }
 
 // Route Tree and edition
-export { createTreeNodeValue } from './core/treeNodeValue'
 export { EditableTreeNode } from './core/extendRoutes'
+export { createTreeNodeValue } from './core/treeNodeValue'
 
 /**
  * Adds useful auto imports to the AutoImport config:
  * @example
  * ```js
- * import { VueRouterAutoImports } from 'vue-x-router/unplugin'
+ * import { VueRouterAutoImports } from 'vue-smart-router/unplugin'
  *
  * AutoImport({
  *   imports: [VueRouterAutoImports],
@@ -205,13 +205,13 @@ export const VueRouterAutoImports: Record<
   string,
   Array<string | [importName: string, alias: string]>
 > = {
-  'vue-x-router': [
+  'vue-smart-router': [
     'useRoute',
     'useRouter',
     'onBeforeRouteUpdate',
     'onBeforeRouteLeave',
-    // NOTE: the typing seems broken locally, so instead we export it directly from vue-x-router/experimental
+    // NOTE: the typing seems broken locally, so instead we export it directly from vue-smart-router/experimental
     // 'definePage',
   ],
-  'vue-x-router/experimental': ['definePage'],
+  'vue-smart-router/experimental': ['definePage'],
 }

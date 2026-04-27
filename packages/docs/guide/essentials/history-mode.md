@@ -12,7 +12,7 @@ The `history` option when creating the router instance allows us to choose among
 The HTML5 mode is created with `createWebHistory()` and is the recommended mode:
 
 ```js
-import { createRouter, createWebHistory } from 'vue-x-router'
+import { createRouter, createWebHistory } from 'vue-smart-router'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -33,7 +33,7 @@ Not to worry: To fix the issue, all you need to do is add a simple catch-all fal
 The hash history mode is created with `createWebHashHistory()`:
 
 ```js
-import { createRouter, createWebHashHistory } from 'vue-x-router'
+import { createRouter, createWebHashHistory } from 'vue-smart-router'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -50,7 +50,7 @@ It uses a hash character (`#`) before the actual URL that is internally passed. 
 The memory history mode doesn't assume a browser environment and therefore doesn't interact with the URL **nor automatically triggers the initial navigation**. This makes it perfect for Node environment and SSR. It is created with `createMemoryHistory()` and **requires you to push the initial navigation** after calling `app.use(router)`.
 
 ```js
-import { createRouter, createMemoryHistory } from 'vue-x-router'
+import { createRouter, createMemoryHistory } from 'vue-smart-router'
 
 const router = createRouter({
   history: createMemoryHistory(),

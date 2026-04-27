@@ -1,8 +1,12 @@
-import { type InlineConfig } from 'tsdown'
-import pkg from './package.json' with { type: 'json' }
-import fs from 'node:fs/promises'
+import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { type InlineConfig } from 'tsdown'
+import fs from 'node:fs/promises'
+
+const pkg = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url), 'utf8')
+) as { name: string; version: string }
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -18,11 +22,11 @@ const commonOptions = {
   sourcemap: false,
   format: ['esm'],
   entry: {
-    'vue-x-router': './src/index.ts',
+    'vue-smart-router': './src/index.ts',
   },
   outputOptions: {
     banner,
-    name: 'VueXRouter',
+    name: 'VueSmartRouter',
     globals: {
       vue: 'Vue',
       '@vue/devtools-api': 'VueDevtoolsApi',
@@ -43,17 +47,17 @@ const commonOptions = {
   dts: false,
   // TODO: remove in v5
   async onSuccess() {
-    // write a stub file for vue-x-router.esm-bundler.js
+    // write a stub file for vue-smart-router.esm-bundler.js
     await fs.writeFile(
-      resolve(__dirname, 'dist/vue-x-router.esm-bundler.js'),
+      resolve(__dirname, 'dist/vue-smart-router.esm-bundler.js'),
       `
-console.warn("[vue-x-router]: importing from 'vue-x-router/dist/vue-x-router.esm-bundler.js' is deprecated. Use 'vue-x-router' directly.")
-export * from './vue-x-router.js'
+console.warn("[vue-smart-router]: importing from 'vue-smart-router/dist/vue-smart-router.esm-bundler.js' is deprecated. Use 'vue-smart-router' directly.")
+export * from './vue-smart-router.js'
 `.trimStart()
     )
   },
   // Externalize everything and avoid mistakenly including dependencies in the
-  // bundle of vue-x-router runtime
+  // bundle of vue-smart-router runtime
   skipNodeModulesBundle: true,
 } satisfies InlineConfig
 
@@ -75,7 +79,7 @@ const esmBrowser = {
   outputOptions: {
     ...commonOptions.outputOptions,
     dir: undefined, // must be unset with file
-    file: 'dist/vue-x-router.esm-browser.js',
+    file: 'dist/vue-smart-router.esm-browser.js',
   },
   define: {
     ...commonOptions.define,
@@ -90,7 +94,7 @@ const esmBrowserProd = {
   minify: true,
   outputOptions: {
     ...esmBrowser.outputOptions,
-    file: 'dist/vue-x-router.esm-browser.prod.js',
+    file: 'dist/vue-smart-router.esm-browser.prod.js',
   },
   define: {
     ...esmBrowser.define,
@@ -105,7 +109,7 @@ const cjs = {
   outputOptions: {
     ...commonOptions.outputOptions,
     dir: undefined, // must be unset with file
-    file: 'dist/vue-x-router.cjs',
+    file: 'dist/vue-smart-router.cjs',
   },
   define: {
     ...commonOptions.define,
@@ -120,7 +124,7 @@ const cjsProd = {
   minify: true,
   outputOptions: {
     ...cjs.outputOptions,
-    file: 'dist/vue-x-router.prod.cjs',
+    file: 'dist/vue-smart-router.prod.cjs',
   },
 } satisfies InlineConfig
 
@@ -130,7 +134,7 @@ const iife = {
   outputOptions: {
     ...commonOptions.outputOptions,
     dir: undefined, // must be unset with file
-    file: 'dist/vue-x-router.global.js',
+    file: 'dist/vue-smart-router.global.js',
   },
   define: {
     ...commonOptions.define,
@@ -147,7 +151,7 @@ const iifeProd = {
   minify: true,
   outputOptions: {
     ...iife.outputOptions,
-    file: 'dist/vue-x-router.global.prod.js',
+    file: 'dist/vue-smart-router.global.prod.js',
   },
   define: {
     ...iife.define,

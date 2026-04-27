@@ -1,7 +1,7 @@
 # 等待导航结果
 
 <VueSchoolLink
-  href="https://vueschool.io/lessons/vue-x-router-4-detecting-navigation-failures"
+  href="https://vueschool.io/lessons/vue-smart-router-4-detecting-navigation-failures"
   title="Learn how to detect navigation failures"
 />
 
@@ -49,7 +49,7 @@ if (navigationResult) {
 _Navigation Failure_ 是带有一些额外属性的 `Error` 实例，这些属性为我们提供了足够的信息，让我们知道哪些导航被阻止了以及为什么被阻止了。要检查导航结果的性质，请使用 `isNavigationFailure` 函数：
 
 ```js
-import { NavigationFailureType, isNavigationFailure } from 'vue-x-router'
+import { NavigationFailureType, isNavigationFailure } from 'vue-smart-router'
 
 // 试图离开未保存的编辑文本界面
 const failure = await router.push('/articles/2')

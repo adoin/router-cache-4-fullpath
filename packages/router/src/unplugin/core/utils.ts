@@ -1,15 +1,14 @@
-import type { TreeNode } from './tree'
-import type { RouteRecordOverride, TreePathParam } from './treeNodeValue'
 import { pascalCase } from 'scule'
 import type { ResolvedOptions, RoutesFolderOptionResolved } from '../options'
-import { _OverridableOption } from '../options'
 import { toStringLiteral } from '../utils'
+import type { TreeNode } from './tree'
+import type { RouteRecordOverride, TreePathParam } from './treeNodeValue'
 
 export function warn(
   msg: string,
   type: 'warn' | 'error' | 'debug' = 'warn'
 ): void {
-  console[type](`⚠️  [vue-x-router]: ${msg}`)
+  console[type](`⚠️  [vue-smart-router]: ${msg}`)
 }
 
 export function logTree(tree: TreeNode, log: (str: string) => any) {
@@ -304,7 +303,7 @@ export interface ImportEntry {
 
 export class ImportsMap {
   // path -> import as -> import name
-  // e.g map['vue-x-router']['myUseRouter'] = 'useRouter' -> import { useRouter as myUseRouter } from 'vue-x-router'
+  // e.g map['vue-smart-router']['myUseRouter'] = 'useRouter' -> import { useRouter as myUseRouter } from 'vue-smart-router'
   private map = new Map<string, Map<string, string>>()
 
   constructor() {}

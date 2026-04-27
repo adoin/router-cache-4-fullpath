@@ -7,7 +7,7 @@ If a loader is used in multiple pages, it might be a better idea to extract it t
 ::: code-group
 
 ```ts [loaders/issues.ts]
-import { defineBasicLoader } from 'vue-x-router/experimental'
+import { defineBasicLoader } from 'vue-smart-router/experimental'
 import { getIssuesByProjectId } from '@/api'
 
 export const useProjectIssues = defineBasicLoader('/[projectId]/issues', to =>

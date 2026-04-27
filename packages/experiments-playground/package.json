@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "vue": "3.6.0-beta.2",
-    "vue-x-router": "workspace:*"
+    "vue-smart-router": "workspace:*"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.5",

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const isVisible = ref(false)
 const nameStorage = 'MADVUE-BANNER-MARCH-25'
 const target =
-  'https://madvue.es/?utm_source=vue-x-router&utm_content=top_banner'
+  'https://madvue.es/?utm_source=vue-smart-router&utm_content=top_banner'
 
 function closeBanner() {
   // Hide the banner

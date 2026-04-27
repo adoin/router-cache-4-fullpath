@@ -1,9 +1,9 @@
-import type { MatcherLocationRaw, MatcherLocation } from './types'
 import type {
-  RouteLocationRaw,
   RouteLocationNormalized,
   RouteLocationNormalizedLoaded,
+  RouteLocationRaw,
 } from './typed-routes'
+import type { MatcherLocation, MatcherLocationRaw } from './types'
 import { assign } from './utils'
 
 /**
@@ -155,7 +155,7 @@ export function createRouterError<E extends RouterError>(
  *
  * @example
  * ```js
- * import { isNavigationFailure, NavigationFailureType } from 'vue-x-router'
+ * import { isNavigationFailure, NavigationFailureType } from 'vue-smart-router'
  *
  * router.afterEach((to, from, failure) => {
  *   // Any kind of navigation failure

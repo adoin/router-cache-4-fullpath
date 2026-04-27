@@ -1,8 +1,8 @@
-import '../global.css'
-import type { RouteComponent} from 'vue-x-router';
-import { createRouter, createWebHistory } from 'vue-x-router'
-import type { App} from 'vue';
-import { createApp, ref, watchEffect, inject } from 'vue'
+import type { App } from 'vue';
+import { createApp, inject, ref, watchEffect } from 'vue';
+import type { RouteComponent } from 'vue-smart-router';
+import { createRouter, createWebHistory } from 'vue-smart-router';
+import '../global.css';
 
 const Home: RouteComponent = {
   template: `<div class="home">Home</div>`,

@@ -12,7 +12,7 @@ Data Loaders are experimental. Feedback is very welcome to shape the future of d
 
 ```vue
 <script lang="ts">
-import { defineBasicLoader } from 'vue-x-router/experimental'
+import { defineBasicLoader } from 'vue-smart-router/experimental'
 import { getUserById } from '../api'
 
 export const useUserData = defineBasicLoader(

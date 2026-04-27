@@ -1,5 +1,5 @@
-import { defineParamParser, miss } from 'vue-x-router/experimental'
 import { parse, type SemVer } from 'semver'
+import { defineParamParser, miss } from 'vue-smart-router/experimental'
 
 export const parser = defineParamParser({
   get: (value): SemVer | SemVer[] => {

@@ -4,7 +4,7 @@ To use Data Loaders in Nuxt, create a new plugin file in the `plugins` directory
 
 ```ts
 // plugins/data-loaders.ts
-import { DataLoaderPlugin } from 'vue-x-router/experimental'
+import { DataLoaderPlugin } from 'vue-smart-router/experimental'
 
 export default defineNuxtPlugin({
   name: 'data-loaders',

@@ -9,15 +9,15 @@
 ::: code-group
 
 ```bash [npm]
-npm install vue-x-router@4
+npm install vue-smart-router@4
 ```
 
 ```bash [yarn]
-yarn add vue-x-router@4
+yarn add vue-smart-router@4
 ```
 
 ```bash [pnpm]
-pnpm add vue-x-router@4
+pnpm add vue-smart-router@4
 ```
 
 :::
@@ -42,15 +42,15 @@ pnpm create vue
 
 你需要回答一些关于你想创建的项目类型的问题。如果您选择安装 Vue Router，示例应用还将演示 Vue Router 的一些核心特性。
 
-使用包管理器的项目通常会使用 ES 模块来访问 Vue Router，例如 `import { createRouter } from 'vue-x-router'`。
+使用包管理器的项目通常会使用 ES 模块来访问 Vue Router，例如 `import { createRouter } from 'vue-smart-router'`。
 
 ## 直接下载 / CDN
 
-[https://unpkg.com/vue-x-router@4](https://unpkg.com/vue-x-router@4)
+[https://unpkg.com/vue-smart-router@4](https://unpkg.com/vue-smart-router@4)
 
 <!--email_off-->
 
-[Unpkg.com](https://unpkg.com) 提供了基于 npm 的 CDN 链接。上述链接将始终指向 npm 上的最新版本。 你也可以通过像 `https://unpkg.com/vue-x-router@4.0.15/dist/vue-x-router.global.js` 这样的 URL 来使用特定的版本或 Tag。
+[Unpkg.com](https://unpkg.com) 提供了基于 npm 的 CDN 链接。上述链接将始终指向 npm 上的最新版本。 你也可以通过像 `https://unpkg.com/vue-smart-router@4.0.15/dist/vue-smart-router.global.js` 这样的 URL 来使用特定的版本或 Tag。
 
 <!--/email_off-->
 

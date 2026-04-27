@@ -39,10 +39,10 @@ You can have multiple _params_ in the same route, and they will map to correspon
 
 In addition to `route.params`, the `route` object also exposes other useful information such as `route.query` (if there is a query in the URL), `route.hash`, etc. You can check out the full details in the [API Reference](../../api/#RouteLocationNormalized).
 
-A working demo of this example can be found [here](https://codesandbox.io/s/route-params-vue-x-router-examples-mlb14?from-embed&initialpath=%2Fusers%2Feduardo%2Fposts%2F1).
+A working demo of this example can be found [here](https://codesandbox.io/s/route-params-vue-smart-router-examples-mlb14?from-embed&initialpath=%2Fusers%2Feduardo%2Fposts%2F1).
 
 <!-- <iframe
-  src="https://codesandbox.io/embed//route-params-vue-x-router-examples-mlb14?fontsize=14&theme=light&view=preview&initialpath=%2Fusers%2Feduardo%2Fposts%2F1"
+  src="https://codesandbox.io/embed//route-params-vue-smart-router-examples-mlb14?fontsize=14&theme=light&view=preview&initialpath=%2Fusers%2Feduardo%2Fposts%2F1"
   style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
   title="Route Params example"
   allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
@@ -65,7 +65,7 @@ To react to params changes in the same component, you can simply watch anything 
 ```vue [Composition API]
 <script setup>
 import { watch } from 'vue'
-import { useRoute } from 'vue-x-router'
+import { useRoute } from 'vue-smart-router'
 
 const route = useRoute()
 
@@ -101,7 +101,7 @@ Or, use the `beforeRouteUpdate` [navigation guard](../advanced/navigation-guards
 
 ```vue [Composition API]
 <script setup>
-import { onBeforeRouteUpdate } from 'vue-x-router'
+import { onBeforeRouteUpdate } from 'vue-smart-router'
 // ...
 
 onBeforeRouteUpdate(async (to, from) => {

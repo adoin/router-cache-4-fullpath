@@ -1,8 +1,8 @@
-import '../global.css'
-import type { RouteComponent } from 'vue-x-router';
-import { createRouter, createWebHistory } from 'vue-x-router'
-import type { FunctionalComponent} from 'vue';
-import { createApp, defineComponent, h } from 'vue'
+import type { FunctionalComponent } from 'vue';
+import { createApp, defineComponent, h } from 'vue';
+import type { RouteComponent } from 'vue-smart-router';
+import { createRouter, createWebHistory } from 'vue-smart-router';
+import '../global.css';
 
 const component: RouteComponent = {
   template: `<div>A component</div>`,

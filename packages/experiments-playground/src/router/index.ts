@@ -1,20 +1,20 @@
-import { createWebHistory } from 'vue-x-router'
-import {
-  experimental_createRouter,
-  createFixedResolver,
-  MatcherPatternPathStatic,
-  MatcherPatternPathDynamic,
-  normalizeRouteRecord,
-  PARAM_PARSER_INT,
-  MatcherPatternQueryParam,
-  MatchMiss,
-} from 'vue-x-router/experimental'
+import { createWebHistory } from 'vue-smart-router'
 import type {
   EXPERIMENTAL_RouteRecordNormalized_Matchable,
+  EmptyParams,
   MatcherPatternHash,
   MatcherPatternQuery,
-  EmptyParams,
-} from 'vue-x-router/experimental'
+} from 'vue-smart-router/experimental'
+import {
+  MatchMiss,
+  MatcherPatternPathDynamic,
+  MatcherPatternPathStatic,
+  MatcherPatternQueryParam,
+  PARAM_PARSER_INT,
+  createFixedResolver,
+  experimental_createRouter,
+  normalizeRouteRecord,
+} from 'vue-smart-router/experimental'
 import PageHome from '../pages/(home).vue'
 
 const PAGE_QUERY_PATTERN_MATCHER: MatcherPatternQuery<{ page: number }> = {

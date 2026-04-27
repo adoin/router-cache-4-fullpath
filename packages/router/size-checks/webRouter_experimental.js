@@ -1,12 +1,12 @@
-export { createWebHistory } from '../dist/vue-x-router.js'
+export {
+  MatcherPatternPathStatic,
+  createFixedResolver,
+  experimental_createRouter,
+  normalizeRouteRecord,
+} from '../dist/experimental/index.js'
 export {
   //
   RouterLink,
   RouterView,
-} from '../dist/vue-x-router.js'
-export {
-  createFixedResolver,
-  experimental_createRouter,
-  normalizeRouteRecord,
-  MatcherPatternPathStatic,
-} from '../dist/experimental/index.js'
+  createWebHistory,
+} from '../dist/vue-smart-router.js'

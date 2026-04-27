@@ -27,9 +27,9 @@
 </template>
 
 <script setup lang="ts">
-import { START_LOCATION, useLink, useRoute } from 'vue-x-router'
 import { computed, useAttrs } from 'vue'
-import type { RouterLinkProps } from 'vue-x-router'
+import type { RouterLinkProps } from 'vue-smart-router'
+import { START_LOCATION, useLink, useRoute } from 'vue-smart-router'
 
 const { replace, to, disabled } = defineProps<
   RouterLinkProps & { disabled?: boolean }

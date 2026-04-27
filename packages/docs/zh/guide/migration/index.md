@@ -14,8 +14,8 @@ Vue Router 不再是一个类，而是一组函数。现在你不用再写 `new 
 
 ```js
 // 以前是
-// import Router from 'vue-x-router'
-import { createRouter } from 'vue-x-router'
+// import Router from 'vue-smart-router'
+import { createRouter } from 'vue-smart-router'
 
 const router = createRouter({
   // ...
@@ -33,7 +33,7 @@ const router = createRouter({
 下面是一个完整的代码段：
 
 ```js
-import { createRouter, createWebHistory } from 'vue-x-router'
+import { createRouter, createWebHistory } from 'vue-smart-router'
 // 还有 createWebHashHistory 和 createMemoryHistory
 
 createRouter({
@@ -62,7 +62,7 @@ router.isReady().then(() => {
 现在，`base` 配置被作为 `createWebHistory` (其他 history 也一样)的第一个参数传递：
 
 ```js
-import { createRouter, createWebHistory } from 'vue-x-router'
+import { createRouter, createWebHistory } from 'vue-smart-router'
 createRouter({
   history: createWebHistory('/base-directory/'),
   routes: [],
@@ -119,7 +119,7 @@ router.resolve({
 
 路由器实例上的 [`currentRoute`](https://v3.router.vuejs.org/zh/api/#router-currentroute) 对象的属性在以前可以被直接访问。
 
-从 vue-x-router v4 开始，路由器实例上的 `currentRoute` 对象的底层类型已被改为 `Ref<RouteLocationNormalizedLoaded>`，其源自 Vue 3 中新引入的[响应式基础](https://cn.vuejs.org/guide/essentials/reactivity-fundamentals.html)。
+从 vue-smart-router v4 开始，路由器实例上的 `currentRoute` 对象的底层类型已被改为 `Ref<RouteLocationNormalizedLoaded>`，其源自 Vue 3 中新引入的[响应式基础](https://cn.vuejs.org/guide/essentials/reactivity-fundamentals.html)。
 
 当你使用 `useRoute()` 或 `this.$route` 获取路由信息时这并不会带来任何变化，如果想要直接在路由器实例上访问它，你需要通过 `currentRoute.value` 来访问实际的路由对象：
 
@@ -219,7 +219,7 @@ app.config.globalProperties.append = (path, pathToAppend) =>
 
 ### 忽略 mixins 中的导航守卫
 
-目前不支持 mixins 中的导航守卫，你可以在 [vue-x-router#454](https://github.com/vuejs/router/issues/454) 追踪它的支持情况。
+目前不支持 mixins 中的导航守卫，你可以在 [vue-smart-router#454](https://github.com/vuejs/router/issues/454) 追踪它的支持情况。
 
 ### 删除 `router.match` 改为 `router.resolve`
 
@@ -452,11 +452,11 @@ const routes = [
 
 为了使类型更一致，更有表现力，有些类型被重新命名：
 
-| `vue-x-router@3` | `vue-x-router@4`        |
-| ---------------- | ----------------------- |
-| RouteConfig      | RouteRecordRaw          |
-| Location         | RouteLocation           |
-| Route            | RouteLocationNormalized |
+| `vue-smart-router@3` | `vue-smart-router@4`    |
+| -------------------- | ----------------------- |
+| RouteConfig          | RouteRecordRaw          |
+| Location             | RouteLocation           |
+| Route                | RouteLocationNormalized |
 
 ## 新功能
 

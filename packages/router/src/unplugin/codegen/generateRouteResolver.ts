@@ -5,11 +5,11 @@ import { type ResolvedOptions } from '../options'
 import { toStringLiteral, ts } from '../utils'
 import type { ParamParsersMap } from './generateParamParsers'
 import {
-  generatePathParamsOptions,
-  generateParamParserOptions,
   generateNormalizedParamParsersDeclarations,
+  generateParamParserOptions,
+  generatePathParamsOptions,
 } from './generateParamParsers'
-import { generatePageImport, formatMeta } from './generateRouteRecords'
+import { formatMeta, generatePageImport } from './generateRouteRecords'
 
 /**
  * Compare two score sub-arrays element by element.
@@ -91,10 +91,10 @@ export function generateRouteResolver(
     })
   )
 
-  importsMap.add('vue-x-router/experimental', 'createFixedResolver')
-  importsMap.add('vue-x-router/experimental', 'MatcherPatternPathStatic')
-  importsMap.add('vue-x-router/experimental', 'MatcherPatternPathDynamic')
-  importsMap.add('vue-x-router/experimental', 'normalizeRouteRecord')
+  importsMap.add('vue-smart-router/experimental', 'createFixedResolver')
+  importsMap.add('vue-smart-router/experimental', 'MatcherPatternPathStatic')
+  importsMap.add('vue-smart-router/experimental', 'MatcherPatternPathDynamic')
+  importsMap.add('vue-smart-router/experimental', 'normalizeRouteRecord')
 
   const normalizedDeclarations = generateNormalizedParamParsersDeclarations(
     paramParsersMap,
@@ -373,7 +373,7 @@ export function generateRouteRecordQuery({
     return ''
   }
 
-  importsMap.add('vue-x-router/experimental', 'MatcherPatternQueryParam')
+  importsMap.add('vue-smart-router/experimental', 'MatcherPatternQueryParam')
 
   return `query: [
 ${queryParams
@@ -422,7 +422,7 @@ function generateRouteRecordMerge(
     return routeRecordObject
   }
 
-  importsMap.add('vue-x-router/experimental', '_mergeRouteRecord')
+  importsMap.add('vue-smart-router/experimental', '_mergeRouteRecord')
 
   // Re-indent the route object to be 4 spaces (2 levels from normalizeRouteRecord)
   const indentedRouteObject = routeRecordObject

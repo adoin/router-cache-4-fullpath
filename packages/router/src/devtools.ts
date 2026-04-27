@@ -1,21 +1,21 @@
 import { setupDevtoolsPlugin } from '@vue/devtools-api'
 import type {
   CustomInspectorNode,
-  InspectorNodeTag,
   CustomInspectorState,
+  InspectorNodeTag,
   TimelineEvent,
 } from '@vue/devtools-kit'
-import { type App, watch } from 'vue'
+import { watch, type App } from 'vue'
+import type { UseLinkDevtoolsContext } from './RouterLink'
+import type { RouterViewDevtoolsContext } from './RouterView'
 import { decode } from './encoding'
 import { isSameRouteRecord } from './location'
 import type { RouterMatcher } from './matcher'
 import type { RouteRecordMatcher } from './matcher/pathMatcher'
 import type { PathParser } from './matcher/pathParserRanker'
 import type { Router } from './router'
-import type { UseLinkDevtoolsContext } from './RouterLink'
-import type { RouterViewDevtoolsContext } from './RouterView'
-import { assign, isArray } from './utils'
 import type { RouteLocationNormalized } from './typed-routes'
+import { assign, isArray } from './utils'
 
 /**
  * Copies a route location and removes any problematic properties that cannot be shown in devtools (e.g. Vue instances).
@@ -70,7 +70,7 @@ export function addDevtools(app: App, router: Router, matcher: RouterMatcher) {
     {
       id: 'org.vuejs.router' + (id ? '.' + id : ''),
       label: 'Vue Router',
-      packageName: 'vue-x-router',
+      packageName: 'vue-smart-router',
       homepage: 'https://router.vuejs.org',
       logo: 'https://router.vuejs.org/logo.png',
       componentStateTypes: ['Routing'],

@@ -1,6 +1,6 @@
+import Vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
-import Vue from '@vitejs/plugin-vue'
 import VueDevtools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
@@ -9,7 +9,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      'vue-x-router': fileURLToPath(new URL('../router/src', import.meta.url)),
+      'vue-smart-router': fileURLToPath(
+        new URL('../router/src', import.meta.url)
+      ),
     },
   },
   define: {

@@ -6,9 +6,9 @@ import type { TypesConfig } from '../../config'
  * @example
  * ```ts
  * // types-extension.d.ts
- * import 'vue-x-router/experimental'
+ * import 'vue-smart-router/experimental'
  * export {}
- * declare module 'vue-x-router/experimental' {
+ * declare module 'vue-smart-router/experimental' {
  *   interface TypesConfig {
  *     Error: MyCustomError
  *   }

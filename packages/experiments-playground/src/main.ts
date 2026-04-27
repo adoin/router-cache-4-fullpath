@@ -1,9 +1,9 @@
 import './assets/main.css'
 
 import { createApp } from 'vue'
+import { RouterLink, RouterView } from 'vue-smart-router'
 import App from './App.vue'
 import { router } from './router'
-import { RouterLink, RouterView } from 'vue-x-router'
 
 const app = createApp(App)
 

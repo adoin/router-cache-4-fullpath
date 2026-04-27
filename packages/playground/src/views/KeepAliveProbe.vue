@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRoute } from 'vue-x-router'
+import { useRoute } from 'vue-smart-router'
 
 const route = useRoute()
 const n = ref(0)

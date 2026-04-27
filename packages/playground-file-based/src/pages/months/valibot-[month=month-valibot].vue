@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useRoute } from 'vue-x-router'
+import { useRoute } from 'vue-smart-router'
 
 const route = useRoute()
 </script>

@@ -18,7 +18,7 @@
     "@vue/compiler-sfc": "~3.5.26",
     "@vue/tsconfig": "^0.8.1",
     "vite": "^7.3.0",
-    "vue-tsc": "^3.2.4",
-    "vue-x-router": "workspace:*"
+    "vue-smart-router": "workspace:*",
+    "vue-tsc": "^3.2.4"
   }
 }

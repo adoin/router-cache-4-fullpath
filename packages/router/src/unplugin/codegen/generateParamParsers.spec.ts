@@ -1,20 +1,20 @@
 import { describe, expect, it } from 'vitest'
+import { mockWarn } from '../../tests/vitest-mock-warn'
+import { PrefixTree } from '../core/tree'
+import type { TreePathParam } from '../core/treeNodeValue'
+import { ImportsMap } from '../core/utils'
+import { resolveOptions } from '../options'
 import {
-  warnMissingParamParsers,
   collectMissingParamParsers,
-  generateParamParsersTypesDeclarations,
-  generateParamsTypes,
-  generateParamParserOptions,
-  generatePathParamsOptions,
   generateCustomParamParsersList,
   generateNormalizedParamParsersDeclarations,
+  generateParamParserOptions,
+  generateParamParsersTypesDeclarations,
+  generateParamsTypes,
+  generatePathParamsOptions,
+  warnMissingParamParsers,
   type ParamParsersMap,
 } from './generateParamParsers'
-import { PrefixTree } from '../core/tree'
-import { resolveOptions } from '../options'
-import { ImportsMap } from '../core/utils'
-import type { TreePathParam } from '../core/treeNodeValue'
-import { mockWarn } from '../../tests/vitest-mock-warn'
 
 const DEFAULT_OPTIONS = resolveOptions({})
 
@@ -406,7 +406,7 @@ describe('generateParamParserOptions', () => {
     const result = generateParamParserOptions(param, importsMap, paramParsers)
     expect(result).toBe('PARAM_PARSER_INT')
     expect(importsMap.toString()).toContain(
-      `import { PARAM_PARSER_INT } from 'vue-x-router/experimental'`
+      `import { PARAM_PARSER_INT } from 'vue-smart-router/experimental'`
     )
   })
 
@@ -425,7 +425,7 @@ describe('generateParamParserOptions', () => {
     const result = generateParamParserOptions(param, importsMap, paramParsers)
     expect(result).toBe('PARAM_PARSER_BOOL')
     expect(importsMap.toString()).toContain(
-      `import { PARAM_PARSER_BOOL } from 'vue-x-router/experimental'`
+      `import { PARAM_PARSER_BOOL } from 'vue-smart-router/experimental'`
     )
   })
 
@@ -719,7 +719,7 @@ describe('generateNormalizedParamParsersDeclarations', () => {
       'const _normalized_PARAM_PARSER__uuid = _normalizeParamParser(PARAM_PARSER__uuid)'
     )
     expect(importsMap.toString()).toContain(
-      `import { _normalizeParamParser } from 'vue-x-router/experimental'`
+      `import { _normalizeParamParser } from 'vue-smart-router/experimental'`
     )
     expect(importsMap.toString()).toContain(
       `import { parser as PARAM_PARSER__uuid } from '/path/to/parsers/uuid'`

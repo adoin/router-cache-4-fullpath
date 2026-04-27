@@ -12,7 +12,7 @@
 hash 模式是用 `createWebHashHistory()` 创建的：
 
 ```js
-import { createRouter, createWebHashHistory } from 'vue-x-router'
+import { createRouter, createWebHashHistory } from 'vue-smart-router'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -29,7 +29,7 @@ const router = createRouter({
 Memory 模式不会假定自己处于浏览器环境，因此不会与 URL 交互**也不会自动触发初始导航**。这使得它非常适合 Node 环境和 SSR。它是用 `createMemoryHistory()` 创建的，并且**需要你在调用 `app.use(router)` 之后手动 push 到初始导航**。
 
 ```js
-import { createRouter, createMemoryHistory } from 'vue-x-router'
+import { createRouter, createMemoryHistory } from 'vue-smart-router'
 const router = createRouter({
   history: createMemoryHistory(),
   routes: [
@@ -45,7 +45,7 @@ const router = createRouter({
 用 `createWebHistory()` 创建 HTML5 模式，推荐使用这个模式：
 
 ```js
-import { createRouter, createWebHistory } from 'vue-x-router'
+import { createRouter, createWebHistory } from 'vue-smart-router'
 
 const router = createRouter({
   history: createWebHistory(),

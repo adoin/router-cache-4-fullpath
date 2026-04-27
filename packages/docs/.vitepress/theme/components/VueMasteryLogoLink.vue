@@ -1,6 +1,6 @@
 <template>
   <a
-    href="https://www.vuemastery.com/vue-x-router?coupon=ROUTER-DOCS&via=eduardo"
+    href="https://www.vuemastery.com/vue-smart-router?coupon=ROUTER-DOCS&via=eduardo"
     target="_blank"
   >
     <span class="logo-wrapper">

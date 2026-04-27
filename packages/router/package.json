@@ -1,5 +1,5 @@
 {
-  "name": "vue-x-router",
+  "name": "vue-smart-router",
   "version": "5.0.6",
   "homepage": "https://router.vuejs.org",
   "bugs": {
@@ -21,18 +21,18 @@
     "index.cjs",
     "README.md",
     "route.schema.json",
-    "vue-x-router-auto-resolver.d.mts",
-    "vue-x-router-auto-routes.d.mts",
-    "vue-x-router-auto.d.ts",
-    "vue-x-router.node.mjs",
+    "vue-smart-router-auto-resolver.d.mts",
+    "vue-smart-router-auto-routes.d.mts",
+    "vue-smart-router-auto.d.ts",
+    "vue-smart-router.node.mjs",
     "vetur/attributes.json",
     "vetur/tags.json"
   ],
   "type": "module",
   "sideEffects": false,
   "main": "index.cjs",
-  "module": "dist/vue-x-router.js",
-  "types": "dist/vue-x-router.d.ts",
+  "module": "dist/vue-smart-router.js",
+  "types": "dist/vue-smart-router.d.ts",
   "typesVersions": {
     "*": {
       "vite": [
@@ -49,24 +49,24 @@
       ]
     }
   },
-  "unpkg": "dist/vue-x-router.global.js",
-  "jsdelivr": "dist/vue-x-router.global.js",
+  "unpkg": "dist/vue-smart-router.global.js",
+  "jsdelivr": "dist/vue-smart-router.global.js",
   "exports": {
     ".": {
-      "types": "./dist/vue-x-router.d.ts",
+      "types": "./dist/vue-smart-router.d.ts",
       "node": {
         "import": {
-          "production": "./vue-x-router.node.mjs",
-          "development": "./vue-x-router.node.mjs",
-          "default": "./vue-x-router.node.mjs"
+          "production": "./vue-smart-router.node.mjs",
+          "development": "./vue-smart-router.node.mjs",
+          "default": "./vue-smart-router.node.mjs"
         },
         "require": {
-          "production": "./dist/vue-x-router.prod.cjs",
-          "development": "./dist/vue-x-router.cjs",
+          "production": "./dist/vue-smart-router.prod.cjs",
+          "development": "./dist/vue-smart-router.cjs",
           "default": "./index.cjs"
         }
       },
-      "import": "./dist/vue-x-router.js",
+      "import": "./dist/vue-smart-router.js",
       "require": "./index.cjs"
     },
     "./dist/*": "./dist/*",
@@ -81,26 +81,26 @@
       "default": "./dist/experimental/pinia-colada.js"
     },
     "./auto-resolver": {
-      "types": "./vue-x-router-auto-resolver.d.mts"
+      "types": "./vue-smart-router-auto-resolver.d.mts"
     },
     "./auto-routes": {
-      "types": "./vue-x-router-auto-routes.d.mts"
+      "types": "./vue-smart-router-auto-routes.d.mts"
     },
     "./auto": {
-      "types": "./vue-x-router-auto.d.ts",
+      "types": "./vue-smart-router-auto.d.ts",
       "node": {
         "import": {
-          "production": "./vue-x-router.node.mjs",
-          "development": "./vue-x-router.node.mjs",
-          "default": "./vue-x-router.node.mjs"
+          "production": "./vue-smart-router.node.mjs",
+          "development": "./vue-smart-router.node.mjs",
+          "default": "./vue-smart-router.node.mjs"
         },
         "require": {
-          "production": "./dist/vue-x-router.prod.cjs",
-          "development": "./dist/vue-x-router.cjs",
+          "production": "./dist/vue-smart-router.prod.cjs",
+          "development": "./dist/vue-smart-router.cjs",
           "default": "./index.cjs"
         }
       },
-      "import": "./dist/vue-x-router.js",
+      "import": "./dist/vue-smart-router.js",
       "require": "./index.cjs"
     },
     "./vite": {

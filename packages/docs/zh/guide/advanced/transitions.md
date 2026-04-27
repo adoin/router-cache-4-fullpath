@@ -83,4 +83,4 @@ Vue 可能会自动复用看起来相似的组件，从而忽略了任何过渡�
 ```
 
 <!-- TODO: interactive example -->
-<!-- See full example [here](https://github.com/vuejs/vue-x-router/blob/dev/examples/transitions/app.js). -->
+<!-- See full example [here](https://github.com/vuejs/vue-smart-router/blob/dev/examples/transitions/app.js). -->

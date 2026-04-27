@@ -1,7 +1,7 @@
 # Named Views
 
 <VueSchoolLink
-  href="https://vueschool.io/lessons/vue-x-router-4-named-views"
+  href="https://vueschool.io/lessons/vue-smart-router-4-named-views"
   title="Learn how to use named views"
 />
 
@@ -35,7 +35,7 @@ const router = createRouter({
 })
 ```
 
-A working demo of this example can be found [here](https://codesandbox.io/s/named-views-vue-x-router-4-examples-rd20l).
+A working demo of this example can be found [here](https://codesandbox.io/s/named-views-vue-smart-router-4-examples-rd20l).
 
 ## Nested Named Views
 
@@ -93,6 +93,6 @@ Then you can achieve the layout above with this route configuration:
 }
 ```
 
-A working demo of this example can be found [here](https://codesandbox.io/s/nested-named-views-vue-x-router-4-examples-re9yl?&initialpath=%2Fsettings%2Femails).
+A working demo of this example can be found [here](https://codesandbox.io/s/nested-named-views-vue-smart-router-4-examples-re9yl?&initialpath=%2Fsettings%2Femails).
 
 <RuleKitLink />

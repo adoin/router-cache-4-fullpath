@@ -13,7 +13,7 @@ Because we don't have access to `this` inside of `setup`, we cannot directly acc
 
 ```vue
 <script setup>
-import { useRouter, useRoute } from 'vue-x-router'
+import { useRouter, useRoute } from 'vue-smart-router'
 
 const router = useRouter()
 const route = useRoute()
@@ -36,7 +36,7 @@ The `route` object is a reactive object. In most scenarios, you should **avoid w
 
 ```vue
 <script setup>
-import { useRoute } from 'vue-x-router'
+import { useRoute } from 'vue-smart-router'
 import { ref, watch } from 'vue'
 
 const route = useRoute()
@@ -60,7 +60,7 @@ Vue Router exposes update and leave guards as Composition API functions:
 
 ```vue
 <script setup>
-import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-x-router'
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-smart-router'
 import { ref } from 'vue'
 
 // same as beforeRouteLeave option but with no access to `this`
@@ -92,7 +92,7 @@ Vue Router exposes the internal behavior of RouterLink as a composable. It accep
 
 ```vue
 <script setup>
-import { RouterLink, useLink } from 'vue-x-router'
+import { RouterLink, useLink } from 'vue-smart-router'
 import { computed } from 'vue'
 
 const props = defineProps({

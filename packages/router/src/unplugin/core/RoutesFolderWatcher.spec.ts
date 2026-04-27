@@ -1,26 +1,26 @@
+import { type FSWatcher } from 'chokidar'
+import fs from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import pathe from 'pathe'
 import {
+  afterAll,
+  beforeAll,
   describe,
   expect,
   it,
   vi,
-  beforeAll,
   type Mock,
-  afterAll,
 } from 'vitest'
+import type { RoutesFolderOption } from '../options'
+import { resolveOptions } from '../options'
 import type { HandlerContext } from './RoutesFolderWatcher'
 import {
   RoutesFolderWatcher,
   resolveFolderOptions,
 } from './RoutesFolderWatcher'
-import type { RoutesFolderOption } from '../options'
-import { resolveOptions } from '../options'
-import pathe from 'pathe'
-import fs from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { type FSWatcher } from 'chokidar'
 
 const FIXTURES_ROOT = pathe.resolve(
-  pathe.join(tmpdir(), 'vue-x-router-' + Date.now())
+  pathe.join(tmpdir(), 'vue-smart-router-' + Date.now())
 )
 
 const TEST_TIMEOUT = 4000

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-x-router'
-import { parse } from 'semver'
 import SemVerInfo from '@/components/SemVerInfo.vue'
+import { parse } from 'semver'
+import { computed } from 'vue'
+import { useRoute } from 'vue-smart-router'
 
 const route = useRoute()
 

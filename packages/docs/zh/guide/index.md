@@ -1,7 +1,7 @@
 # 入门
 
 <VueSchoolLink
-href="https://vueschool.io/courses/vue-x-router-4-for-everyone"
+href="https://vueschool.io/courses/vue-smart-router-4-for-everyone"
 title="在 Vue School 上学习如何使用 Vue Router 构建强大的单页应用">观看免费的 Vue Router 视频课程</VueSchoolLink>
 
 Vue Router 是 Vue 官方的客户端路由解决方案。
@@ -55,7 +55,7 @@ Vue Router 基于 Vue 的组件系统构建，你可以通过配置**路由**来
 路由器实例是通过调用 `createRouter()` 函数创建的:
 
 ```js
-import { createMemoryHistory, createRouter } from 'vue-x-router'
+import { createMemoryHistory, createRouter } from 'vue-smart-router'
 
 import HomeView from './HomeView.vue'
 import AboutView from './AboutView.vue'
@@ -129,7 +129,7 @@ export default {
 ```vue
 <script setup>
 import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-x-router'
+import { useRoute, useRouter } from 'vue-smart-router'
 
 const router = useRouter()
 const route = useRoute()
@@ -196,7 +196,7 @@ Vue Router 可以使用组合式 API 或选项式 API 。在必要时，示例�
 
 ### `RouterView` 和 `RouterLink`
 
-组件 `RouterView` 和 `RouterLink` 都是[全局注册](https://cn.vuejs.org/guide/components/registration.html#global-registration)的，因此它们不需要在组件模板中导入。但你也可以通过局部导入它们，例如 `import { RouterLink } from 'vue-x-router'`。
+组件 `RouterView` 和 `RouterLink` 都是[全局注册](https://cn.vuejs.org/guide/components/registration.html#global-registration)的，因此它们不需要在组件模板中导入。但你也可以通过局部导入它们，例如 `import { RouterLink } from 'vue-smart-router'`。
 
 在模板中，组件的名字可以是 PascalCase 风格或 kebab-case 风格的。Vue 的模板编译器支持两种格式，因此 `<RouterView>` 和 `<router-view>` 通常是等效的。此时应该遵循你自己项目中使用的约定。
 

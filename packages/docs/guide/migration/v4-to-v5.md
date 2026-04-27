@@ -12,7 +12,7 @@
 No breaking changes. Update your dependency and you're done:
 
 ```bash
-pnpm update vue-x-router@5
+pnpm update vue-smart-router@5
 ```
 
 ## From unplugin-vue-router
@@ -31,7 +31,7 @@ import MigrationChecklist from '../../.vitepress/theme/components/MigrationCheck
 
 ```bash
 pnpm remove unplugin-vue-router
-pnpm update vue-x-router@5
+pnpm update vue-smart-router@5
 ```
 
 ### 2. Update Imports
@@ -41,13 +41,13 @@ pnpm update vue-x-router@5
 <!-- prettier-ignore -->
 ```ts
 import VueRouter from 'unplugin-vue-router/vite' // [!code --]
-import VueRouter from 'vue-x-router/vite' // [!code ++]
+import VueRouter from 'vue-smart-router/vite' // [!code ++]
 ```
 
-Other build tools (Webpack, Rollup, esbuild) import from `vue-x-router/unplugin`:
+Other build tools (Webpack, Rollup, esbuild) import from `vue-smart-router/unplugin`:
 
 ```ts
-import VueRouter from 'vue-x-router/unplugin'
+import VueRouter from 'vue-smart-router/unplugin'
 
 VueRouter.webpack({
   /* ... */
@@ -65,8 +65,8 @@ VueRouter.rollup({
 import { defineBasicLoader } from 'unplugin-vue-router/data-loaders/basic' // [!code --]
 import { defineColadaLoader } from 'unplugin-vue-router/data-loaders/pinia-colada' // [!code --]
 import { DataLoaderPlugin } from 'unplugin-vue-router/data-loaders' // [!code --]
-import { defineBasicLoader, DataLoaderPlugin } from 'vue-x-router/experimental' // [!code ++]
-import { defineColadaLoader } from 'vue-x-router/experimental/pinia-colada' // [!code ++]
+import { defineBasicLoader, DataLoaderPlugin } from 'vue-smart-router/experimental' // [!code ++]
+import { defineColadaLoader } from 'vue-smart-router/experimental/pinia-colada' // [!code ++]
 ```
 
 **Unplugin utilities (for custom integrations):**
@@ -81,7 +81,7 @@ import {
   getFileBasedRouteName,
   getPascalCaseRouteName,
 } from 'unplugin-vue-router' // [!code --]
-} from 'vue-x-router/unplugin' // [!code ++]
+} from 'vue-smart-router/unplugin' // [!code ++]
 ```
 
 **Types:**
@@ -89,7 +89,7 @@ import {
 <!-- prettier-ignore -->
 ```ts
 import type { Options, EditableTreeNode } from 'unplugin-vue-router' // [!code --]
-import type { Options, EditableTreeNode } from 'vue-x-router/unplugin' // [!code ++]
+import type { Options, EditableTreeNode } from 'vue-smart-router/unplugin' // [!code ++]
 ```
 
 **Volar plugins:**
@@ -119,8 +119,8 @@ import type { Options, EditableTreeNode } from 'vue-x-router/unplugin' // [!code
   },
   "vueCompilerOptions": {
     "plugins": [
-      "vue-x-router/volar/sfc-typed-router", // [!code ++]
-      "vue-x-router/volar/sfc-route-blocks", // [!code ++]
+      "vue-smart-router/volar/sfc-typed-router", // [!code ++]
+      "vue-smart-router/volar/sfc-route-blocks", // [!code ++]
     ],
   },
 }
@@ -173,11 +173,11 @@ or to your `tsconfig.json`:
 
 ## New Exports Reference
 
-| Export                                   | Purpose                            |
-| ---------------------------------------- | ---------------------------------- |
-| `vue-x-router`                           | Main API (unchanged)               |
-| `vue-x-router/vite`                      | Vite plugin                        |
-| `vue-x-router/auto-routes`               | Generated routes                   |
-| `vue-x-router/unplugin`                  | Webpack/Rollup/esbuild + utilities |
-| `vue-x-router/experimental`              | Data loaders                       |
-| `vue-x-router/experimental/pinia-colada` | Pinia Colada loader                |
+| Export                                       | Purpose                            |
+| -------------------------------------------- | ---------------------------------- |
+| `vue-smart-router`                           | Main API (unchanged)               |
+| `vue-smart-router/vite`                      | Vite plugin                        |
+| `vue-smart-router/auto-routes`               | Generated routes                   |
+| `vue-smart-router/unplugin`                  | Webpack/Rollup/esbuild + utilities |
+| `vue-smart-router/experimental`              | Data loaders                       |
+| `vue-smart-router/experimental/pinia-colada` | Pinia Colada loader                |

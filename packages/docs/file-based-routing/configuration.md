@@ -3,7 +3,7 @@
 Have a glimpse of all the existing configuration options with their corresponding **default values**:
 
 ```ts
-import VueRouter from 'vue-x-router/vite'
+import VueRouter from 'vue-smart-router/vite'
 
 VueRouter({
   // how and what folders to scan for files
@@ -62,16 +62,16 @@ VueRouter({
 
 ## SSR
 
-It might be necessary to mark `vue-x-router` as `noExternal` in your `vite.config.js` in development mode:
+It might be necessary to mark `vue-smart-router` as `noExternal` in your `vite.config.js` in development mode:
 
 ```ts{7}
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
-import VueRouter from 'vue-x-router/vite'
+import VueRouter from 'vue-smart-router/vite'
 
 export default defineConfig(({ mode }) => ({
   ssr: {
-    noExternal: mode === 'development' ? ['vue-x-router'] : [],
+    noExternal: mode === 'development' ? ['vue-smart-router'] : [],
   },
   plugins: [VueRouter(), Vue()],
 }))

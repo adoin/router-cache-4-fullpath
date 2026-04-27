@@ -1,26 +1,26 @@
 <script setup lang="ts">
 const items = [
   { text: 'Remove', code: 'unplugin-vue-router', after: 'dependency' },
-  { text: 'Update', code: 'vue-x-router', after: 'to v5' },
+  { text: 'Update', code: 'vue-smart-router', after: 'to v5' },
   {
     text: 'Change plugin import:',
     code: 'unplugin-vue-router/vite',
-    arrow: 'vue-x-router/vite',
+    arrow: 'vue-smart-router/vite',
   },
   {
     text: 'Change data loader imports:',
     code: 'unplugin-vue-router/data-loaders/*',
-    arrow: 'vue-x-router/experimental',
+    arrow: 'vue-smart-router/experimental',
   },
   {
     text: 'Change utility imports:',
     code: 'unplugin-vue-router',
-    arrow: 'vue-x-router/unplugin',
+    arrow: 'vue-smart-router/unplugin',
   },
   {
     text: 'Change Volar plugins:',
     code: 'unplugin-vue-router/volar/*',
-    arrow: 'vue-x-router/volar/*',
+    arrow: 'vue-smart-router/volar/*',
   },
   {
     text: 'Remove',

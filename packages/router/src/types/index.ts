@@ -1,16 +1,15 @@
-import type { LocationQuery, LocationQueryRaw } from '../query'
-import type { PathParserOptions } from '../matcher'
-import type { Ref, Component, DefineComponent } from 'vue'
-import type { RouteRecord, RouteRecordNormalized } from '../matcher/types'
+import type { Component, DefineComponent, Ref } from 'vue'
 import type { HistoryState } from '../history/common'
+import type { PathParserOptions } from '../matcher'
+import type { RouteRecord, RouteRecordNormalized } from '../matcher/types'
+import type { LocationQuery, LocationQueryRaw } from '../query'
 import type {
   NavigationGuardWithThis,
   RouteLocation,
+  RouteRecordNameGeneric,
   RouteRecordRedirectOption,
   _RouteRecordProps,
-  RouteRecordNameGeneric,
 } from '../typed-routes'
-import type { _Awaitable } from './utils'
 
 export type Lazy<T> = () => Promise<T>
 export type Override<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U
@@ -246,9 +245,9 @@ export interface _RouteRecordBase extends PathParserOptions {
  *
  * ```ts
  * // typings.d.ts or router.ts
- * import 'vue-x-router';
+ * import 'vue-smart-router';
  *
- * declare module 'vue-x-router' {
+ * declare module 'vue-smart-router' {
  *   interface RouteMeta {
  *     requiresAuth?: boolean
  *   }

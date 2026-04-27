@@ -1,10 +1,10 @@
+import type { RouteRecordRaw } from '../../types'
+import { encodePath } from '../utils/encoding'
 import type {
   CustomRouteBlock,
   CustomRouteBlockQueryParamOptions,
 } from './customBlock'
 import { joinPath, mergeRouteRecordOverride, warn } from './utils'
-import { encodePath } from '../utils/encoding'
-import type { RouteRecordRaw } from '../../types'
 
 export const enum TreeNodeType {
   static,
@@ -57,7 +57,7 @@ class _TreeNodeValueBase {
    */
   rawSegment: string
   /**
-   * transformed version of the segment into a vue-x-router path. e.g. `'index'` becomes `''` and `[param]` becomes
+   * transformed version of the segment into a vue-smart-router path. e.g. `'index'` becomes `''` and `[param]` becomes
    * `:param`, `prefix-[param]-end` becomes `prefix-:param-end`.
    */
   pathSegment: string
@@ -495,8 +495,8 @@ export type TreeNodeValue =
 
 export interface TreeNodeValueOptions extends ParseSegmentOptions {
   /**
-   * Format of the route path. Defaults to `file` which is the format used by vue-x-router and matches the file
-   * structure (e.g. `index`, ``, or `users/[id]`). In `path` format, routes are expected in the format of vue-x-router
+   * Format of the route path. Defaults to `file` which is the format used by vue-smart-router and matches the file
+   * structure (e.g. `index`, ``, or `users/[id]`). In `path` format, routes are expected in the format of vue-smart-router
    * (e.g. `/` or '/users/:id' ).
    *
    * @default `'file'`

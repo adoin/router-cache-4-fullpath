@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
+import { defineConfig } from 'vite'
 
 const root = fileURLToPath(new URL('./', import.meta.url))
 
@@ -17,13 +17,13 @@ export default defineConfig({
         replacement: fileURLToPath(new URL('./src', import.meta.url)),
       },
       {
-        find: /^vue-x-router\/experimental$/,
+        find: /^vue-smart-router\/experimental$/,
         replacement: fileURLToPath(
           new URL('../../../../src/experimental/index.ts', import.meta.url)
         ),
       },
       {
-        find: /^vue-x-router$/,
+        find: /^vue-smart-router$/,
         replacement: fileURLToPath(new URL('../../../../src', import.meta.url)),
       },
     ],

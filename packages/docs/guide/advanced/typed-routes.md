@@ -11,8 +11,8 @@ It's possible to configure the router to have a _map_ of typed routes. While thi
 Here is an example of how to manually configure typed routes:
 
 ```ts
-// import the `RouteRecordInfo` type from vue-x-router to type your routes
-import type { RouteRecordInfo } from 'vue-x-router'
+// import the `RouteRecordInfo` type from vue-smart-router to type your routes
+import type { RouteRecordInfo } from 'vue-smart-router'
 
 // Define an interface of routes
 export interface RouteNamedMap {
@@ -63,7 +63,7 @@ export interface RouteNamedMap {
 }
 
 // Last, you will need to augment the Vue Router types with this map of routes
-declare module 'vue-x-router' {
+declare module 'vue-smart-router' {
   interface TypesConfig {
     RouteNamedMap: RouteNamedMap
   }

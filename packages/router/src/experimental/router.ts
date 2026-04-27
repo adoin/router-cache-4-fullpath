@@ -1,11 +1,3 @@
-import type { NavigationRedirectError } from '../errors'
-import {
-  createRouterError,
-  ErrorTypes,
-  isNavigationFailure,
-  type _ErrorListener,
-  type NavigationFailure,
-} from '../errors'
 import type { ShallowRef } from 'vue'
 import {
   nextTick,
@@ -15,12 +7,32 @@ import {
   warn,
   type App,
 } from 'vue'
+import { addDevtools } from '../devtools'
+import type { NavigationRedirectError } from '../errors'
+import {
+  ErrorTypes,
+  createRouterError,
+  isNavigationFailure,
+  type NavigationFailure,
+  type _ErrorListener,
+} from '../errors'
 import {
   NavigationType,
   type HistoryState,
   type RouterHistory,
 } from '../history/common'
+import {
+  routeLocationKey,
+  routerKey,
+  routerViewLocationKey,
+} from '../injectionSymbols'
+import { START_LOCATION_NORMALIZED, isSameRouteLocation } from '../location'
 import type { PathParserOptions } from '../matcher'
+import {
+  extractChangingRecords,
+  extractComponentsGuards,
+  guardToPromiseFn,
+} from '../navigationGuards'
 import type { parseQuery as originalParseQuery } from '../query'
 import { stringifyQuery as originalStringifyQuery } from '../query'
 import type { _ScrollPositionNormalized } from '../scrollBehavior'
@@ -33,8 +45,6 @@ import {
   type RouterScrollBehavior,
 } from '../scrollBehavior'
 import type {
-  _NavigationGuardResolved,
-  _RouteRecordProps,
   NavigationGuard,
   NavigationGuardWithThis,
   NavigationHookAfter,
@@ -50,6 +60,8 @@ import type {
   RouteMap,
   RouteRecordNameGeneric,
   RouteRecordRedirectOption,
+  _NavigationGuardResolved,
+  _RouteRecordProps,
 } from '../typed-routes'
 import type {
   Lazy,
@@ -57,32 +69,20 @@ import type {
   RouteLocationOptions,
   RouteMeta,
 } from '../types'
-import { useCallbacks } from '../utils/callbacks'
-import { isSameRouteLocation, START_LOCATION_NORMALIZED } from '../location'
 import { assign, isArray, isBrowser, noop } from '../utils'
-import {
-  extractChangingRecords,
-  extractComponentsGuards,
-  guardToPromiseFn,
-} from '../navigationGuards'
-import { addDevtools } from '../devtools'
-import {
-  routeLocationKey,
-  routerKey,
-  routerViewLocationKey,
-} from '../injectionSymbols'
-import type {
-  EXPERIMENTAL_ResolverRecord_Base,
-  EXPERIMENTAL_ResolverRecord_Group,
-  EXPERIMENTAL_ResolverRecord_Matchable,
-  EXPERIMENTAL_ResolverFixed,
-} from './route-resolver/resolver-fixed'
+import { useCallbacks } from '../utils/callbacks'
 import type {
   ResolverLocationAsNamed,
   ResolverLocationAsPathRelative,
   ResolverLocationAsRelative,
   ResolverLocationResolved,
 } from './route-resolver/resolver-abstract'
+import type {
+  EXPERIMENTAL_ResolverFixed,
+  EXPERIMENTAL_ResolverRecord_Base,
+  EXPERIMENTAL_ResolverRecord_Group,
+  EXPERIMENTAL_ResolverRecord_Matchable,
+} from './route-resolver/resolver-fixed'
 
 /**
  * resolve, reject arguments of Promise constructor
@@ -606,8 +606,8 @@ export interface EXPERIMENTAL_Router
  * Creates an experimental Router that allows passing a resolver instead of a
  * routes array. This router does not have `addRoute()` and `removeRoute()`
  * methods and is meant to be used with file-based routing thanks to
- * vue-x-router/vite or vue-x-router/unplugin resolver generation in
- * `'vue-x-router/auto-resolver'`.
+ * vue-smart-router/vite or vue-smart-router/unplugin resolver generation in
+ * `'vue-smart-router/auto-resolver'`.
  *
  * @param options - Options to initialize the router
  */

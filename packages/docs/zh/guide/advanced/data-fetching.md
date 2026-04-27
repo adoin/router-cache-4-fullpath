@@ -34,7 +34,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { useRoute } from 'vue-x-router'
+import { useRoute } from 'vue-smart-router'
 import { getPost } from './api.js'
 
 const route = useRoute()

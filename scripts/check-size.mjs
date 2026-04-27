@@ -1,9 +1,9 @@
+import { compress } from 'brotli'
+import chalk from 'chalk'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import chalk from 'chalk'
 import { gzipSync } from 'zlib'
-import { compress } from 'brotli'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -38,7 +38,7 @@ async function checkFileSize(filePath) {
       ),
       path.resolve(
         __dirname,
-        '../packages/router/dist/vue-x-router.global.prod.js'
+        '../packages/router/dist/vue-smart-router.global.prod.js'
       ),
       path.resolve(
         __dirname,

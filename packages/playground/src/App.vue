@@ -221,10 +221,10 @@
 </template>
 
 <script lang="ts" setup>
-import { inject, computed, ref, shallowRef } from 'vue'
-import { scrollWaiter } from './scrollWaiter'
-import { useLink, useRoute, RouterLink } from 'vue-x-router'
+import { computed, inject, ref, shallowRef } from 'vue'
+import { RouterLink, useLink, useRoute } from 'vue-smart-router'
 import AppLink from './AppLink.vue'
+import { scrollWaiter } from './scrollWaiter'
 
 const route = useRoute()
 const state = inject('state')

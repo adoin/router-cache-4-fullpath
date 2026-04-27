@@ -13,7 +13,7 @@ Vue 的[组合式 API](https://cn.vuejs.org/guide/extras/composition-api-faq.htm
 
 ```vue
 <script setup>
-import { useRouter, useRoute } from 'vue-x-router'
+import { useRouter, useRoute } from 'vue-smart-router'
 
 const router = useRouter()
 const route = useRoute()
@@ -36,7 +36,7 @@ function pushWithQuery(query) {
 
 ```vue
 <script setup>
-import { useRoute } from 'vue-x-router'
+import { useRoute } from 'vue-smart-router'
 import { ref, watch } from 'vue'
 
 const route = useRoute()
@@ -60,7 +60,7 @@ Vue Router 将更新和离开守卫作为组合式 API 函数公开：
 
 ```vue
 <script setup>
-import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-x-router'
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-smart-router'
 import { ref } from 'vue'
 
 // 与 beforeRouteLeave 相同，无法访问 `this`
@@ -92,7 +92,7 @@ Vue Router 将 RouterLink 的内部行为作为一个组合式函数 (composable
 
 ```vue
 <script setup>
-import { RouterLink, useLink } from 'vue-x-router'
+import { RouterLink, useLink } from 'vue-smart-router'
 import { computed } from 'vue'
 
 const props = defineProps({

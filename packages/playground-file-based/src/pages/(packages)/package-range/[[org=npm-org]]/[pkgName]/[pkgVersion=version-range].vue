@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { useRoute } from 'vue-x-router'
-import { SemVer } from 'semver'
 import SemVerInfo from '@/components/SemVerInfo.vue'
+import { SemVer } from 'semver'
+import { useRoute } from 'vue-smart-router'
 
 const route = useRoute()
 </script>

@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from '../dist/vue-x-router.js'
+import { createRouter, createWebHistory } from '../dist/vue-smart-router.js'
 
 createRouter({
   history: createWebHistory(),

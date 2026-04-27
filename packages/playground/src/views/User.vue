@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeRouteUpdate } from 'vue-x-router'
+import { onBeforeRouteUpdate } from 'vue-smart-router'
 
 defineProps<{ id: string }>()
 

@@ -95,4 +95,4 @@ await router.isReady()
 app.mount('#app')
 ```
 
-<!-- See full example [here](https://github.com/vuejs/vue-x-router/blob/dev/examples/transitions/app.js). -->
+<!-- See full example [here](https://github.com/vuejs/vue-smart-router/blob/dev/examples/transitions/app.js). -->

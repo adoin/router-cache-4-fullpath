@@ -1,18 +1,18 @@
 import type {
+  RouteLocationMatched,
   RouteLocationOptions,
+  RouteParamsRawGeneric,
   RouteQueryAndHash,
   _RouteLocationBase,
-  RouteLocationMatched,
-  RouteParamsRawGeneric,
 } from '../types'
 import type { _LiteralUnion } from '../types/utils'
 // inlining the type as it avoids code splitting issues
+import type { RouteRecord, RouteRecordNormalized } from '../matcher/types'
 import type {
   RouteMap,
   RouteMapGeneric,
   RouteRecordInfoGeneric,
 } from './route-map'
-import type { RouteRecord, RouteRecordNormalized } from '../matcher/types'
 import type { RouteRecordNameGeneric } from './route-records'
 
 /**
@@ -253,7 +253,7 @@ export type RouteLocationResolvedTypedList<
 }
 
 /**
- * Type safe versions of types that are exposed by vue-x-router. We have to use a generic check to allow for names to be `undefined` when no `RouteMap` is provided.
+ * Type safe versions of types that are exposed by vue-smart-router. We have to use a generic check to allow for names to be `undefined` when no `RouteMap` is provided.
  */
 
 /**

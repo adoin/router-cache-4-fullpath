@@ -2,7 +2,7 @@
 # Updated automatically in Netlify builds: see the VitePress config.
 packageVersions:
   vue: 3.5.28
-  vue-x-router: 5.0.2
+  vue-smart-router: 5.0.2
   '@vue/devtools-api': 8.0.6
 ---
 
@@ -17,19 +17,19 @@ If you have an existing project that uses a JavaScript package manager, you can 
 ::: code-group
 
 ```bash [npm]
-npm install vue-x-router
+npm install vue-smart-router
 ```
 
 ```bash [yarn]
-yarn add vue-x-router
+yarn add vue-smart-router
 ```
 
 ```bash [pnpm]
-pnpm add vue-x-router
+pnpm add vue-smart-router
 ```
 
 ```bash [bun]
-bun add vue-x-router
+bun add vue-smart-router
 ```
 
 :::
@@ -58,7 +58,7 @@ bun create vue
 
 You'll be prompted with some questions about the kind of project you want to create. If you choose to install Vue Router, the example application will also demonstrate some of Vue Router's core features.
 
-Projects using package managers will typically use ES modules to access Vue Router, e.g. `import { createRouter } from 'vue-x-router'`.
+Projects using package managers will typically use ES modules to access Vue Router, e.g. `import { createRouter } from 'vue-smart-router'`.
 
 ## Direct Download / CDN
 
@@ -81,26 +81,26 @@ Each build comes with a development and production version. The development vers
   {
     "imports": {
       "vue": "https://unpkg.com/vue@{{ $frontmatter.packageVersions.vue }}/dist/vue.esm-browser.js",
-      "vue-x-router": "https://unpkg.com/vue-x-router@{{ $frontmatter.packageVersions['vue-x-router'] }}/dist/vue-x-router.esm-browser.js",
+      "vue-smart-router": "https://unpkg.com/vue-smart-router@{{ $frontmatter.packageVersions['vue-smart-router'] }}/dist/vue-smart-router.esm-browser.js",
       "@vue/devtools-api": "https://unpkg.com/@vue/devtools-api@{{ $frontmatter.packageVersions['@vue/devtools-api'] }}/dist/vue-devtools-api.esm-browser.js"
     }
   }
 </script>
 <script type="module">
   import { createApp } from 'vue'
-  import { createRouter } from 'vue-x-router'
+  import { createRouter } from 'vue-smart-router'
 
   // ...
 </script>
 ```
 
-`@vue/devtools-api` is only needed when using the development build of Vue Router. It can be removed when using the production build, `vue-x-router.esm-browser.prod.js`.
+`@vue/devtools-api` is only needed when using the development build of Vue Router. It can be removed when using the production build, `vue-smart-router.esm-browser.prod.js`.
 
 ### Using the global build
 
 ```html-vue
 <script src="https://unpkg.com/vue@{{ $frontmatter.packageVersions.vue }}/dist/vue.global.js"></script>
-<script src="https://unpkg.com/vue-x-router@{{ $frontmatter.packageVersions['vue-x-router'] }}/dist/vue-x-router.global.js"></script>
+<script src="https://unpkg.com/vue-smart-router@{{ $frontmatter.packageVersions['vue-smart-router'] }}/dist/vue-smart-router.global.js"></script>
 <script>
   const { createApp } = Vue
   const { createRouter } = VueRouter
@@ -109,6 +109,6 @@ Each build comes with a development and production version. The development vers
 </script>
 ```
 
-The corresponding production build of Vue Router is called `vue-x-router.global.prod.js`.
+The corresponding production build of Vue Router is called `vue-smart-router.global.prod.js`.
 
 <RuleKitLink />

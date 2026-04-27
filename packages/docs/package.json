@@ -20,6 +20,6 @@
     "vitepress-plugin-group-icons": "^1.7.1",
     "vitepress-plugin-llms": "^1.11.0",
     "vitepress-translation-helper": "^0.2.2",
-    "vue-x-router": "workspace:*"
+    "vue-smart-router": "workspace:*"
   }
 }

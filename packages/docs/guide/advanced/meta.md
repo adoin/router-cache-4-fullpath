@@ -60,18 +60,18 @@ router.beforeEach((to, from) => {
 
 ## TypeScript
 
-It is possible to type the meta field by extending the `RouteMeta` interface from `vue-x-router`:
+It is possible to type the meta field by extending the `RouteMeta` interface from `vue-smart-router`:
 
 ```ts
 // This can be directly added to any of your `.ts` files like `router.ts`
 // It can also be added to a `.d.ts` file. Make sure it's included in
 // project's tsconfig.json "files"
-import 'vue-x-router'
+import 'vue-smart-router'
 
 // To ensure it is treated as a module, add at least one `export` statement
 export {}
 
-declare module 'vue-x-router' {
+declare module 'vue-smart-router' {
   interface RouteMeta {
     // is optional
     isAdmin?: boolean

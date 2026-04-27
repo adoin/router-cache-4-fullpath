@@ -1,10 +1,14 @@
 // necessary for webpack
-import { createApp } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
+import { createApp } from 'vue'
+import {
+  useRoute,
+  type ParamValue,
+  type RouteRecordInfo,
+} from 'vue-smart-router'
+import App from './App.vue'
 import { router, routerHistory } from './router'
 import { globalState } from './store'
-import App from './App.vue'
-import { useRoute, type ParamValue, type RouteRecordInfo } from 'vue-x-router'
 
 declare global {
   interface Window {
@@ -86,7 +90,7 @@ export interface RouteNamedMap {
   >
 }
 
-declare module 'vue-x-router' {
+declare module 'vue-smart-router' {
   interface TypesConfig {
     RouteNamedMap: RouteNamedMap
   }

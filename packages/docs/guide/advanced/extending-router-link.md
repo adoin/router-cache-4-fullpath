@@ -14,7 +14,7 @@ Let's extend RouterLink to handle external links as well and adding a custom `in
 ```vue [Composition API]
 <script setup>
 import { computed } from 'vue'
-import { RouterLink } from 'vue-x-router'
+import { RouterLink } from 'vue-smart-router'
 
 defineOptions({
   inheritAttrs: false,
@@ -55,7 +55,7 @@ const isExternalLink = computed(() => {
 
 ```vue [Options API]
 <script>
-import { RouterLink } from 'vue-x-router'
+import { RouterLink } from 'vue-smart-router'
 
 export default {
   name: 'AppLink',
@@ -102,7 +102,7 @@ export default {
 If you prefer using a render function or create `computed` properties, you can use the `useLink` from the [Composition API](./composition-api.md):
 
 ```js
-import { RouterLink, useLink } from 'vue-x-router'
+import { RouterLink, useLink } from 'vue-smart-router'
 
 export default {
   name: 'AppLink',

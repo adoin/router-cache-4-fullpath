@@ -1,7 +1,7 @@
 # Routes' Matching Syntax
 
 <VueSchoolLink
-  href="https://vueschool.io/lessons/vue-x-router-4-advanced-routes-matching-syntax"
+  href="https://vueschool.io/lessons/vue-smart-router-4-advanced-routes-matching-syntax"
   title="Learn how to use advanced route routes' matching syntax"
 />
 

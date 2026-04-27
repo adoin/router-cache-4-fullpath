@@ -1,11 +1,11 @@
+import type { MatcherError } from '../errors'
+import { ErrorTypes, createRouterError } from '../errors'
 import type {
-  RouteRecordRaw,
-  MatcherLocationRaw,
   MatcherLocation,
+  MatcherLocationRaw,
+  RouteRecordRaw,
 } from '../types'
 import { isRouteName } from '../types'
-import type { MatcherError } from '../errors'
-import { createRouterError, ErrorTypes } from '../errors'
 import type { RouteRecordMatcher } from './pathMatcher'
 import { createRouteRecordMatcher } from './pathMatcher'
 import type { RouteRecordNormalized } from './types'
@@ -17,13 +17,13 @@ import type {
 } from './pathParserRanker'
 
 import {
-  comparePathParserScore,
   PATH_PARSER_OPTIONS_DEFAULTS,
+  comparePathParserScore,
 } from './pathParserRanker'
 
-import { warn } from '../warning'
-import { assign, mergeOptions, noop } from '../utils'
 import type { RouteRecordNameGeneric, _RouteRecordProps } from '../typed-routes'
+import { assign, mergeOptions, noop } from '../utils'
+import { warn } from '../warning'
 
 /**
  * Internal RouterMatcher
@@ -314,7 +314,7 @@ export function createRouterMatcher(
 
       if (__DEV__ && !path.startsWith('/')) {
         warn(
-          `The Matcher cannot resolve relative paths but received "${path}". Unless you directly called \`matcher.resolve("${path}")\`, this is probably a bug in vue-x-router. Please open an issue at https://github.com/vuejs/router/issues/new/choose.`
+          `The Matcher cannot resolve relative paths but received "${path}". Unless you directly called \`matcher.resolve("${path}")\`, this is probably a bug in vue-smart-router. Please open an issue at https://github.com/vuejs/router/issues/new/choose.`
         )
       }
 

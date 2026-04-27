@@ -1,10 +1,10 @@
-import fs from 'node:fs'
-import { dirname, join, relative, resolve } from 'node:path'
-import { parseArgs } from 'node:util'
-import { fileURLToPath } from 'node:url'
-import semver, { type ReleaseType } from 'semver'
 import prompts from '@posva/prompts'
 import { spawn } from 'node:child_process'
+import fs from 'node:fs'
+import { dirname, join, relative, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { parseArgs } from 'node:util'
+import semver, { type ReleaseType } from 'semver'
 
 /**
  * Simple console colors
@@ -72,7 +72,7 @@ Flags:
 //   (semver.prerelease(currentVersion) && semver.prerelease(currentVersion)[0])
 const EXPECTED_BRANCH = 'main'
 // this package will use tags like v1.0.0 while the rest will use the full package name like @pinia/testing@1.0.0
-const MAIN_PKG_NAME = 'vue-x-router'
+const MAIN_PKG_NAME = 'vue-smart-router'
 // whether the main package is at the root of the mono repo or true if this is not a mono repo
 const IS_MAIN_PKG_AT_ROOT = false
 // array of folders of packages to release

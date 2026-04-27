@@ -60,18 +60,18 @@ router.beforeEach((to, from) => {
 
 ## TypeScript
 
-也可以继承来自 `vue-x-router` 中的 `RouteMeta` 来为 meta 字段添加类型：
+也可以继承来自 `vue-smart-router` 中的 `RouteMeta` 来为 meta 字段添加类型：
 
 ```ts
 // 这段可以直接添加到你的任何 `.ts` 文件中，例如 `router.ts`
 // 也可以添加到一个 `.d.ts` 文件中。确保这个文件包含在
 // 项目的 `tsconfig.json` 中的 "file" 字段内。
-import 'vue-x-router'
+import 'vue-smart-router'
 
 // 为了确保这个文件被当作一个模块，添加至少一个 `export` 声明
 export {}
 
-declare module 'vue-x-router' {
+declare module 'vue-smart-router' {
   interface RouteMeta {
     // 是可选的
     isAdmin?: boolean

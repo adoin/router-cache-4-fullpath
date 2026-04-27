@@ -20,7 +20,7 @@ import './typed-router.d'
 
 ```vue
 <script lang="ts">
-import { defineColadaLoader } from 'vue-x-router/experimental/pinia-colada'
+import { defineColadaLoader } from 'vue-smart-router/experimental/pinia-colada'
 import { getUserById } from '../api'
 
 export const useUserData = defineColadaLoader({

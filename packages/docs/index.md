@@ -20,10 +20,10 @@ hero:
       link: https://rulekit.dev?from=vuerouter
     - theme: cta vueschool
       text: Free Video Course
-      link: https://vueschool.io/courses/vue-x-router-4-for-everyone?friend=vuerouter&utm_source=vuerouter&utm_medium=link&utm_campaign=homepage
+      link: https://vueschool.io/courses/vue-smart-router-4-for-everyone?friend=vuerouter&utm_source=vuerouter&utm_medium=link&utm_campaign=homepage
     - theme: cta vue-mastery
       text: Get the Vue Router Cheat Sheet
-      link: https://www.vuemastery.com/vue-x-router?coupon=ROUTER-DOCS&via=eduardo
+      link: https://www.vuemastery.com/vue-smart-router?coupon=ROUTER-DOCS&via=eduardo
 
 features:
   - title: 🛣 Expressive route syntax

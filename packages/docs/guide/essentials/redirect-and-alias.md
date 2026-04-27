@@ -1,7 +1,7 @@
 # Redirect and Alias
 
 <VueSchoolLink
-  href="https://vueschool.io/lessons/vue-x-router-4-redirect-and-alias"
+  href="https://vueschool.io/lessons/vue-smart-router-4-redirect-and-alias"
   title="Learn how to use redirect and alias"
 />
 

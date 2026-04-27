@@ -185,7 +185,7 @@ VueRouter({
 You can also provide a path prefix for each of these folders, it will be used _as is_, and **cannot start with a `/`** but can contain any params you want or even **not finish with a `/`**:
 
 ```ts
-import VueRouter from 'vue-x-router/vite'
+import VueRouter from 'vue-smart-router/vite'
 
 VueRouter({
   routesFolder: [
@@ -219,7 +219,7 @@ Note that the provided folders must be separate and one _route folder_ cannot co
 While most of the time you will be using `.vue` files, you can also specify custom extensions to be considered as pages. You can for example use _markdown_ files as pages:
 
 ```ts
-import VueRouter from 'vue-x-router/vite'
+import VueRouter from 'vue-smart-router/vite'
 
 VueRouter({
   // globally set the extensions

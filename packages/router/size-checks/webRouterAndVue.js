@@ -1,5 +1,5 @@
-import { h, createApp } from 'vue'
-import { createRouter, createWebHistory } from '../dist/vue-x-router.js'
+import { createApp, h } from 'vue'
+import { createRouter, createWebHistory } from '../dist/vue-smart-router.js'
 
 createRouter({
   history: createWebHistory(),

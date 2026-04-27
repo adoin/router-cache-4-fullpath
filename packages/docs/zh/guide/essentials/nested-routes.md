@@ -99,7 +99,7 @@ const routes = [
 ]
 ```
 
-这个例子的 demo 可以在[这里](https://codesandbox.io/s/nested-views-vue-x-router-4-examples-hl326?initialpath=%2Fusers%2Feduardo)找到。
+这个例子的 demo 可以在[这里](https://codesandbox.io/s/nested-views-vue-smart-router-4-examples-hl326?initialpath=%2Fusers%2Feduardo)找到。
 
 <RuleKitLink />
 

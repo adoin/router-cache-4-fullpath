@@ -1,7 +1,7 @@
 # 命名视图
 
 <VueSchoolLink
-  href="https://vueschool.io/lessons/vue-x-router-4-named-views"
+  href="https://vueschool.io/lessons/vue-smart-router-4-named-views"
   title="Learn how to use named views"
 />
 
@@ -33,7 +33,7 @@ const router = createRouter({
 })
 ```
 
-以上案例相关的可运行代码请[移步这里](https://codesandbox.io/s/named-views-vue-x-router-4-examples-rd20l).
+以上案例相关的可运行代码请[移步这里](https://codesandbox.io/s/named-views-vue-smart-router-4-examples-rd20l).
 
 ## 嵌套命名视图
 
@@ -88,6 +88,6 @@ const router = createRouter({
 }
 ```
 
-以上案例相关的可运行代码请[移步这里](https://codesandbox.io/s/nested-named-views-vue-x-router-4-examples-re9yl?&initialpath=%2Fsettings%2Femails).
+以上案例相关的可运行代码请[移步这里](https://codesandbox.io/s/nested-named-views-vue-smart-router-4-examples-re9yl?&initialpath=%2Fsettings%2Femails).
 
 <RuleKitLink />

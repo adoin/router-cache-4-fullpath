@@ -34,7 +34,7 @@ Let's assume we have a `Post` component that needs to fetch the data for a post 
 
 <script setup>
 import { ref, watch } from 'vue'
-import { useRoute } from 'vue-x-router'
+import { useRoute } from 'vue-smart-router'
 import { getPost } from './api.js'
 
 const route = useRoute()

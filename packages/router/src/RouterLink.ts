@@ -1,32 +1,29 @@
 import {
-  defineComponent,
-  h,
-  type PropType,
-  inject,
   computed,
+  defineComponent,
+  getCurrentInstance,
+  h,
+  inject,
   reactive,
   unref,
-  type VNode,
-  type UnwrapRef,
-  type VNodeProps,
-  type AllowedComponentProps,
-  type ComponentCustomProps,
-  getCurrentInstance,
   watchEffect,
+  type AllowedComponentProps,
+  type AnchorHTMLAttributes,
+  type ComponentCustomProps,
   // this is a workaround for https://github.com/microsoft/rushstack/issues/1050
   // this file is meant to be prepended to the generated dist/src/RouterLink.d.ts
   // @ts-ignore
   type ComputedRef,
   type MaybeRef,
-  type AnchorHTMLAttributes,
+  type PropType,
+  type UnwrapRef,
+  type VNode,
+  type VNodeProps,
 } from 'vue'
-import { isSameRouteLocationParams, isSameRouteRecord } from './location'
-import { routerKey, routeLocationKey } from './injectionSymbols'
-import type { RouteRecord } from './matcher/types'
 import type { NavigationFailure } from './errors'
-import { isArray, isBrowser, noop } from './utils'
-import { warn } from './warning'
-import { isRouteLocation } from './types'
+import { routeLocationKey, routerKey } from './injectionSymbols'
+import { isSameRouteLocationParams, isSameRouteRecord } from './location'
+import type { RouteRecord } from './matcher/types'
 import type {
   RouteLocation,
   RouteLocationAsPath,
@@ -36,6 +33,9 @@ import type {
   RouteLocationResolved,
   RouteMap,
 } from './typed-routes'
+import { isRouteLocation } from './types'
+import { isArray, isBrowser, noop } from './utils'
+import { warn } from './warning'
 
 export interface RouterLinkOptions {
   /**
@@ -394,7 +394,7 @@ export interface _RouterLinkI {
   }
 
   /**
-   * Access to `useLink()` without depending on using vue-x-router
+   * Access to `useLink()` without depending on using vue-smart-router
    *
    * @internal
    */

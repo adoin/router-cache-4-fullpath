@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { PrefixTree } from '../core/tree'
+import { ImportsMap } from '../core/utils'
 import { resolveOptions } from '../options'
+import { generateAliasWarnings } from './generateAliasWarnings'
+import type { ParamParsersMap } from './generateParamParsers'
 import {
-  generateRouteResolver,
   generateRouteRecord,
   generateRouteRecordQuery,
+  generateRouteResolver,
 } from './generateRouteResolver'
-import { ImportsMap } from '../core/utils'
-import type { ParamParsersMap } from './generateParamParsers'
-import { generateAliasWarnings } from './generateAliasWarnings'
 
 const DEFAULT_OPTIONS = resolveOptions({})
 let DEFAULT_STATE: Parameters<typeof generateRouteRecord>[0]['state'] = {
@@ -136,7 +136,10 @@ describe('generateRouteRecordQuery', () => {
     generateRouteRecordQuery({ importsMap, node, paramParsersMap: new Map() })
 
     expect(
-      importsMap.has('vue-x-router/experimental', 'MatcherPatternQueryParam')
+      importsMap.has(
+        'vue-smart-router/experimental',
+        'MatcherPatternQueryParam'
+      )
     ).toBe(true)
   })
 

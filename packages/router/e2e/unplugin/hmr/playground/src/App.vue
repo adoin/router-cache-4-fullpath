@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-x-router'
+import { useRouter } from 'vue-smart-router'
 
 const to = ref('')
 const router = useRouter()

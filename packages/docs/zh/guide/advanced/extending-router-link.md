@@ -14,7 +14,7 @@ RouterLink 组件提供了足够的 `props` 来满足大多数基本应用程序
 ```vue [Composition API]
 <script setup>
 import { computed } from 'vue'
-import { RouterLink } from 'vue-x-router'
+import { RouterLink } from 'vue-smart-router'
 
 defineOptions({
   inheritAttrs: false,
@@ -55,7 +55,7 @@ const isExternalLink = computed(() => {
 
 ```vue [Options API]
 <script>
-import { RouterLink } from 'vue-x-router'
+import { RouterLink } from 'vue-smart-router'
 
 export default {
   name: 'AppLink',
@@ -102,7 +102,7 @@ export default {
 如果你喜欢使用渲染函数或创建 `computed` 属性，你可以使用 [Composition API](./composition-api.md) 中的 `useLink` ：
 
 ```js
-import { RouterLink, useLink } from 'vue-x-router'
+import { RouterLink, useLink } from 'vue-smart-router'
 
 export default {
   name: 'AppLink',

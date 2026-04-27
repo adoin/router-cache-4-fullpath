@@ -5,8 +5,8 @@ Sometimes, requests depend on other fetched data (e.g. fetching additional user 
 Call **and `await`** the loader inside the one that needs it, it will only be fetched once no matter how many times it is called during a navigation:
 
 ```ts twoslash
-import 'vue-x-router/auto-routes'
-import { defineBasicLoader } from 'vue-x-router/experimental'
+import 'vue-smart-router/auto-routes'
+import { defineBasicLoader } from 'vue-smart-router/experimental'
 // ---cut---
 // import the loader for user information
 import { useUserData } from './loaders/users'
@@ -40,8 +40,8 @@ Two loaders cannot use each other as that would create a _dead lock_.
 This can get complex with multiple pages exposing the same loader and other pages using some of their _already exported_ loaders within other loaders. But it's not an issue, **the user shouldn't need to handle anything differently**, loaders are still only called once:
 
 ```ts twoslash
-import 'vue-x-router/auto-routes'
-import { defineBasicLoader } from 'vue-x-router/experimental'
+import 'vue-smart-router/auto-routes'
+import { defineBasicLoader } from 'vue-smart-router/experimental'
 // ---cut---
 import {
   getFriends,

@@ -7,7 +7,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const apiCode = fs.readFileSync(join(__dirname, './code/api.ts'), 'utf-8')
 
 export const usersLoaderCode = `
-import { defineBasicLoader } from 'vue-x-router/experimental'
+import { defineBasicLoader } from 'vue-smart-router/experimental'
 
 ${apiCode}
 

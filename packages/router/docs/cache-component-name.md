@@ -1,25 +1,25 @@
 # `cacheComponentName`：用「路径/自定义键」驱动 `<keep-alive include>`
 
-`vue-x-router` 在 `<router-view>` 上提供可选的 **`cacheComponentName`**，在内部为当前路由页面包一层**稳定壳组件**，壳的 **组件名（`name`）** 由你指定为 `fullPath`、`path` 或**自定义函数**的返回值。
+`vue-smart-router` 在 `<router-view>` 上提供可选的 **`cacheComponentName`**，在内部为当前路由页面包一层**稳定壳组件**，壳的 **组件名（`name`）** 由你指定为 `fullPath`、`path` 或**自定义函数**的返回值。
 
 这样，`<keep-alive :include="...">` 可以按 **URL 或 `pageId`** 区分多开实例，而不是只认页面 SFC 上**同一个** `name`（与路由 `name: 'Xxx'` 容易撞名的问题）。
 
 ## 安装
 
-本仓库发布的 npm 包名是 **`vue-x-router`**（中间有 **`x`**），**不是** `vue-router`，安装时不要写错包名。
+本仓库发布的 npm 包名是 **`vue-smart-router`**（**不是**官方 `vue-router`），安装时不要写错包名。
 
 ```bash
 # pnpm（推荐）
-pnpm add vue-x-router
+pnpm add vue-smart-router
 
 # npm
-npm install vue-x-router
+npm install vue-smart-router
 
 # yarn
-yarn add vue-x-router
+yarn add vue-smart-router
 ```
 
-`vue-x-router` 与官方 `vue-router` 的 peer 要求一致，需与项目中的 **Vue 3** 版本匹配（参见包内 `peerDependencies`）。从 `vue-router` 迁到本 fork 时，请**全局**把依赖与 import 从 `vue-router` 改为 `vue-x-router`（子路径如 `vue-x-router/auto-routes` 同理）。
+`vue-smart-router` 与官方 `vue-router` 的 peer 要求一致，需与项目中的 **Vue 3** 版本匹配（参见包内 `peerDependencies`）。从 `vue-router` 迁到本 fork 时，请**全局**把依赖与 import 从 `vue-router` 改为 `vue-smart-router`（子路径如 `vue-smart-router/auto-routes` 同理）。
 
 ## 背景
 
@@ -78,7 +78,7 @@ const allowedFullPaths = ref<string[]>(['/orders/1', '/orders/2'])
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { RouteLocationNormalizedLoaded } from 'vue-x-router'
+import type { RouteLocationNormalizedLoaded } from 'vue-smart-router'
 
 const openTabCacheKeys = computed(() =>
   /* 与业务里「未关闭的 tab」一致 */ openTabs.value.map(
@@ -100,11 +100,11 @@ function cacheNameForRoute(r: RouteLocationNormalizedLoaded) {
 ## 在业务里写 import
 
 ```ts
-import { createRouter, useRoute, useRouter } from 'vue-x-router'
-import type { RouteLocationNormalizedLoaded } from 'vue-x-router'
+import { createRouter, useRoute, useRouter } from 'vue-smart-router'
+import type { RouteLocationNormalizedLoaded } from 'vue-smart-router'
 ```
 
-文件式路由、Vite 插件等子路径也一律用 **`vue-x-router/...`**（如 `vue-x-router/auto-routes`），与官方 `vue-router/...` 的命名对应关系以本包 `package.json` 的 `exports` 为准。
+文件式路由、Vite 插件等子路径也一律用 **`vue-smart-router/...`**（如 `vue-smart-router/auto-routes`），与官方 `vue-router/...` 的命名对应关系以本包 `package.json` 的 `exports` 为准。
 
 ## 注意
 

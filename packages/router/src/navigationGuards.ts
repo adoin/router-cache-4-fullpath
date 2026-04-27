@@ -2,25 +2,30 @@ import type { Lazy, RouteComponent } from './types'
 import { isRouteLocation } from './types'
 
 import type {
-  RouteLocationNormalized,
-  RouteLocationNormalizedLoaded,
   NavigationGuard,
-  RouteLocation,
-  RouteLocationRaw,
   NavigationGuardNext,
   NavigationGuardNextCallback,
+  RouteLocation,
+  RouteLocationNormalized,
+  RouteLocationNormalizedLoaded,
+  RouteLocationRaw,
 } from './typed-routes'
 
-import type { NavigationFailure, NavigationRedirectError } from './errors'
-import { createRouterError, ErrorTypes } from './errors'
 import type { ComponentOptions, ComputedRef } from 'vue'
-import { onUnmounted, onActivated, onDeactivated } from 'vue'
-import { inject, getCurrentInstance } from 'vue'
+import {
+  getCurrentInstance,
+  inject,
+  onActivated,
+  onDeactivated,
+  onUnmounted,
+} from 'vue'
+import type { NavigationFailure, NavigationRedirectError } from './errors'
+import { ErrorTypes, createRouterError } from './errors'
 import { matchedRouteKey } from './injectionSymbols'
+import { isSameRouteRecord } from './location'
 import type { RouteRecordNormalized } from './matcher/types'
 import { isESModule, isRouteComponent } from './utils'
 import { warn } from './warning'
-import { isSameRouteRecord } from './location'
 
 function registerGuard(
   activeRecordRef: ComputedRef<RouteRecordNormalized | undefined>,
@@ -58,7 +63,7 @@ function registerGuard(
     if (__DEV__ && !newRecord) {
       warn(
         'No active route record was found when reactivating component with navigation guard. ' +
-          'This is likely a bug in vue-x-router. Please report it.'
+          'This is likely a bug in vue-smart-router. Please report it.'
       )
     }
     if (newRecord) {

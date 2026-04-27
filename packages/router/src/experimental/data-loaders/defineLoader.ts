@@ -1,37 +1,37 @@
 import {
+  ABORT_CONTROLLER_KEY,
+  APP_KEY,
+  IS_SSR_KEY,
+  IS_USE_DATA_LOADER_KEY,
+  LOADER_ENTRIES_KEY,
+  LOADER_SET_KEY,
+  NavigationResult,
+  PENDING_LOCATION_KEY,
+  STAGED_NO_VALUE,
+  getCurrentContext,
+  setCurrentContext,
   type DataLoaderContextBase,
   type DataLoaderEntryBase,
   type DefineDataLoaderOptionsBase_LaxData,
   type DefineLoaderFn,
   type UseDataLoader,
   type UseDataLoaderResult,
-  ABORT_CONTROLLER_KEY,
-  APP_KEY,
-  IS_USE_DATA_LOADER_KEY,
-  LOADER_ENTRIES_KEY,
-  PENDING_LOCATION_KEY,
-  STAGED_NO_VALUE,
-  NavigationResult,
-  getCurrentContext,
-  setCurrentContext,
-  IS_SSR_KEY,
-  LOADER_SET_KEY,
   type _DefineLoaderEntryMap,
 } from './entries/index'
 
 import { shallowRef } from 'vue'
-import {
-  type DefineDataLoaderOptionsBase_DefinedData,
-  toLazyValue,
-} from './createDataLoader'
-import type { ErrorDefault } from './types-config'
-import { warn } from '../../unplugin/core/utils'
+import type { Router } from '../../router'
 import type {
   RouteLocationNormalizedLoaded,
   RouteMap,
 } from '../../typed-routes'
-import type { Router } from '../../router'
+import { warn } from '../../unplugin/core/utils'
 import { useRoute, useRouter } from '../../useApi'
+import {
+  toLazyValue,
+  type DefineDataLoaderOptionsBase_DefinedData,
+} from './createDataLoader'
+import type { ErrorDefault } from './types-config'
 
 /**
  * Creates a data loader composable that can be exported by pages to attach the data loading to a route. In this version `data` is always defined.
@@ -220,7 +220,7 @@ export function defineBasicLoader<Data>(
           if (d instanceof NavigationResult) {
             if (process.env.NODE_ENV !== 'production') {
               console.warn(
-                '[vue-x-router]: Returning a NavigationResult is deprecated. Use reroute() instead, which throws internally.'
+                '[vue-smart-router]: Returning a NavigationResult is deprecated. Use reroute() instead, which throws internally.'
               )
               warnNonExposedLoader({ to, options, useDataLoader })
             }

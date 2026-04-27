@@ -1,49 +1,46 @@
 import {
-  type DataLoaderContextBase,
-  type DataLoaderEntryBase,
-  type DefineDataLoaderOptionsBase_LaxData,
-  type DefineLoaderFn,
-  type UseDataLoader,
-  type UseDataLoaderResult,
-  type _DefineLoaderEntryMap,
-  type _PromiseMerged,
-  type ErrorDefault,
-  ABORT_CONTROLLER_KEY,
-  APP_KEY,
-  IS_USE_DATA_LOADER_KEY,
-  LOADER_ENTRIES_KEY,
-  PENDING_LOCATION_KEY,
-  STAGED_NO_VALUE,
-  IS_SSR_KEY,
-  DATA_LOADERS_EFFECT_SCOPE_KEY,
-  NavigationResult,
-  assign,
-  getCurrentContext,
-  isSubsetOf,
-  setCurrentContext,
-  trackRoute,
-} from './entries/index'
-import { type ShallowRef, shallowRef, watch } from 'vue'
-import {
+  defineQuery,
+  useQuery,
+  useQueryCache,
   type EntryKey,
   type UseQueryOptions,
   type UseQueryReturn,
-  useQuery,
-  defineQuery,
-  useQueryCache,
 } from '@pinia/colada'
-import type { DefineDataLoaderOptionsBase_DefinedData } from './createDataLoader'
-import {
-  _DefineDataLoaderOptionsBase_Common,
-  toLazyValue,
-} from './createDataLoader'
+import { shallowRef, watch, type ShallowRef } from 'vue'
+import type { LocationQuery } from '../../query'
+import type { Router } from '../../router'
 import type {
   RouteLocationNormalizedLoaded,
   RouteMap,
 } from '../../typed-routes'
 import { useRoute, useRouter } from '../../useApi'
-import type { Router } from '../../router'
-import type { LocationQuery } from '../../query'
+import type { DefineDataLoaderOptionsBase_DefinedData } from './createDataLoader'
+import { toLazyValue } from './createDataLoader'
+import {
+  ABORT_CONTROLLER_KEY,
+  APP_KEY,
+  DATA_LOADERS_EFFECT_SCOPE_KEY,
+  IS_SSR_KEY,
+  IS_USE_DATA_LOADER_KEY,
+  LOADER_ENTRIES_KEY,
+  NavigationResult,
+  PENDING_LOCATION_KEY,
+  STAGED_NO_VALUE,
+  assign,
+  getCurrentContext,
+  isSubsetOf,
+  setCurrentContext,
+  trackRoute,
+  type DataLoaderContextBase,
+  type DataLoaderEntryBase,
+  type DefineDataLoaderOptionsBase_LaxData,
+  type DefineLoaderFn,
+  type ErrorDefault,
+  type UseDataLoader,
+  type UseDataLoaderResult,
+  type _DefineLoaderEntryMap,
+  type _PromiseMerged,
+} from './entries/index'
 
 /**
  * Creates a Pinia Colada data loader with `data` is always defined.
@@ -289,7 +286,7 @@ export function defineColadaLoader<Data>(
             if (newData instanceof NavigationResult) {
               if (process.env.NODE_ENV !== 'production') {
                 console.warn(
-                  '[vue-x-router]: Returning a NavigationResult is deprecated. Use reroute() instead, which throws internally.'
+                  '[vue-smart-router]: Returning a NavigationResult is deprecated. Use reroute() instead, which throws internally.'
                 )
               }
               // prevent commit from running in finally

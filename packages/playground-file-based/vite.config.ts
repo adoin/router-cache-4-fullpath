@@ -1,8 +1,8 @@
+import Vue from '@vitejs/plugin-vue'
+import AutoScaffold from 'auto-scaffold/vite'
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
-import Vue from '@vitejs/plugin-vue'
-import VueRouter from 'vue-x-router/vite'
-import AutoScaffold from 'auto-scaffold/vite'
+import VueRouter from 'vue-smart-router/vite'
 // import AutoImport from 'unplugin-auto-import/vite'
 import VueDevtools from 'vite-plugin-vue-devtools'
 
@@ -12,12 +12,12 @@ export default defineConfig({
     // FIXME: it seems to conflict with the mono repo setup
     // AutoImport({
     // dts: './src/auto-imports.d.ts',
-    // imports: ['vue', 'vue-x-router'],
+    // imports: ['vue', 'vue-smart-router'],
     // }),
     AutoScaffold({
-      presets: ['vue', 'vue-x-router'],
+      presets: ['vue', 'vue-smart-router'],
     }),
-    // FIXME: why doesn't it work when imported from vue-x-router/vite
+    // FIXME: why doesn't it work when imported from vue-smart-router/vite
     VueRouter({
       logs: true,
       dts: './src/routes.d.ts',
@@ -35,7 +35,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      // "vue-x-router": fileURLToPath(new URL("../router/src", import.meta.url)),
+      // "vue-smart-router": fileURLToPath(new URL("../router/src", import.meta.url)),
     },
   },
   define: {

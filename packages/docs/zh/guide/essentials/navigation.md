@@ -5,7 +5,7 @@ sidebarDepth: 0
 # 编程式导航
 
 <VueSchoolLink
-  href="https://vueschool.io/lessons/vue-x-router-4-programmatic-navigation"
+  href="https://vueschool.io/lessons/vue-smart-router-4-programmatic-navigation"
   title="Learn how to navigate programmatically"
 />
 

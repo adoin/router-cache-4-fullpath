@@ -1,13 +1,13 @@
-import type { LocationQuery, LocationQueryRaw } from './query'
-import type { RouteParamValue, RouteParamsGeneric } from './types'
-import type { RouteRecord } from './matcher/types'
-import { warn } from './warning'
-import { isArray } from './utils'
 import { decode, encodeHash } from './encoding'
+import type { RouteRecord } from './matcher/types'
+import type { LocationQuery, LocationQueryRaw } from './query'
 import type {
   RouteLocation,
   RouteLocationNormalizedLoaded,
 } from './typed-routes'
+import type { RouteParamValue, RouteParamsGeneric } from './types'
+import { isArray } from './utils'
+import { warn } from './warning'
 
 /**
  * Location object returned by {@link `parseURL`}.
@@ -299,7 +299,7 @@ export function resolveRelativePath(to: string, from: string): string {
  *
  * @example
  * ```js
- * import { START_LOCATION } from 'vue-x-router'
+ * import { START_LOCATION } from 'vue-smart-router'
  *
  * router.beforeEach((to, from) => {
  *   if (from === START_LOCATION) {

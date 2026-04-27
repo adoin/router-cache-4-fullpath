@@ -1,9 +1,9 @@
 import { isPackageExists as isPackageInstalled } from 'local-pkg'
-import { getFileBasedRouteName, isArray, warn } from './core/utils'
-import type { TreeNode } from './core/tree'
 import { resolve } from 'pathe'
 import type { EditableTreeNode } from './core/extendRoutes'
+import type { TreeNode } from './core/tree'
 import { type ParseSegmentOptions } from './core/treeNodeValue'
+import { getFileBasedRouteName, isArray, warn } from './core/utils'
 import { type _Awaitable } from './utils'
 
 /**
@@ -123,7 +123,7 @@ export type _RoutesFolder = string | RoutesFolderOption
 export type RoutesFolder = _RoutesFolder[] | _RoutesFolder
 
 /**
- * vue-x-router plugin options.
+ * vue-smart-router plugin options.
  */
 export interface Options {
   /**

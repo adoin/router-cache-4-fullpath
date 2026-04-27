@@ -1,6 +1,6 @@
-// vue-x-router/auto/routes was more natural but didn't work well with TS
-export const MODULE_ROUTES_PATH = `vue-x-router/auto-routes`
-export const MODULE_RESOLVER_PATH = `vue-x-router/auto-resolver`
+// vue-smart-router/auto/routes was more natural but didn't work well with TS
+export const MODULE_ROUTES_PATH = `vue-smart-router/auto-routes`
+export const MODULE_RESOLVER_PATH = `vue-smart-router/auto-resolver`
 
 // NOTE: not sure if needed. Used for HMR the virtual routes
 let time = Date.now()
@@ -21,7 +21,7 @@ export const ROUTES_LAST_LOAD_TIME = {
 export const VIRTUAL_PREFIX = '\0'
 
 // allows removing the route block from the code
-export const ROUTE_BLOCK_ID = asVirtualId('vue-x-router/auto/route-block')
+export const ROUTE_BLOCK_ID = asVirtualId('vue-smart-router/auto/route-block')
 
 export function getVirtualId(id: string) {
   return id.startsWith(VIRTUAL_PREFIX) ? id.slice(VIRTUAL_PREFIX.length) : null

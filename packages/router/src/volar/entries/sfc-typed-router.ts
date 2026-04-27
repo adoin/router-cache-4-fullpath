@@ -1,8 +1,8 @@
-import { relative } from 'pathe'
 import type { VueLanguagePlugin } from '@vue/language-core'
 import { replaceSourceRange, toString } from 'muggle-string'
-import { augmentVlsCtx } from '../utils/augment-vls-ctx'
+import { relative } from 'pathe'
 import type ts from 'typescript'
+import { augmentVlsCtx } from '../utils/augment-vls-ctx'
 
 /*
   Future ideas:
@@ -25,7 +25,7 @@ const plugin: VueLanguagePlugin<{ options?: { rootDir?: string } }> = ({
   // Warn if no rootDir specified
   if (!rootDir) {
     console.warn(
-      '[vue-x-router] No rootDir specified. Set it in the Volar plugin options or tsconfig compilerOptions.rootDir for proper typed routes.'
+      '[vue-smart-router] No rootDir specified. Set it in the Volar plugin options or tsconfig compilerOptions.rootDir for proper typed routes.'
     )
   }
 
@@ -51,7 +51,7 @@ const plugin: VueLanguagePlugin<{ options?: { rootDir?: string } }> = ({
       // NOTE: this might not work if different from the root passed to VueRouter unplugin
       const relativeFilePath = rootDir ? relative(rootDir, fileName) : fileName
 
-      const useRouteNameType = `import('vue-x-router/auto-routes')._RouteNamesForFilePath<'${relativeFilePath}'>`
+      const useRouteNameType = `import('vue-smart-router/auto-routes')._RouteNamesForFilePath<'${relativeFilePath}'>`
       const useRouteNameTypeParam = `<${useRouteNameType}>`
 
       if (sfc.scriptSetup) {
@@ -103,7 +103,7 @@ const plugin: VueLanguagePlugin<{ options?: { rootDir?: string } }> = ({
       // Augment `__VLS_ctx.$route` to override the typings of `$route` in template blocks
       if (contentStr.match(RE.DOLLAR_ROUTE.VLS_CTX)) {
         vlsCtxAugmentations.push(
-          `{} as { $route: ReturnType<typeof import('vue-x-router').useRoute${useRouteNameTypeParam}> }`
+          `{} as { $route: ReturnType<typeof import('vue-smart-router').useRoute${useRouteNameTypeParam}> }`
         )
       }
 

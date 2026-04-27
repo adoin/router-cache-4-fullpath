@@ -39,10 +39,10 @@ _路径参数_ 用冒号 `:` 表示。当一个路由被匹配时，它的 _para
 
 除了 `route.params` 之外，`route` 对象还公开了其他有用的信息，如 `route.query`（如果 URL 中存在参数）、`route.hash` 等。你可以在 [API 参考](../../api/#routelocationnormalized)中查看完整的细节。
 
-这个例子的 demo 可以在[这里](https://codesandbox.io/s/route-params-vue-x-router-examples-mlb14?from-embed&initialpath=%2Fusers%2Feduardo%2Fposts%2F1)找到。
+这个例子的 demo 可以在[这里](https://codesandbox.io/s/route-params-vue-smart-router-examples-mlb14?from-embed&initialpath=%2Fusers%2Feduardo%2Fposts%2F1)找到。
 
 <!-- <iframe
-  src="https://codesandbox.io/embed//route-params-vue-x-router-examples-mlb14?fontsize=14&theme=light&view=preview&initialpath=%2Fusers%2Feduardo%2Fposts%2F1"
+  src="https://codesandbox.io/embed//route-params-vue-smart-router-examples-mlb14?fontsize=14&theme=light&view=preview&initialpath=%2Fusers%2Feduardo%2Fposts%2F1"
   style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
   title="Route Params example"
   allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
@@ -65,7 +65,7 @@ _路径参数_ 用冒号 `:` 表示。当一个路由被匹配时，它的 _para
 ```vue [Composition API]
 <script setup>
 import { watch } from 'vue'
-import { useRoute } from 'vue-x-router'
+import { useRoute } from 'vue-smart-router'
 
 const route = useRoute()
 
@@ -101,7 +101,7 @@ export default {
 
 ```vue [Composition API]
 <script setup>
-import { onBeforeRouteUpdate } from 'vue-x-router'
+import { onBeforeRouteUpdate } from 'vue-smart-router'
 // ...
 
 onBeforeRouteUpdate(async (to, from) => {

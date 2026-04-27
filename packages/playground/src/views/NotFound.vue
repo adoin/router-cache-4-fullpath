@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute } from 'vue-x-router'
+import { useRoute } from 'vue-smart-router'
 
 const route = useRoute()
 </script>

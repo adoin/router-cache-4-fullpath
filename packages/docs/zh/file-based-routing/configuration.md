@@ -3,7 +3,7 @@
 查看所有现有配置选项及其对应的**默认值**：
 
 ```ts
-import VueRouter from 'vue-x-router/vite'
+import VueRouter from 'vue-smart-router/vite'
 
 VueRouter({
   // 如何以及扫描哪些文件夹以查找文件
@@ -62,16 +62,16 @@ VueRouter({
 
 ## SSR
 
-可能需要在 `vite.config.js` 的开发模式下将 `vue-x-router` 标记为 `noExternal`：
+可能需要在 `vite.config.js` 的开发模式下将 `vue-smart-router` 标记为 `noExternal`：
 
 ```ts{7}
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
-import VueRouter from 'vue-x-router/vite'
+import VueRouter from 'vue-smart-router/vite'
 
 export default defineConfig(({ mode }) => ({
   ssr: {
-    noExternal: mode === 'development' ? ['vue-x-router'] : [],
+    noExternal: mode === 'development' ? ['vue-smart-router'] : [],
   },
   plugins: [VueRouter(), Vue()],
 }))

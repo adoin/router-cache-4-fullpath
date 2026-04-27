@@ -14,7 +14,7 @@ function fetchBookCollection(options: {
   return {} as any
 }
 // ---cut---
-import { defineBasicLoader } from 'vue-x-router/experimental'
+import { defineBasicLoader } from 'vue-smart-router/experimental'
 export const useBookCollection = defineBasicLoader(
   async (_route, { signal }) => {
     return fetchBookCollection({ signal })

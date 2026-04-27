@@ -1,11 +1,11 @@
-import { createApp } from 'vue'
-import './style.css'
-import App from './App.vue'
-import { createPinia } from 'pinia'
 import { PiniaColada } from '@pinia/colada'
+import { createPinia } from 'pinia'
+import { createApp } from 'vue'
+import { RouterLink, RouterView } from 'vue-smart-router'
+import { DataLoaderPlugin } from 'vue-smart-router/experimental'
+import App from './App.vue'
 import { router } from './router/resolver'
-import { DataLoaderPlugin } from 'vue-x-router/experimental'
-import { RouterLink, RouterView } from 'vue-x-router'
+import './style.css'
 
 const app = createApp(App)
 

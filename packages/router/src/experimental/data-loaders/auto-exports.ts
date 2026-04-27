@@ -1,10 +1,10 @@
-import { createFilter } from 'unplugin-utils'
-import type { Plugin } from 'vite'
 import MagicString from 'magic-string'
 import { findStaticImports, parseStaticImport } from 'mlly'
 import { resolve } from 'pathe'
 import type { StringFilter } from 'unplugin'
 import { type UnpluginOptions } from 'unplugin'
+import { createFilter } from 'unplugin-utils'
+import type { Plugin } from 'vite'
 
 export function extractLoadersToExport(
   code: string,
@@ -35,7 +35,7 @@ export function extractLoadersToExport(
   return importNames
 }
 
-const PLUGIN_NAME = 'vue-x-router:data-loaders-auto-export'
+const PLUGIN_NAME = 'vue-smart-router:data-loaders-auto-export'
 
 /**
  * {@link AutoExportLoaders} options.

@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { onBeforeRouteLeave } from 'vue-x-router'
+import { onBeforeRouteLeave } from 'vue-smart-router'
 
 const tries = ref(0)
 
