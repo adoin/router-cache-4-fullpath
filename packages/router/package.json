@@ -1,9 +1,9 @@
 {
   "name": "vue-smart-router",
   "version": "5.3.1",
-  "homepage": "https://router.vuejs.org",
+  "homepage": "https://github.com/adoin/router-cache-4-fullpath#readme",
   "bugs": {
-    "url": "https://github.com/vuejs/router/issues"
+    "url": "https://github.com/adoin/router-cache-4-fullpath/issues"
   },
   "license": "MIT",
   "author": {
@@ -12,9 +12,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vuejs/router.git"
+    "url": "git+https://github.com/adoin/router-cache-4-fullpath.git"
   },
-  "funding": "https://github.com/sponsors/posva",
   "files": [
     "dist",
     "docs",
