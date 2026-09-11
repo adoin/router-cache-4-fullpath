@@ -1,11 +1,5 @@
-import '../global.css'
-import type {
-  RouteComponent,
-  RouterScrollBehavior} from 'vue-router';
-import {
-  createRouter,
-  createWebHistory
-} from 'vue-router'
+import type { RouteComponent, RouterScrollBehavior } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { createApp, ref } from 'vue'
 import { scrollWaiter } from './scrollWaiter'
 

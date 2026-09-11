@@ -1,4 +1,3 @@
-import '../global.css'
 import {
   createRouter,
   createWebHistory,
@@ -7,15 +6,8 @@ import {
   RouterView,
   useRoute,
 } from 'vue-router'
-import type {
-  FunctionalComponent} from 'vue';
-import {
-  createApp,
-  ref,
-  reactive,
-  defineComponent,
-  h,
-} from 'vue'
+import type { FunctionalComponent } from 'vue'
+import { createApp, ref, reactive, defineComponent, h } from 'vue'
 
 const Home = defineComponent({
   template: `

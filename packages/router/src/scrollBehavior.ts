@@ -2,7 +2,7 @@ import type {
   RouteLocationNormalized,
   RouteLocationNormalizedLoaded,
 } from './typed-routes'
-import { warn } from './warning'
+import { diagnostics } from './diagnostics'
 
 // we use types instead of interfaces to make it work with HistoryStateValue type
 
@@ -87,10 +87,13 @@ function getElementPosition(
   }
 }
 
-export const computeScrollPosition = (): _ScrollPositionNormalized => ({
-  left: window.scrollX,
-  top: window.scrollY,
-})
+export const computeScrollPosition = (): _ScrollPositionNormalized | null =>
+  history.scrollRestoration === 'manual'
+    ? {
+        left: window.scrollX,
+        top: window.scrollY,
+      }
+    : null
 
 export function scrollToPosition(position: ScrollPosition): void {
   let scrollToOptions: ScrollPositionCoordinates
@@ -125,16 +128,12 @@ export function scrollToPosition(position: ScrollPosition): void {
         try {
           const foundEl = document.querySelector(position.el)
           if (isIdSelector && foundEl) {
-            warn(
-              `The selector "${position.el}" should be passed as "el: document.querySelector('${position.el}')" because it starts with "#".`
-            )
+            diagnostics.VUE_ROUTER_R0040({ el: position.el })
             // return to avoid other warnings
             return
           }
         } catch {
-          warn(
-            `The selector "${position.el}" is invalid. If you are using an id selector, make sure to escape it. You can find more information about escaping characters in selectors at https://mathiasbynens.be/notes/css-escapes or use CSS.escape (https://developer.mozilla.org/en-US/docs/Web/API/CSS/escape).`
-          )
+          diagnostics.VUE_ROUTER_R0041({ el: position.el })
           // return to avoid other warnings
           return
         }
@@ -149,10 +148,7 @@ export function scrollToPosition(position: ScrollPosition): void {
         : positionEl
 
     if (!el) {
-      __DEV__ &&
-        warn(
-          `Couldn't find element using selector "${position.el}" returned by scrollBehavior.`
-        )
+      __DEV__ && diagnostics.VUE_ROUTER_R0042({ el: position.el })
       return
     }
     scrollToOptions = getElementPosition(el, position)
@@ -175,16 +171,18 @@ export function getScrollKey(path: string, delta: number): string {
   return position + path
 }
 
-export const scrollPositions = new Map<string, _ScrollPositionNormalized>()
+export const scrollPositions = new Map<
+  string,
+  _ScrollPositionNormalized | null
+>()
 
-export function saveScrollPosition(
-  key: string,
-  scrollPosition: _ScrollPositionNormalized
-) {
-  scrollPositions.set(key, scrollPosition)
+export function saveScrollPosition(key: string) {
+  scrollPositions.set(key, computeScrollPosition())
 }
 
-export function getSavedScrollPosition(key: string) {
+export function getSavedScrollPosition(
+  key: string
+): _ScrollPositionNormalized | null | undefined {
   const scroll = scrollPositions.get(key)
   // consume it so it's not used again
   scrollPositions.delete(key)

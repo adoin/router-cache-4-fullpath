@@ -179,6 +179,52 @@ definePage({
     ).toHaveBeenWarned()
   })
 
+  describe('duplicate definePage()', () => {
+    const duplicateCode = vue`
+<script setup>
+definePage({
+  name: 'first',
+})
+definePage({
+  name: 'second',
+})
+</script>
+`
+
+    it('does not throw and keeps the first call when extracting', async () => {
+      const result = (await definePageTransform({
+        code: duplicateCode,
+        id: 'src/pages/dup.vue?definePage&vue',
+      })) as Exclude<TransformResult, string>
+
+      expect(result).toHaveProperty('code')
+      expect(result?.code).toContain('first')
+      expect(result?.code).not.toContain('second')
+      expect('duplicate definePage() call').toHaveBeenWarned()
+    })
+
+    it('removes every call from the component and does not throw', async () => {
+      const result = (await definePageTransform({
+        code: duplicateCode,
+        id: 'src/pages/dup.vue',
+      })) as Exclude<TransformResult, string>
+
+      expect(result).toHaveProperty('code')
+      expect(result?.code).not.toContain('definePage')
+      expect('duplicate definePage() call').toHaveBeenWarned()
+    })
+
+    it('extracts info from the first call only', () => {
+      expect(extractDefinePageInfo(duplicateCode, 'src/pages/dup.vue')).toEqual(
+        {
+          name: 'first',
+          hasRemainingProperties: false,
+        }
+      )
+      expect('duplicate definePage() call').toHaveBeenWarned()
+    })
+  })
+
   it('extracts name and path', () => {
     expect(extractDefinePageInfo(sampleCode, 'src/pages/basic.vue')).toEqual({
       name: 'custom',
@@ -242,6 +288,177 @@ definePage({
           },
         },
       },
+    })
+  })
+
+  it('extracts arrow function defaults in query params', () => {
+    const code = vue`
+<script setup lang="ts">
+definePage({
+  params: {
+    query: {
+      page: {
+        parser: 'int',
+        default: () => 1,
+      },
+      token: {
+        parser: 'string',
+        default: async () => 123,
+      },
+      search: {
+        default: (value: string) => value,
+      },
+    }
+  }
+})
+</script>
+`
+    expect(extractDefinePageInfo(code, 'src/pages/test.vue')).toEqual({
+      hasRemainingProperties: false,
+      params: {
+        query: {
+          page: {
+            parser: 'int',
+            default: '() => 1',
+          },
+          token: {
+            parser: 'string',
+            default: 'async () => 123',
+          },
+          search: {
+            default: '(value: string) => value',
+          },
+        },
+      },
+    })
+  })
+
+  it('extracts multiline arrow function defaults in query params', () => {
+    const code = vue`
+<script setup lang="ts">
+definePage({
+  params: {
+    query: {
+      wrapped: {
+        default: (value: string) => ({ value }),
+      },
+      total: {
+        default: () => {
+          // a comment
+          const total = 1 + 2
+          return total
+        },
+      },
+    }
+  }
+})
+</script>
+`
+    // formatting (indentation, semicolons) may differ from the source, so
+    // only assert the parts that are stable
+    expect(extractDefinePageInfo(code, 'src/pages/test.vue')).toMatchObject({
+      params: {
+        query: {
+          wrapped: {
+            default: expect.stringContaining('(value: string) =>'),
+          },
+          total: {
+            default: expect.stringContaining('// a comment'),
+          },
+        },
+      },
+    })
+
+    const paramTotal = extractDefinePageInfo(code, 'src/pages/test.vue')?.params
+      ?.query?.total
+    // FIXME: should be normalized to the object shape
+    expect(
+      // @ts-expect-error: multiple possible types
+      paramTotal?.default
+    ).toBeTypeOf('string')
+    const totalDefault: string =
+      // @ts-expect-error
+      paramTotal?.default
+    expect(totalDefault).toContain('() => {')
+    expect(totalDefault).toContain('const total = 1 + 2')
+    expect(totalDefault).toContain('return total')
+  })
+
+  it('extracts arrow function defaults in query params in a ts file', () => {
+    const code = ts`
+definePage({
+  params: {
+    query: {
+      page: {
+        parser: 'int',
+        default: () => 1,
+      },
+      token: {
+        default: async () => 123,
+      },
+      search: {
+        default: (value: string) => value,
+      },
+      total: {
+        default: () => {
+          // a comment
+          const total = 1 + 2
+          return total
+        },
+      },
+    }
+  }
+})
+`
+    expect(extractDefinePageInfo(code, 'src/pages/test.ts')).toMatchObject({
+      hasRemainingProperties: false,
+      params: {
+        query: {
+          page: {
+            parser: 'int',
+            default: '() => 1',
+          },
+          token: {
+            default: 'async () => 123',
+          },
+          search: {
+            default: '(value: string) => value',
+          },
+          total: {
+            // formatting may differ from the source
+            default: expect.stringContaining('// a comment'),
+          },
+        },
+      },
+    })
+  })
+
+  it('preserves the exact source of multiline arrow function defaults', () => {
+    const code = [
+      'definePage({',
+      '  params: {',
+      '    query: {',
+      '      total: {',
+      '        default: () => {',
+      '          // a comment',
+      '          const total: number = 1 + 2',
+      '          return total',
+      '        },',
+      '      },',
+      '    }',
+      '  }',
+      '})',
+    ].join('\n')
+
+    expect(
+      extractDefinePageInfo(code, 'src/pages/test.ts')?.params?.query?.total
+    ).toEqual({
+      default:
+        '() => {\n' +
+        '          // a comment\n' +
+        '          const total: number = 1 + 2\n' +
+        '          return total\n' +
+        '        }',
     })
   })
 

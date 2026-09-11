@@ -1,5 +1,6 @@
 import { isPackageExists as isPackageInstalled } from 'local-pkg'
-import { getFileBasedRouteName, isArray, warn } from './core/utils'
+import { getFileBasedRouteName, isArray } from './core/utils'
+import { diagnostics } from './diagnostics'
 import type { TreeNode } from './core/tree'
 import { resolve } from 'pathe'
 import type { EditableTreeNode } from './core/extendRoutes'
@@ -262,6 +263,22 @@ export interface ParamParsersOptions {
    * @default `['src/params']`
    */
   dir?: string | string[]
+
+  /**
+   * Glob pattern(s) of files to include when scanning param parser folders. Only flat
+   * matches are supported (no nested files).
+   *
+   * @default `['*.ts']`
+   */
+  include?: string | string[]
+
+  /**
+   * Glob pattern(s) of files to ignore when scanning param parser folders. Useful to skip
+   * test files that live next to their implementations.
+   *
+   * @default `['*.test.{ts,js}', '*.spec.{ts,js}']`
+   */
+  exclude?: string | string[]
 }
 
 /**
@@ -269,6 +286,8 @@ export interface ParamParsersOptions {
  */
 export const DEFAULT_PARAM_PARSERS_OPTIONS = {
   dir: ['src/params'],
+  include: ['*.ts'],
+  exclude: ['*.test.{ts,js}', '*.spec.{ts,js}'],
 } satisfies Required<ParamParsersOptions>
 
 /**
@@ -394,6 +413,18 @@ export function resolveOptions(options: Options) {
       : []
   ).map(dir => resolve(root, dir))
 
+  const paramParsersInclude = paramParsers?.include
+    ? isArray(paramParsers.include)
+      ? paramParsers.include
+      : [paramParsers.include]
+    : DEFAULT_PARAM_PARSERS_OPTIONS.include
+
+  const paramParsersExclude = paramParsers?.exclude
+    ? isArray(paramParsers.exclude)
+      ? paramParsers.exclude
+      : [paramParsers.exclude]
+    : DEFAULT_PARAM_PARSERS_OPTIONS.exclude
+
   const autoExportsDataLoaders = options.experimental?.autoExportsDataLoaders
     ? (isArray(options.experimental.autoExportsDataLoaders)
         ? options.experimental.autoExportsDataLoaders
@@ -408,6 +439,8 @@ export function resolveOptions(options: Options) {
     paramParsers: paramParsers && {
       ...paramParsers,
       dir: paramParsersDir,
+      include: paramParsersInclude,
+      exclude: paramParsersExclude,
     },
   }
 
@@ -418,7 +451,7 @@ export function resolveOptions(options: Options) {
       // in src/index.ts
       .map(ext => {
         if (!ext.startsWith('.')) {
-          warn(`Invalid extension "${ext}". Extensions must start with a dot.`)
+          diagnostics.VUE_ROUTER_B0009({ ext })
           return '.' + ext
         }
         return ext

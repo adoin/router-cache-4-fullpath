@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "include": ["../router/src/global.d.ts", "../router/src/**/*.ts"],
   "exclude": [
     "../*/__tests__/**/*.ts",
@@ -6,7 +7,6 @@
     "../router/src/experimental/**/*.ts"
   ],
   "compilerOptions": {
-    "baseUrl": ".",
     "rootDir": "..",
     "outDir": "dist",
     "sourceMap": false,
@@ -17,7 +17,7 @@
 
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowJs": false,
     "skipLibCheck": true,
 

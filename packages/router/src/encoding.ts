@@ -1,4 +1,4 @@
-import { warn } from './warning'
+import { diagnostics } from './diagnostics'
 
 /**
  * Encoding Rules (␣ = Space)
@@ -20,6 +20,11 @@ import { warn } from './warning'
 // const EXTRA_RESERVED_RE = /[!'()*]/g
 // const encodeReservedReplacer = (c: string) => '%' + c.charCodeAt(0).toString(16)
 
+/**
+ * NOTE: `replaceAll()` is not faster than `replace()` with a global RegExp.
+ * Benchmarks do not show a clear benefit for these simple replacements:
+ * https://github.com/mathiasbynens/string-prototype-replace-regexp-benchmark
+ */
 const HASH_RE = /#/g // %23
 const AMPERSAND_RE = /&/g // %26
 export const SLASH_RE = /\//g // %2F
@@ -59,6 +64,7 @@ const ENC_SPACE_RE = /%20/g // }
  * @returns encoded string
  */
 export function commonEncode(text: string | number | null | undefined): string {
+  // 0 must become '0'
   return text == null
     ? ''
     : encodeURI('' + text)
@@ -151,7 +157,7 @@ export function decode(
   try {
     return decodeURIComponent('' + text)
   } catch {
-    __DEV__ && warn(`Error decoding "${text}". Using original value`)
+    __DEV__ && diagnostics.VUE_ROUTER_R0080({ text: '' + text })
   }
   return '' + text
 }

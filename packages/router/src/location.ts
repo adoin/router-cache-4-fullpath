@@ -1,8 +1,8 @@
 import type { LocationQuery, LocationQueryRaw } from './query'
 import type { RouteParamValue, RouteParamsGeneric } from './types'
 import type { RouteRecord } from './matcher/types'
-import { warn } from './warning'
-import { isArray } from './utils'
+import { diagnostics } from './diagnostics'
+import { isAbsolutePath, isArray } from './utils'
 import { decode, encodeHash } from './encoding'
 import type {
   RouteLocation,
@@ -50,6 +50,7 @@ export function parseURL(
   currentLocation: string = '/'
 ): LocationNormalized {
   let path: string | undefined,
+    // TODO: in next major, use Object.create(null) and remove src/experimental/location.ts
     query: LocationQuery = {},
     searchString = '',
     hash = ''
@@ -246,11 +247,9 @@ function isEquivalentArray<T>(a: readonly T[], b: readonly T[] | T): boolean {
  * @param from - currentLocation.path, should start with `/`
  */
 export function resolveRelativePath(to: string, from: string): string {
-  if (to.startsWith('/')) return to
-  if (__DEV__ && !from.startsWith('/')) {
-    warn(
-      `Cannot resolve a relative location without an absolute path. Trying to resolve "${to}" from "${from}". It should look like "/${from}".`
-    )
+  if (isAbsolutePath(to)) return to
+  if (__DEV__ && !isAbsolutePath(from)) {
+    diagnostics.VUE_ROUTER_R0070({ to, from })
     return to
   }
 

@@ -40,8 +40,7 @@ export {
   PARAM_PARSER_BOOL,
   type ParamParser,
   defineParamParser,
-  definePathParamParser,
-  defineQueryParamParser,
+  defineParamParserRaw,
   normalizeParamParser as _normalizeParamParser,
   type ExtractParamParserType as _ExtractParamParserType,
 } from './route-resolver/matchers/param-parsers'
@@ -60,7 +59,12 @@ export {
   type DefinePage,
   type ParamParserType,
   type ParamParserType_Native,
+  type ParamParsers as _ParamParsers,
+  type ParamParsers_Native as _ParamParsers_Native,
+  type ParamParserTypeOf,
   type DefinePageQueryParamOptions,
+  type DefinePageQueryParamOptionsAny as _DefinePageQueryParamOptionsAny,
+  type PathParamNamesForFilePath as _PathParamNamesForFilePath,
 } from './runtime'
 
 // Data loaders exports

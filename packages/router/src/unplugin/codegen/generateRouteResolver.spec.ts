@@ -107,6 +107,37 @@ describe('generateRouteRecordQuery', () => {
     `)
   })
 
+  it("emits identical query code for parser: 'string' and no parser", () => {
+    const treeNone = new PrefixTree(DEFAULT_OPTIONS)
+    const nodeNone = treeNone.insert('a', 'a.vue')
+    nodeNone.value.setEditOverride('params', {
+      query: { search: {} },
+    })
+
+    const treeString = new PrefixTree(DEFAULT_OPTIONS)
+    const nodeString = treeString.insert('a', 'a.vue')
+    nodeString.value.setEditOverride('params', {
+      query: { search: { parser: 'string' } },
+    })
+
+    const noneImports = new ImportsMap()
+    const stringImports = new ImportsMap()
+
+    const noneCode = generateRouteRecordQuery({
+      importsMap: noneImports,
+      node: nodeNone,
+      paramParsersMap: new Map(),
+    })
+    const stringCode = generateRouteRecordQuery({
+      importsMap: stringImports,
+      node: nodeString,
+      paramParsersMap: new Map(),
+    })
+
+    expect(stringCode).toBe(noneCode)
+    expect(stringImports.toString()).toBe(noneImports.toString())
+  })
+
   it('generates query property with multiple query params', () => {
     const node = new PrefixTree(DEFAULT_OPTIONS).insert('a', 'a.vue')
     node.value.setEditOverride('params', {
@@ -231,6 +262,100 @@ describe('generateRouteRecordQuery', () => {
         ],"
     `)
   })
+
+  describe('raw param parsers', () => {
+    function rawParsersMap(name: string): ParamParsersMap {
+      return new Map([
+        [
+          name,
+          {
+            name,
+            typeName: `Param_${name}`,
+            relativePath: `parsers/${name}`,
+            absolutePath: `/abs/parsers/${name}`,
+            isRaw: true,
+          },
+        ],
+      ])
+    }
+
+    it('forces format=array for raw query parsers without user format', () => {
+      const node = new PrefixTree(DEFAULT_OPTIONS).insert('a', 'a.vue')
+      node.value.setEditOverride('params', {
+        query: { tags: { parser: 'set' } },
+      })
+      const result = generateRouteRecordQuery({
+        importsMap,
+        node,
+        paramParsersMap: rawParsersMap('set'),
+      })
+      expect(result).toContain(
+        `new MatcherPatternQueryParam('tags', 'tags', 'array', _normalized_PARAM_PARSER__set)`
+      )
+    })
+
+    it('forces format=array and emits a runtime warn when user specifies format=value', () => {
+      const node = new PrefixTree(DEFAULT_OPTIONS).insert('a', 'a.vue')
+      node.value.setEditOverride('params', {
+        query: { tags: { parser: 'set', format: 'value' } },
+      })
+      const result = generateRouteRecordQuery({
+        importsMap,
+        node,
+        paramParsersMap: rawParsersMap('set'),
+      })
+      expect(result).toContain(
+        `new MatcherPatternQueryParam('tags', 'tags', 'array', _normalized_PARAM_PARSER__set)`
+      )
+      expect(result).toContain('console.warn(')
+      expect(result).toContain(
+        `Query param "tags" in route "/a" uses raw param parser "set"`
+      )
+    })
+
+    it('keeps user format=array for raw parsers without emitting a runtime warn', () => {
+      const node = new PrefixTree(DEFAULT_OPTIONS).insert('a', 'a.vue')
+      node.value.setEditOverride('params', {
+        query: { tags: { parser: 'set', format: 'array' } },
+      })
+      const result = generateRouteRecordQuery({
+        importsMap,
+        node,
+        paramParsersMap: rawParsersMap('set'),
+      })
+      expect(result).toContain(
+        `new MatcherPatternQueryParam('tags', 'tags', 'array', _normalized_PARAM_PARSER__set)`
+      )
+      expect(result).not.toContain('console.warn(')
+    })
+
+    it('does not force array for non-raw parsers', () => {
+      const node = new PrefixTree(DEFAULT_OPTIONS).insert('a', 'a.vue')
+      node.value.setEditOverride('params', {
+        query: { page: { parser: 'date', format: 'value' } },
+      })
+      const paramParsersMap: ParamParsersMap = new Map([
+        [
+          'date',
+          {
+            name: 'date',
+            typeName: 'Param_date',
+            relativePath: 'parsers/date',
+            absolutePath: '/abs/parsers/date',
+            isRaw: false,
+          },
+        ],
+      ])
+      const result = generateRouteRecordQuery({
+        importsMap,
+        node,
+        paramParsersMap,
+      })
+      expect(result).toContain(
+        `new MatcherPatternQueryParam('page', 'page', 'value', _normalized_PARAM_PARSER__date)`
+      )
+    })
+  })
 })
 
 describe('generateRouteRecord', () => {
@@ -276,6 +401,37 @@ describe('generateRouteRecord', () => {
         },
       })"
     `)
+  })
+
+  it('emits identical path code for [id=string] and [id]', () => {
+    const treeNone = new PrefixTree(DEFAULT_OPTIONS)
+    const treeString = new PrefixTree(DEFAULT_OPTIONS)
+
+    const noneImports = new ImportsMap()
+    const stringImports = new ImportsMap()
+
+    const noneCode = generateRouteRecord({
+      node: treeNone.insert('p/[id]', 'p/[id].vue'),
+      parentVar: null,
+      parentNode: null,
+      state: { id: 0, matchableRecords: [] },
+      options: DEFAULT_OPTIONS,
+      importsMap: noneImports,
+      paramParsersMap: new Map(),
+    })
+    const stringCode = generateRouteRecord({
+      node: treeString.insert('p/[id=string]', 'p/[id=string].vue'),
+      parentVar: null,
+      parentNode: null,
+      state: { id: 0, matchableRecords: [] },
+      options: DEFAULT_OPTIONS,
+      importsMap: stringImports,
+      paramParsersMap: new Map(),
+    })
+
+    // file paths differ between fixtures; align them before comparison
+    expect(stringCode.replace(/\[id=string\]/g, '[id]')).toBe(noneCode)
+    expect(stringImports.toString()).toBe(noneImports.toString())
   })
 })
 
@@ -1263,6 +1419,90 @@ describe('generateRouteResolver', () => {
     expect(resolver).toMatchSnapshot()
   })
 
+  describe('path overrides', () => {
+    // FIXME: `node.regexp` and `node.matcherPatternPathDynamicParts` are built
+    // from the file segments and ignore `overrides.path`, while
+    // `node.pathParams` follows the override. `MatcherPatternPathDynamic`
+    // consumes them positionally, so they disagree today. The snapshots below
+    // are the wanted output and are marked as failing until the matcher honors
+    // overrides.
+    it.todo('builds the matcher regexp from an absolute path override', () => {
+      const tree = new PrefixTree(DEFAULT_OPTIONS)
+      const node = tree.insert('shop/[id]', 'shop/[id].vue')
+      node.value.setOverride('shop/[id]', { path: '/store/:slug' })
+
+      // the regexp still matches `/shop/:id` while the param is named `slug`
+      expect(
+        generateRouteResolver(
+          tree,
+          DEFAULT_OPTIONS,
+          new ImportsMap(),
+          new Map()
+        )
+        // FIXME: should the name change and be similar to the path?
+      ).toMatchInlineSnapshot(`
+        "
+        const __route_0 = normalizeRouteRecord({
+          name: '/shop/[id]',
+          path: new MatcherPatternPathDynamic(
+            /^\\/store\\/([^/]+?)$/i,
+            {
+              slug: [/* no parser */],
+            },
+            ["store",1],
+            /* trailingSlash */
+          ),
+          components: {
+            'default': () => import('shop/[id].vue')
+          },
+        })
+
+        export const resolver = createFixedResolver([
+          __route_0,  // /store/:slug
+        ])
+        "
+      `)
+    })
+
+    it.todo('builds one capture group per param of the override path', () => {
+      const tree = new PrefixTree(DEFAULT_OPTIONS)
+      const node = tree.insert('shop/[id]', 'shop/[id].vue')
+      node.value.setOverride('shop/[id]', { path: '/shop/:a/:b' })
+
+      // two params for a single capture group
+      expect(
+        generateRouteResolver(
+          tree,
+          DEFAULT_OPTIONS,
+          new ImportsMap(),
+          new Map()
+        )
+      ).toMatchInlineSnapshot(`
+        "
+        const __route_0 = normalizeRouteRecord({
+          name: '/shop/[id]',
+          path: new MatcherPatternPathDynamic(
+            /^\\/shop\\/([^/]+?)\\/([^/]+?)$/i,
+            {
+              a: [/* no parser */],
+              b: [/* no parser */],
+            },
+            ["shop",1,1],
+            /* trailingSlash */
+          ),
+          components: {
+            'default': () => import('shop/[id].vue')
+          },
+        })
+
+        export const resolver = createFixedResolver([
+          __route_0,  // /shop/:a/:b
+        ])
+        "
+      `)
+    })
+  })
+
   describe('aliases', () => {
     it('generates alias records for static alias paths', () => {
       const tree = new PrefixTree(DEFAULT_OPTIONS)
@@ -1402,6 +1642,99 @@ describe('generateRouteResolver', () => {
       expect(warnings).toContain('"folks"')
       expect(warnings).not.toContain('"members"')
       expect(warnings).not.toContain('"/members"')
+    })
+  })
+
+  describe('param parser filtering', () => {
+    type ParamParserEntry = NonNullable<ReturnType<ParamParsersMap['get']>>
+    const uuidEntry: ParamParserEntry = {
+      name: 'uuid',
+      typeName: 'Param_uuid',
+      relativePath: 'parsers/uuid',
+      absolutePath: '/abs/parsers/uuid',
+    }
+    const slugEntry: ParamParserEntry = {
+      name: 'slug',
+      typeName: 'Param_slug',
+      relativePath: 'parsers/slug',
+      absolutePath: '/abs/parsers/slug',
+    }
+
+    it('omits imports and normalized declarations for unused parsers', () => {
+      const tree = new PrefixTree(DEFAULT_OPTIONS)
+      tree.insert('users/[id=uuid]', 'users/[id=uuid].vue')
+
+      const importsMap = new ImportsMap()
+      const paramParsersMap: ParamParsersMap = new Map([
+        ['uuid', uuidEntry],
+        ['slug', slugEntry],
+      ])
+
+      const resolver = generateRouteResolver(
+        tree,
+        DEFAULT_OPTIONS,
+        importsMap,
+        paramParsersMap
+      )
+
+      expect(resolver).toContain('_normalized_PARAM_PARSER__uuid')
+      expect(resolver).not.toContain('PARAM_PARSER__slug')
+      expect(resolver).not.toContain('_normalized_PARAM_PARSER__slug')
+
+      const imports = importsMap.toString()
+      expect(imports).toContain("from '/abs/parsers/uuid'")
+      expect(imports).not.toContain("from '/abs/parsers/slug'")
+    })
+
+    it('omits all parser imports when no route references any parser', () => {
+      const tree = new PrefixTree(DEFAULT_OPTIONS)
+      tree.insert('users/[id]', 'users/[id].vue')
+
+      const importsMap = new ImportsMap()
+      const paramParsersMap: ParamParsersMap = new Map([
+        ['uuid', uuidEntry],
+        ['slug', slugEntry],
+      ])
+
+      const resolver = generateRouteResolver(
+        tree,
+        DEFAULT_OPTIONS,
+        importsMap,
+        paramParsersMap
+      )
+
+      expect(resolver).not.toContain('_normalizeParamParser')
+      expect(resolver).not.toContain('PARAM_PARSER__uuid')
+      expect(resolver).not.toContain('PARAM_PARSER__slug')
+
+      const imports = importsMap.toString()
+      expect(imports).not.toContain('_normalizeParamParser')
+      expect(imports).not.toContain("from '/abs/parsers/uuid'")
+      expect(imports).not.toContain("from '/abs/parsers/slug'")
+    })
+
+    it('detects parsers referenced from query params', () => {
+      const tree = new PrefixTree(DEFAULT_OPTIONS)
+      const node = tree.insert('search', 'search.vue')
+      node.setCustomRouteBlock('search.vue', {
+        params: { query: { id: 'uuid' } },
+      })
+
+      const importsMap = new ImportsMap()
+      const paramParsersMap: ParamParsersMap = new Map([
+        ['uuid', uuidEntry],
+        ['slug', slugEntry],
+      ])
+
+      const resolver = generateRouteResolver(
+        tree,
+        DEFAULT_OPTIONS,
+        importsMap,
+        paramParsersMap
+      )
+
+      expect(resolver).toContain('_normalized_PARAM_PARSER__uuid')
+      expect(resolver).not.toContain('_normalized_PARAM_PARSER__slug')
     })
   })
 })

@@ -12,7 +12,7 @@
  * - Resolver-based: Uses createFixedResolver() instead of routes array
  * - Pattern-based matching: Uses MatcherPatternPath instances for route matching
  * - Parent-based hierarchy: Uses 'parent' property instead of 'children'
- * - Limited redirect support: Basic redirects not fully implemented
+ * - Redirects handled at the router level: the resolver knows nothing about them
  * - Different param handling: May not cast/validate params the same way
  *
  * TEST ADAPTATIONS:
@@ -24,13 +24,14 @@
  * - ✅ Meta field merging from parent to child
  * - ❌ Dynamic routing (addRoute, removeRoute, hasRoute)
  * - ❌ Aliases (not implemented in experimental router)
- * - ✅ Redirects (limited support)
+ * - ✅ Redirects (record redirect, chained, function form, query/hash/params handling)
  * - ✅ Complex object-based resolve (may work differently)
  * - ❌ beforeEnter guards (not implemented)
  * - ✅ Param validation/casting (works differently)
  */
 
 import fakePromise from 'faked-promise'
+import { computed, effectScope } from 'vue'
 import {
   experimental_createRouter,
   createFixedResolver,
@@ -50,7 +51,16 @@ import {
 import { NavigationFailureType } from '../errors'
 import { components, tick, nextNavigation } from '../../__tests__/utils'
 import { START_LOCATION_NORMALIZED } from '../location'
-import { vi, describe, expect, it } from 'vitest'
+import {
+  vi,
+  describe,
+  expect,
+  it,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from 'vitest'
+import type { MockInstance } from 'vitest'
 import { mockWarn } from '../../__tests__/vitest-mock-warn'
 
 const parentRecord = normalizeRouteRecord({
@@ -754,6 +764,15 @@ describe('Experimental Router', () => {
     })
   })
 
+  it('resolves a relative location against a passed currentLocation', async () => {
+    const { router } = await newRouter()
+    const current = await loadRouteLocation(router.resolve('/parent/child'))
+    expect(router.resolve('child', current).path).toBe('/parent/child')
+    // the explicit currentLocation takes precedence over the current route
+    await router.push('/foo')
+    expect(router.resolve('child', current).path).toBe('/parent/child')
+  })
+
   it('resolves relative string locations', async () => {
     const { router } = await newRouter()
     await router.push('/users/posva')
@@ -775,6 +794,54 @@ describe('Experimental Router', () => {
     await router.push('/users/posva')
     await router.push('../')
     expect(router.currentRoute.value.path).toBe('/')
+  })
+
+  describe('resolve reactivity', () => {
+    it('does not re-run a computed with an absolute location on navigation', async () => {
+      const { router } = await newRouter()
+      const scope = effectScope()
+      let runs = 0
+      const route = scope.run(() =>
+        computed(() => {
+          runs++
+          return router.resolve('/foo')
+        })
+      )!
+      expect(route.value.name).toBe('Foo')
+      expect(runs).toBe(1)
+      await router.push('/search')
+      expect(route.value.name).toBe('Foo')
+      expect(runs).toBe(1)
+      scope.stop()
+    })
+
+    it('does not re-run a computed with an absolute object location on navigation', async () => {
+      const { router } = await newRouter()
+      const scope = effectScope()
+      let runs = 0
+      const route = scope.run(() =>
+        computed(() => {
+          runs++
+          return router.resolve({ path: '/foo', query: { q: '1' }, hash: '#h' })
+        })
+      )!
+      expect(route.value.fullPath).toBe('/foo?q=1#h')
+      expect(runs).toBe(1)
+      await router.push('/search')
+      expect(route.value.fullPath).toBe('/foo?q=1#h')
+      expect(runs).toBe(1)
+      scope.stop()
+    })
+
+    it('re-runs a computed with a relative location on navigation', async () => {
+      const { router } = await newRouter()
+      const scope = effectScope()
+      const route = scope.run(() => computed(() => router.resolve('child')))!
+      expect(route.value.path).toBe('/child')
+      await router.push('/parent/child')
+      expect(route.value.path).toBe('/parent/child')
+      scope.stop()
+    })
   })
 
   describe('alias', () => {
@@ -922,6 +989,135 @@ describe('Experimental Router', () => {
 
     it('cancels navigation abort if a newer one is finished on user navigation (from history)', async () => {
       await checkNavigationCancelledOnPush(undefined)
+    })
+  })
+
+  describe('scrollBehavior', () => {
+    let scrollTo: MockInstance
+
+    beforeAll(() => {
+      vi.useFakeTimers()
+      scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+    })
+
+    beforeEach(() => {
+      scrollTo.mockClear()
+      window.history.replaceState(null, '', '/')
+    })
+
+    afterAll(() => {
+      scrollTo.mockRestore()
+      vi.useRealTimers()
+    })
+
+    // top position to scroll to for each path, distinct so we can tell which
+    // navigation applied its scroll
+    const positions: Record<string, number> = {
+      '/': 3000,
+      '/foo': 1000,
+      '/p/a': 2000,
+    }
+
+    it('does not restore scroll positions for pop navigations with unknown direction', async () => {
+      const scrollBehavior = vi.fn()
+      const { router } = await newRouter({
+        history: createWebHashHistory(),
+        scrollBehavior,
+      })
+      scrollBehavior.mockClear()
+
+      // Plain `<a href="#...">` links and manual `location.hash` writes create
+      // a history entry with no state, so the popstate fires with
+      // `state: null` and the router cannot compute a direction (delta 0).
+      // happy-dom does not fire popstate on hash changes, so dispatch it like
+      // a browser would.
+      function changeHash(hash: string) {
+        window.location.hash = hash
+        window.dispatchEvent(new PopStateEvent('popstate', { state: null }))
+      }
+
+      changeHash('#/foo')
+      await nextNavigation(router)
+      changeHash('#/')
+      await nextNavigation(router)
+
+      expect(scrollBehavior).toHaveBeenCalledTimes(2)
+      expect(scrollBehavior).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ path: '/foo' }),
+        expect.objectContaining({ path: '/' }),
+        null
+      )
+      // a stale position saved under the unknown-direction key would show up
+      // here as a non-null savedPosition and override the target anchor
+      expect(scrollBehavior).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ path: '/' }),
+        expect.objectContaining({ path: '/foo' }),
+        null
+      )
+    })
+
+    it('ignores the scroll of navigations superseded before they finish', async () => {
+      // scrollBehavior resolves asynchronously, simulating waiting for the DOM
+      const scrollBehavior = vi.fn((to: { path: string }) => {
+        return new Promise<{ top: number }>(resolve => {
+          setTimeout(() => resolve({ top: positions[to.path] }), 100)
+        })
+      })
+      const { router } = await newRouter({ scrollBehavior })
+      scrollBehavior.mockClear()
+
+      // a navigation that fully resolves, but whose async scroll is still pending
+      await router.push('/foo')
+      // superseded before it finishes: it never reaches finalizeNavigation
+      router.push('/p/a')
+      // the navigation that actually wins
+      await router.push('/')
+
+      // /p/a was cancelled before completing so its scrollBehavior never ran
+      expect(scrollBehavior).not.toHaveBeenCalledWith(
+        expect.objectContaining({ path: '/p/a' }),
+        expect.anything(),
+        expect.anything()
+      )
+
+      // flush the pending scrollBehavior promises
+      await vi.runAllTimersAsync()
+
+      expect(router.currentRoute.value.path).toBe('/')
+      // only the current navigation's scroll is applied, the stale /foo and the
+      // initial / are ignored
+      expect(scrollTo).toHaveBeenCalledTimes(1)
+      expect(scrollTo).toHaveBeenCalledWith(
+        expect.objectContaining({ top: 3000 })
+      )
+    })
+
+    it('does not report scroll errors from superseded navigations', async () => {
+      const staleError = new Error('stale scroll')
+      const scrollBehavior = vi.fn((to: { path: string }) => {
+        return new Promise<{ top: number }>((resolve, reject) => {
+          setTimeout(() => {
+            if (to.path === '/foo') reject(staleError)
+            else resolve({ top: positions[to.path] })
+          }, 100)
+        })
+      })
+      const onError = vi.fn()
+      const { router } = await newRouter({ scrollBehavior })
+      router.onError(onError)
+
+      await router.push('/foo')
+      await router.push('/')
+
+      await vi.runAllTimersAsync()
+
+      expect(router.currentRoute.value.path).toBe('/')
+      expect(onError).not.toHaveBeenCalled()
+      expect(scrollTo).toHaveBeenCalledWith(
+        expect.objectContaining({ top: 3000 })
+      )
     })
   })
 

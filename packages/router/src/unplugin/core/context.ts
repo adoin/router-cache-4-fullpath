@@ -28,11 +28,12 @@ import type { ParamParsersMap } from '../codegen/generateParamParsers'
 import {
   generateParamParsersTypesDeclarations,
   generateCustomParamParsersList,
+  scanParamParserFiles,
   warnMissingParamParsers,
   collectMissingParamParsers,
+  addParamParserToMap,
 } from '../codegen/generateParamParsers'
 import picomatch from 'picomatch'
-import { camelCase } from 'scule'
 
 export function createRoutesContext(options: ResolvedOptions) {
   const { dts: preferDTS, root, routesFolder } = options
@@ -73,8 +74,14 @@ export function createRoutesContext(options: ResolvedOptions) {
       return
     }
 
-    const PARAM_PARSER_GLOB = '*.{ts,js}'
-    const isParamParserMatch = picomatch(PARAM_PARSER_GLOB)
+    const paramParsersInclude = options.experimental.paramParsers?.include ?? []
+    const paramParsersExclude = options.experimental.paramParsers?.exclude ?? []
+    const isParamParserExcluded = paramParsersExclude.length
+      ? picomatch(paramParsersExclude)
+      : () => false
+    const isParamParserIncluded = paramParsersInclude.length
+      ? picomatch(paramParsersInclude)
+      : () => false
 
     // get the initial list of pages
     await Promise.all([
@@ -125,7 +132,11 @@ export function createRoutesContext(options: ResolvedOptions) {
                     return false
                   }
 
-                  return !isParamParserMatch(relative(folder, filePath))
+                  const fileName = relative(folder, filePath)
+                  return (
+                    !isParamParserIncluded(fileName) ||
+                    isParamParserExcluded(fileName)
+                  )
                 },
               }),
               folder
@@ -133,23 +144,16 @@ export function createRoutesContext(options: ResolvedOptions) {
           )
         }
 
-        return glob(PARAM_PARSER_GLOB, {
-          cwd: folder,
-          onlyFiles: true,
-          expandDirectories: false,
-        }).then(paramParserFiles => {
-          for (const file of paramParserFiles) {
-            const fileName = parsePathe(file).name
-            const name = camelCase(fileName)
-            // TODO: could be simplified to only one import that starts with / for vite
-            const absolutePath = resolve(folder, file)
-            paramParsersMap.set(fileName, {
-              name,
-              typeName: `Param_${name}`,
-              absolutePath,
-              relativePath: relative(dtsDir, absolutePath),
-            })
-          }
+        return scanParamParserFiles(
+          folder,
+          paramParsersInclude,
+          paramParsersExclude
+        ).then(async paramParserFiles => {
+          await Promise.all(
+            paramParserFiles.map(file =>
+              addParamParserToMap(file, folder, dtsDir, paramParsersMap)
+            )
+          )
           logger.log(
             'Parsed param parsers',
             [...paramParsersMap].map(p => p[0])
@@ -226,16 +230,12 @@ export function createRoutesContext(options: ResolvedOptions) {
   function setupParamParserWatcher(watcher: FSWatcher, cwd: string) {
     logger.log(`🤖 Scanning param parsers in ${cwd}`)
     return watcher
-      .on('add', file => {
-        const fileName = parsePathe(file).name
-        const name = camelCase(fileName)
-        const absolutePath = resolve(cwd, file)
-        paramParsersMap.set(fileName, {
-          name,
-          typeName: `Param_${name}`,
-          absolutePath,
-          relativePath: relative(dtsDir, absolutePath),
-        })
+      .on('add', async file => {
+        await addParamParserToMap(file, cwd, dtsDir, paramParsersMap)
+        writeConfigFiles()
+      })
+      .on('change', async file => {
+        await addParamParserToMap(file, cwd, dtsDir, paramParsersMap)
         writeConfigFiles()
       })
       .on('unlink', file => {

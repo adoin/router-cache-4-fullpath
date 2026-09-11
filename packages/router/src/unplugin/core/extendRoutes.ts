@@ -1,4 +1,5 @@
 import { type RouteMeta } from '../../types'
+import { isAbsolutePath } from '../utils'
 import { type CustomRouteBlock } from './customBlock'
 import { type TreeNode } from './tree'
 
@@ -40,7 +41,7 @@ export class EditableTreeNode {
   insert(path: string, filePath: string) {
     // adapt paths as they should match a file system
     let addBackLeadingSlash = false
-    if (path.startsWith('/')) {
+    if (isAbsolutePath(path)) {
       // at the root of the tree, the path is relative to the root so we remove
       // the leading slash
       path = path.slice(1)
@@ -92,9 +93,11 @@ export class EditableTreeNode {
   }
 
   /**
-   * Override the name of the route.
+   * Override the route name. If not provided, the name will be generated based
+   * on the file path. Can be set to `false` to make the route _anonymous_
+   * which removes it from types and make the route unmatchable.
    */
-  set name(name: string | undefined) {
+  set name(name: string | undefined | false) {
     this.node.value.addEditOverride({ name })
   }
 
@@ -147,7 +150,7 @@ export class EditableTreeNode {
     // that matches the behavior of node.insert('path', 'file.vue') that also adds it
     if (
       (!this.node.parent || this.node.parent.isRoot()) &&
-      !path.startsWith('/')
+      !isAbsolutePath(path)
     ) {
       path = '/' + path
     }

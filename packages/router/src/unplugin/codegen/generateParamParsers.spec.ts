@@ -1,20 +1,26 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest'
 import {
   warnMissingParamParsers,
   collectMissingParamParsers,
+  collectUsedParamParserNames,
   generateParamParsersTypesDeclarations,
   generateParamsTypes,
   generateParamParserOptions,
   generatePathParamsOptions,
   generateCustomParamParsersList,
   generateNormalizedParamParsersDeclarations,
+  isRawParamParserSource,
+  scanParamParserFiles,
   type ParamParsersMap,
 } from './generateParamParsers'
 import { PrefixTree } from '../core/tree'
-import { resolveOptions } from '../options'
+import { DEFAULT_PARAM_PARSERS_OPTIONS, resolveOptions } from '../options'
 import { ImportsMap } from '../core/utils'
 import type { TreePathParam } from '../core/treeNodeValue'
 import { mockWarn } from '../../tests/vitest-mock-warn'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 const DEFAULT_OPTIONS = resolveOptions({})
 
@@ -34,6 +40,7 @@ describe('warnMissingParamParsers', () => {
     const tree = new PrefixTree(DEFAULT_OPTIONS)
     tree.insert('users/[id=int]', 'users/[id=int].vue')
     tree.insert('posts/[active=bool]', 'posts/[active=bool].vue')
+    tree.insert('blog/[slug=string]', 'blog/[slug=string].vue')
 
     const paramParsers: ParamParsersMap = new Map()
 
@@ -89,6 +96,7 @@ describe('collectMissingParamParsers', () => {
     const tree = new PrefixTree(DEFAULT_OPTIONS)
     tree.insert('users/[id=int]', 'users/[id=int].vue')
     tree.insert('posts/[active=bool]', 'posts/[active=bool].vue')
+    tree.insert('blog/[slug=string]', 'blog/[slug=string].vue')
 
     const paramParsers: ParamParsersMap = new Map()
 
@@ -151,6 +159,49 @@ describe('collectMissingParamParsers', () => {
       routePath: '/posts/:slug',
       filePaths: ['posts/[slug=slug].vue'],
     })
+  })
+})
+
+describe('collectUsedParamParserNames', () => {
+  it('returns an empty set when no route references a parser', () => {
+    const tree = new PrefixTree(DEFAULT_OPTIONS)
+    tree.insert('users', 'users.vue')
+    tree.insert('posts/[id]', 'posts/[id].vue')
+
+    expect(collectUsedParamParserNames(tree).size).toBe(0)
+  })
+
+  it('collects parser names from path params', () => {
+    const tree = new PrefixTree(DEFAULT_OPTIONS)
+    tree.insert('users/[id=uuid]', 'users/[id=uuid].vue')
+    tree.insert('posts/[slug=slug]', 'posts/[slug=slug].vue')
+
+    expect(collectUsedParamParserNames(tree)).toEqual(new Set(['uuid', 'slug']))
+  })
+
+  it('includes native parser names', () => {
+    const tree = new PrefixTree(DEFAULT_OPTIONS)
+    tree.insert('users/[id=int]', 'users/[id=int].vue')
+
+    expect(collectUsedParamParserNames(tree)).toEqual(new Set(['int']))
+  })
+
+  it('collects parser names from query params', () => {
+    const tree = new PrefixTree(DEFAULT_OPTIONS)
+    const node = tree.insert('search', 'search.vue')
+    node.setCustomRouteBlock('search.vue', {
+      params: { query: { id: 'uuid' } },
+    })
+
+    expect(collectUsedParamParserNames(tree)).toEqual(new Set(['uuid']))
+  })
+
+  it('deduplicates parsers referenced multiple times', () => {
+    const tree = new PrefixTree(DEFAULT_OPTIONS)
+    tree.insert('users/[id=uuid]', 'users/[id=uuid].vue')
+    tree.insert('teams/[id=uuid]', 'teams/[id=uuid].vue')
+
+    expect(collectUsedParamParserNames(tree)).toEqual(new Set(['uuid']))
   })
 })
 
@@ -226,8 +277,8 @@ describe('generateParamParsersTypesDeclarations', () => {
 
     const result = generateParamParsersTypesDeclarations(paramParsers)
     expect(result).toMatchInlineSnapshot(`
-      "type Param_uuid = _ExtractParamParserType<typeof import('./parsers/uuid').parser>
-      type Param_slug = _ExtractParamParserType<typeof import('./parsers/slug').parser>"
+      "type Param_slug = _ExtractParamParserType<typeof import('./parsers/slug').parser>
+      type Param_uuid = _ExtractParamParserType<typeof import('./parsers/uuid').parser>"
     `)
   })
 })
@@ -295,11 +346,19 @@ describe('generateParamsTypes', () => {
         isSplat: false,
         parser: 'bool',
       },
+      {
+        paramName: 'slug',
+        modifier: '',
+        optional: false,
+        repeatable: false,
+        isSplat: false,
+        parser: 'string',
+      },
     ]
     const paramParsers: ParamParsersMap = new Map()
 
     const result = generateParamsTypes(params, paramParsers)
-    expect(result).toEqual(['number', 'boolean'])
+    expect(result).toEqual(['number', 'boolean', 'string'])
   })
 
   it('handles mixed params with and without parsers', () => {
@@ -427,6 +486,49 @@ describe('generateParamParserOptions', () => {
     expect(importsMap.toString()).toContain(
       `import { PARAM_PARSER_BOOL } from 'vue-router/experimental'`
     )
+  })
+
+  it("returns empty string for native 'string' parser (treated as no parser)", () => {
+    const param: TreePathParam = {
+      paramName: 'slug',
+      modifier: '',
+      optional: false,
+      repeatable: false,
+      isSplat: false,
+      parser: 'string',
+    }
+    const importsMap = new ImportsMap()
+    const paramParsers: ParamParsersMap = new Map()
+
+    const result = generateParamParserOptions(param, importsMap, paramParsers)
+    expect(result).toBe('')
+    expect(importsMap.toString()).not.toContain('PARAM_PARSER_STRING')
+  })
+
+  it("lets custom parser named 'string' override the native default", () => {
+    const param: TreePathParam = {
+      paramName: 'slug',
+      modifier: '',
+      optional: false,
+      repeatable: false,
+      isSplat: false,
+      parser: 'string',
+    }
+    const importsMap = new ImportsMap()
+    const paramParsers: ParamParsersMap = new Map([
+      [
+        'string',
+        {
+          name: 'string',
+          typeName: 'Param_string',
+          relativePath: 'parsers/string',
+          absolutePath: '/path/to/parsers/string',
+        },
+      ],
+    ])
+
+    const result = generateParamParserOptions(param, importsMap, paramParsers)
+    expect(result).toBe('_normalized_PARAM_PARSER__string')
   })
 
   it('returns empty string for missing parser', () => {
@@ -571,13 +673,13 @@ describe('generatePathParamsOptions', () => {
 })
 
 describe('generateParamParserCustomType', () => {
-  it('returns never for empty param parsers map', () => {
+  it('returns an empty array for an empty param parsers map', () => {
     const paramParsers: ParamParsersMap = new Map()
     const result = generateCustomParamParsersList(paramParsers)
-    expect(result).toEqual(['never'])
+    expect(result).toEqual([])
   })
 
-  it('returns single quoted parser name for one parser', () => {
+  it('returns a single entry for one parser', () => {
     const paramParsers: ParamParsersMap = new Map([
       [
         'date',
@@ -591,10 +693,10 @@ describe('generateParamParserCustomType', () => {
     ])
 
     const result = generateCustomParamParsersList(paramParsers)
-    expect(result).toEqual(["'date'"])
+    expect(result).toEqual(["'date': { type: Param_date }"])
   })
 
-  it('returns a list of quoted parser names for multiple parsers in alphabetical order', () => {
+  it('returns entries in alphabetical order', () => {
     const paramParsers: ParamParsersMap = new Map([
       [
         'uuid',
@@ -617,7 +719,10 @@ describe('generateParamParserCustomType', () => {
     ])
 
     const result = generateCustomParamParsersList(paramParsers)
-    expect(result).toEqual(["'date'", "'uuid'"])
+    expect(result).toEqual([
+      "'date': { type: Param_date }",
+      "'uuid': { type: Param_uuid }",
+    ])
   })
 
   it('handles parser names with special characters correctly', () => {
@@ -625,8 +730,8 @@ describe('generateParamParserCustomType', () => {
       [
         'custom-parser',
         {
-          name: 'custom-parser',
-          typeName: 'Param_custom-parser',
+          name: 'customParser',
+          typeName: 'Param_customParser',
           relativePath: 'parsers/custom-parser',
           absolutePath: '/path/to/parsers/custom-parser',
         },
@@ -634,7 +739,7 @@ describe('generateParamParserCustomType', () => {
     ])
 
     const result = generateCustomParamParsersList(paramParsers)
-    expect(result).toEqual(["'custom-parser'"])
+    expect(result).toEqual(["'custom-parser': { type: Param_customParser }"])
   })
 
   it('converts kebab-case filenames to valid camelCase identifiers', () => {
@@ -663,8 +768,8 @@ describe('generateParamParserCustomType', () => {
 
     expect(generateParamParsersTypesDeclarations(paramParsers))
       .toMatchInlineSnapshot(`
-        "type Param_userId = _ExtractParamParserType<typeof import('./parsers/user-id').parser>
-        type Param_dateWithDashes = _ExtractParamParserType<typeof import('./parsers/date-with-dashes').parser>"
+        "type Param_dateWithDashes = _ExtractParamParserType<typeof import('./parsers/date-with-dashes').parser>
+        type Param_userId = _ExtractParamParserType<typeof import('./parsers/user-id').parser>"
       `)
 
     const param: TreePathParam = {
@@ -681,8 +786,8 @@ describe('generateParamParserCustomType', () => {
     // imports are no longer added by generateParamParserOptions for custom parsers
 
     expect(generateCustomParamParsersList(paramParsers)).toEqual([
-      "'date-with-dashes'",
-      "'user-id'",
+      "'date-with-dashes': { type: Param_dateWithDashes }",
+      "'user-id': { type: Param_userId }",
     ])
   })
 })
@@ -783,5 +888,205 @@ describe('generateNormalizedParamParsersDeclarations', () => {
     expect(importsMap.toString()).toContain(
       `import { parser as PARAM_PARSER__userId } from '/path/to/parsers/user-id'`
     )
+  })
+})
+
+// Per-test temp folder via the recommended vitest `test.extend` fixture pattern.
+// Each test gets a fresh isolated directory; cleanup runs after `use` resolves.
+const parsersTest = test.extend<{ parsersDir: string }>({
+  parsersDir: async ({}, use) => {
+    const dir = mkdtempSync(join(tmpdir(), 'vue-router-param-parsers-'))
+    writeFileSync(join(dir, 'uuid.ts'), 'export const parser = {}')
+    writeFileSync(join(dir, 'slug.ts'), 'export const parser = {}')
+    writeFileSync(join(dir, 'uuid.test.ts'), 'test code')
+    writeFileSync(join(dir, 'slug.spec.ts'), 'test code')
+    writeFileSync(join(dir, 'legacy.js'), 'module.exports = {}')
+    writeFileSync(join(dir, 'legacy.test.js'), 'module.exports = {}')
+    writeFileSync(join(dir, 'README.md'), '# parsers')
+    mkdirSync(join(dir, 'nested'))
+    writeFileSync(join(dir, 'nested', 'deep.ts'), 'export const parser = {}')
+    await use(dir)
+    rmSync(dir, { recursive: true, force: true })
+  },
+})
+
+describe('scanParamParserFiles', () => {
+  parsersTest(
+    'picks parsers and ignores tests/specs/nested by default',
+    async ({ parsersDir }) => {
+      const files = await scanParamParserFiles(
+        parsersDir,
+        DEFAULT_PARAM_PARSERS_OPTIONS.include,
+        DEFAULT_PARAM_PARSERS_OPTIONS.exclude
+      )
+      expect(files.sort()).toEqual(['slug.ts', 'uuid.ts'])
+    }
+  )
+
+  parsersTest(
+    'respects a custom include that adds js',
+    async ({ parsersDir }) => {
+      const files = await scanParamParserFiles(
+        parsersDir,
+        ['*.{ts,js}'],
+        DEFAULT_PARAM_PARSERS_OPTIONS.exclude
+      )
+      expect(files.sort()).toEqual(['legacy.js', 'slug.ts', 'uuid.ts'])
+    }
+  )
+
+  parsersTest('respects a custom exclude', async ({ parsersDir }) => {
+    const files = await scanParamParserFiles(parsersDir, ['*.ts'], ['uuid*'])
+    expect(files.sort()).toEqual(['slug.spec.ts', 'slug.ts'])
+  })
+
+  parsersTest(
+    'returns no files when include is empty',
+    async ({ parsersDir }) => {
+      const files = await scanParamParserFiles(parsersDir, [], [])
+      expect(files).toEqual([])
+    }
+  )
+
+  parsersTest(
+    'never picks nested files even without exclude',
+    async ({ parsersDir }) => {
+      const files = await scanParamParserFiles(parsersDir, ['*.ts'], [])
+      expect(files.some(f => f.includes('nested'))).toBe(false)
+    }
+  )
+})
+
+describe('isRawParamParserSource', () => {
+  let warnSpy: ReturnType<typeof vi.spyOn>
+  beforeEach(() => {
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+  afterEach(() => {
+    warnSpy.mockRestore()
+  })
+
+  it('returns true when parser is defined via defineParamParserRaw', () => {
+    const source = `
+      import { defineParamParserRaw } from 'vue-router/experimental'
+      export const parser = defineParamParserRaw({
+        get: v => v,
+        set: v => v,
+      })
+    `
+    expect(isRawParamParserSource(source)).toBe(true)
+  })
+
+  it('returns false when parser is defined via defineParamParser', () => {
+    const source = `
+      import { defineParamParser } from 'vue-router/experimental'
+      export const parser = defineParamParser({
+        get: v => v,
+        set: v => String(v),
+      })
+    `
+    expect(isRawParamParserSource(source)).toBe(false)
+  })
+
+  it('supports aliased imports of defineParamParserRaw', () => {
+    const source = `
+      import { defineParamParserRaw as defineRaw } from 'vue-router/experimental'
+      export const parser = defineRaw({
+        get: v => v,
+        set: v => v,
+      })
+    `
+    expect(isRawParamParserSource(source)).toBe(true)
+  })
+
+  it('returns false when the parser export uses a different identifier', () => {
+    const source = `
+      import { defineParamParserRaw, defineParamParser } from 'vue-router/experimental'
+      export const parser = defineParamParser({
+        get: v => v,
+        set: v => String(v),
+      })
+      export const other = defineParamParserRaw({
+        get: v => v,
+        set: v => v,
+      })
+    `
+    expect(isRawParamParserSource(source)).toBe(false)
+  })
+
+  it('returns false when defineParamParserRaw is not imported', () => {
+    const source = `
+      export const parser = {
+        get: v => v,
+        set: v => v,
+      }
+    `
+    expect(isRawParamParserSource(source)).toBe(false)
+  })
+
+  it('returns false for unparseable source', () => {
+    expect(isRawParamParserSource('this is not { valid ts')).toBe(false)
+  })
+
+  it('detects raw parser when declared under another name and re-exported as parser', () => {
+    const source = `
+      import { defineParamParserRaw } from 'vue-router/experimental'
+      const myParser = defineParamParserRaw({
+        get: v => v,
+        set: v => v,
+      })
+      export { myParser as parser }
+    `
+    expect(isRawParamParserSource(source)).toBe(true)
+  })
+
+  it('returns false when defineParamParserRaw comes from another module', () => {
+    const source = `
+      import { defineParamParserRaw } from 'some-other-package'
+      export const parser = defineParamParserRaw({
+        get: v => v,
+        set: v => v,
+      })
+    `
+    expect(isRawParamParserSource(source)).toBe(false)
+  })
+
+  it('warns when parser is re-exported from another module (direct name)', () => {
+    const source = `
+      import { defineParamParserRaw } from 'vue-router/experimental'
+      export { parser } from './other-parser'
+    `
+    expect(isRawParamParserSource(source, 'my-parser.ts')).toBe(false)
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'Cannot statically determine if "parser" is raw in "my-parser.ts"'
+      )
+    )
+  })
+
+  it('warns when parser is re-exported from another module (aliased)', () => {
+    const source = `
+      import { defineParamParserRaw } from 'vue-router/experimental'
+      export { something as parser } from './other-parser'
+    `
+    expect(isRawParamParserSource(source, 'my-parser.ts')).toBe(false)
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'Cannot statically determine if "parser" is raw in "my-parser.ts"'
+      )
+    )
+  })
+
+  it('does not warn for re-exports that are not the parser export', () => {
+    const source = `
+      import { defineParamParserRaw } from 'vue-router/experimental'
+      export { somethingElse } from './other'
+      export const parser = defineParamParserRaw({
+        get: v => v,
+        set: v => v,
+      })
+    `
+    expect(isRawParamParserSource(source, 'my-parser.ts')).toBe(true)
+    expect(warnSpy).not.toHaveBeenCalled()
   })
 })

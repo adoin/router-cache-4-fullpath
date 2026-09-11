@@ -1,6 +1,4 @@
-import '../global.css'
-import type {
-  RouteLocationNormalizedLoaded} from 'vue-router';
+import type { RouteLocationNormalizedLoaded } from 'vue-router'
 import {
   createRouter,
   createWebHistory,

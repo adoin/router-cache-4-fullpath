@@ -24,6 +24,7 @@ import type {
 } from '../../typed-routes'
 import { isNavigationFailure, NavigationFailureType } from '../../errors'
 import type { Router } from '../../router'
+import { diagnostics } from '../../diagnostics'
 
 /**
  * Key to inject the global loading state for loaders used in `useIsDataLoading`.
@@ -53,18 +54,14 @@ export function setupLoaderGuard({
   // avoid creating the guards multiple times
   if (router[LOADER_ENTRIES_KEY] != null) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(
-        '[vue-router]: Data Loader was setup twice. Make sure to setup only once.'
-      )
+      diagnostics.VUE_ROUTER_R1007()
     }
     return () => {}
   }
 
   // explicit dev to avoid warnings in tests
   if (process.env.NODE_ENV === 'development' && !isSSR) {
-    console.warn(
-      '[vue-router]: Data Loader is experimental and subject to breaking changes in the future.'
-    )
+    diagnostics.VUE_ROUTER_R1008()
   }
 
   // Access to the entries map for convenience
@@ -201,9 +198,7 @@ export function setupLoaderGuard({
         if (process.env.NODE_ENV !== 'production') {
           for (const result of results as unknown[]) {
             if (result instanceof NavigationResult) {
-              console.warn(
-                '[vue-router]: Returning a NavigationResult from a loader is deprecated. Use reroute() instead, which throws internally.'
-              )
+              diagnostics.VUE_ROUTER_R1009()
               throw result
             }
           }
@@ -390,14 +385,10 @@ export function reroute(to: _DataLoaderRedirectResult): never {
 export function DataLoaderPlugin(app: App, options: DataLoaderPluginOptions) {
   const effect = effectScope(true)
   const removeGuards = setupLoaderGuard(assign({ app, effect }, options))
-
-  // TODO: use https://github.com/vuejs/core/pull/8801 if merged
-  const { unmount } = app
-  app.unmount = () => {
+  app.onUnmount(() => {
     effect.stop()
     removeGuards()
-    unmount.call(app)
-  }
+  })
 }
 
 /**

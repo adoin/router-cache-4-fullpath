@@ -10,18 +10,17 @@ import {
 import type { Thenable, TransformResult } from 'unplugin'
 import type {
   CallExpression,
+  Node,
   ObjectExpression,
   ObjectProperty,
   Program,
   Statement,
   StringLiteral,
 } from '@babel/types'
-import { generate } from '@babel/generator'
 import { walkAST } from 'ast-walker-scope'
-import { warn } from './utils'
+import { diagnostics } from '../diagnostics'
 import type { ParsedStaticImport } from 'mlly'
 import { findStaticImports, parseStaticImport } from 'mlly'
-import type { ParamParserType } from '../../experimental/runtime'
 import type { CustomRouteBlock } from './customBlock'
 
 const MACRO_DEFINE_PAGE = 'definePage'
@@ -60,6 +59,26 @@ function getCodeAst(code: string, id: string) {
   return { ast, offset, definePageNodes }
 }
 
+/**
+ * Extract the source text of an ast node from the original code. Works with
+ * SFC and non-SFC files by applying the script block offset.
+ *
+ * @param source - full source code the ast was parsed from
+ * @param node - ast node with source range information
+ * @param offset - offset of the parsed script within the source
+ * @returns the source text of the node or `undefined` if the node has no range
+ */
+function getNodeSource(
+  source: string,
+  node: Node,
+  offset: number
+): string | undefined {
+  if (node.start == null || node.end == null) {
+    return undefined
+  }
+  return source.slice(offset + node.start, offset + node.end)
+}
+
 export function definePageTransform({
   code,
   id,
@@ -87,9 +106,10 @@ export function definePageTransform({
     definePageNodes = result.definePageNodes
   } catch (error) {
     // Handle any syntax errors or parsing errors gracefully
-    warn(
-      `[${id}]: Failed to process definePage: ${error instanceof Error ? error.message : 'Unknown error'}`
-    )
+    diagnostics.VUE_ROUTER_B0001({
+      filename: id,
+      message: error instanceof Error ? error.message : 'Unknown error',
+    })
     return isExtractingDefinePage ? 'export default {}' : undefined
   }
 
@@ -102,7 +122,8 @@ export function definePageTransform({
       : // e.g. index.vue that contains a commented `definePage()
         null
   } else if (definePageNodes.length > 1) {
-    throw new SyntaxError(`duplicate definePage() call`)
+    // ignore the extra calls and keep only the first one instead of crashing
+    diagnostics.VUE_ROUTER_B0020({ filename: id })
   }
 
   const definePageNode = definePageNodes[0]!
@@ -116,7 +137,7 @@ export function definePageTransform({
 
     if (!routeRecord) {
       throw new SyntaxError(
-        `[${id}]: definePage() expects an object expression as its only argument`
+        `In file "${id}": definePage() expects an object expression as its only argument`
       )
     }
 
@@ -128,9 +149,13 @@ export function definePageTransform({
     try {
       checkInvalidScopeReference(routeRecord, MACRO_DEFINE_PAGE, scriptBindings)
     } catch (error) {
-      warn(
-        `[${id}]: ${error instanceof Error ? error.message : 'Invalid scope reference in definePage'}`
-      )
+      diagnostics.VUE_ROUTER_B0002({
+        filename: id,
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Invalid scope reference in definePage',
+      })
       return 'export default {}'
     }
 
@@ -203,8 +228,10 @@ export function definePageTransform({
 
     const s = new MagicString(code)
 
-    // s.removeNode(definePageNode, { offset })
-    s.remove(offset + definePageNode.start!, offset + definePageNode.end!)
+    // remove every definePage() call so duplicates don't leak into the component
+    for (const node of definePageNodes) {
+      s.remove(offset + node.start!, offset + node.end!)
+    }
 
     return generateTransform(s, id)
   }
@@ -235,17 +262,20 @@ export function extractDefinePageInfo(
   if (!sfcCode.includes(MACRO_DEFINE_PAGE)) return
 
   let ast: Program | undefined
+  let offset: number
   let definePageNodes: CallExpression[]
 
   try {
     const result = getCodeAst(sfcCode, id)
     ast = result.ast
+    offset = result.offset
     definePageNodes = result.definePageNodes
   } catch (error) {
     // Handle any syntax errors or parsing errors gracefully
-    warn(
-      `[${id}]: Failed to extract definePage info: ${error instanceof Error ? error.message : 'Unknown error'}`
-    )
+    diagnostics.VUE_ROUTER_B0003({
+      filename: id,
+      message: error instanceof Error ? error.message : 'Unknown error',
+    })
     return undefined
   }
 
@@ -254,7 +284,8 @@ export function extractDefinePageInfo(
   if (!definePageNodes.length) {
     return
   } else if (definePageNodes.length > 1) {
-    throw new SyntaxError(`duplicate definePage() call`)
+    // ignore the extra calls and keep only the first one instead of crashing
+    diagnostics.VUE_ROUTER_B0020({ filename: id })
   }
 
   const definePageNode = definePageNodes[0]!
@@ -262,13 +293,13 @@ export function extractDefinePageInfo(
   const routeRecord = definePageNode.arguments[0]
   if (!routeRecord) {
     throw new SyntaxError(
-      `[${id}]: definePage() expects an object expression as its only argument`
+      `In file "${id}": definePage() expects an object expression as its only argument`
     )
   }
 
   if (routeRecord.type !== 'ObjectExpression') {
     throw new SyntaxError(
-      `[${id}]: definePage() expects an object expression as its only argument`
+      `In file "${id}": definePage() expects an object expression as its only argument`
     )
   }
 
@@ -281,16 +312,14 @@ export function extractDefinePageInfo(
           prop.value.type !== 'StringLiteral' &&
           (prop.value.type !== 'BooleanLiteral' || prop.value.value !== false)
         ) {
-          warn(
-            `route name must be a string literal or false. Found in "${id}".`
-          )
+          diagnostics.VUE_ROUTER_B0004({ filename: id })
         } else {
           // TODO: why does TS not narrow down the type?
           routeInfo.name = prop.value.value as string | false
         }
       } else if (prop.key.name === 'path') {
         if (prop.value.type !== 'StringLiteral') {
-          warn(`route path must be a string literal. Found in "${id}".`)
+          diagnostics.VUE_ROUTER_B0005({ filename: id })
         } else {
           routeInfo.path = prop.value.value
         }
@@ -298,7 +327,7 @@ export function extractDefinePageInfo(
         routeInfo.alias = extractRouteAlias(prop.value, id)
       } else if (prop.key.name === 'params') {
         if (prop.value.type === 'ObjectExpression') {
-          routeInfo.params = extractParamsInfo(prop.value, id)
+          routeInfo.params = extractParamsInfo(prop.value, id, sfcCode, offset)
         }
       } else {
         routeInfo.hasRemainingProperties = true
@@ -311,14 +340,16 @@ export function extractDefinePageInfo(
 
 function extractParamsInfo(
   paramsObj: ObjectExpression,
-  id: string
+  id: string,
+  source: string,
+  offset: number
 ): DefinePageParamsInfo {
   const params: DefinePageParamsInfo = {}
 
   for (const prop of paramsObj.properties) {
     if (prop.type === 'ObjectProperty' && prop.key.type === 'Identifier') {
       if (prop.key.name === 'query' && prop.value.type === 'ObjectExpression') {
-        params.query = extractQueryParams(prop.value, id)
+        params.query = extractQueryParams(prop.value, id, source, offset)
       } else if (
         prop.key.name === 'path' &&
         prop.value.type === 'ObjectExpression'
@@ -333,7 +364,9 @@ function extractParamsInfo(
 
 function extractQueryParams(
   queryObj: ObjectExpression,
-  _id: string
+  _id: string,
+  source: string,
+  offset: number
 ): NonNullable<DefinePageInfo['params']>['query'] {
   const queryParams: NonNullable<DefinePageInfo['params']>['query'] = {}
 
@@ -344,7 +377,7 @@ function extractQueryParams(
       // we normalize short form for convenience
       if (prop.value.type === 'StringLiteral') {
         queryParams[paramName] = {
-          parser: prop.value.value as ParamParserType,
+          parser: prop.value.value,
         }
       } else if (prop.value.type === 'ObjectExpression') {
         // Full form: param: { parser: 'int', default: 1, format: 'value' }
@@ -359,7 +392,7 @@ function extractQueryParams(
               paramProp.key.name === 'parser' &&
               paramProp.value.type === 'StringLiteral'
             ) {
-              paramInfo.parser = paramProp.value.value as ParamParserType
+              paramInfo.parser = paramProp.value.value
             } else if (
               paramProp.key.name === 'format' &&
               paramProp.value.type === 'StringLiteral'
@@ -392,11 +425,24 @@ function extractQueryParams(
                 // support negative numeric literals: -1, -1.5
                 paramInfo.default = `${paramProp.value.operator}${paramProp.value.argument.value}`
               } else if (paramProp.value.type === 'ArrowFunctionExpression') {
-                paramInfo.default = generate(paramProp.value).code
-              } else {
-                warn(
-                  `Unrecognized default value in definePage() for query param "${paramName}". Typeof value: "${paramProp.value.type}". This is a bug or a missing type of value, open an issue on https://github.com/vuejs/router and provide the definePage() code.`
+                const expression = getNodeSource(
+                  source,
+                  paramProp.value,
+                  offset
                 )
+                if (expression == null) {
+                  diagnostics.VUE_ROUTER_B0006({
+                    paramName,
+                    type: paramProp.value.type,
+                  })
+                } else {
+                  paramInfo.default = expression
+                }
+              } else {
+                diagnostics.VUE_ROUTER_B0006({
+                  paramName,
+                  type: paramProp.value.type,
+                })
               }
             }
           }
@@ -423,7 +469,7 @@ function extractPathParams(
       prop.value.type === 'StringLiteral'
     ) {
       // TODO: we should check if the value is a valid parser type
-      pathParams[prop.key.name] = prop.value.value as ParamParserType
+      pathParams[prop.key.name] = prop.value.value
     }
   }
 
@@ -438,9 +484,7 @@ export function extractRouteAlias(
     aliasValue.type !== 'StringLiteral' &&
     aliasValue.type !== 'ArrayExpression'
   ) {
-    warn(
-      `route alias must be a string literal or an array of string literals. Found in "${id}".`
-    )
+    diagnostics.VUE_ROUTER_B0007({ filename: id })
   } else {
     return aliasValue.type === 'StringLiteral'
       ? [aliasValue.value]
@@ -449,9 +493,10 @@ export function extractRouteAlias(
             if (node?.type === 'StringLiteral') {
               return true
             }
-            warn(
-              `route alias array must only contain string literals. Found ${node?.type ? `"${node.type}" ` : ''}in "${id}".`
-            )
+            diagnostics.VUE_ROUTER_B0008({
+              found: node?.type ? `"${node.type}" ` : '',
+              filename: id,
+            })
             return false
           })
           .map(el => el.value)

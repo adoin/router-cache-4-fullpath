@@ -1,3 +1,126 @@
+## [5.3.1](https://github.com/vuejs/router/compare/v5.3.0...v5.3.1) (2026-09-02)
+
+### Bug Fixes
+
+- **experimental:** handle non-string params for isActive ([92cfd6f](https://github.com/vuejs/router/commit/92cfd6f4f3dd529376704eb3b8575309d2418317))
+
+# [5.3.0](https://github.com/vuejs/router/compare/v5.2.0...v5.3.0) (2026-08-27)
+
+### Bug Fixes
+
+- **history:** remove visibilitychange listener to prevent focus steal in Edge ([#2704](https://github.com/vuejs/router/issues/2704)) ([17b5861](https://github.com/vuejs/router/commit/17b586117489b304f75054015a0bd62d9d9a1fce))
+- **router:** skip scroll saving for unknown pop direction (fix [#1431](https://github.com/vuejs/router/issues/1431)) ([#2780](https://github.com/vuejs/router/issues/2780)) ([2315047](https://github.com/vuejs/router/commit/231504721166d842e693f0a82e298ea2cc197dc0))
+- **types:** allow unsetting a route name with `false` in `EditableTreeNode` ([#2752](https://github.com/vuejs/router/issues/2752)) ([8e2e145](https://github.com/vuejs/router/commit/8e2e1459376e17bbc9813a1c4fdc1c14ac0f9bb9))
+- **unplugin:** generate param types from override paths and stop inheritance on absolute overrides ([#2646](https://github.com/vuejs/router/issues/2646)) ([67babd4](https://github.com/vuejs/router/commit/67babd4840ea6ec5d0e90fd3d884042161919fdb))
+- **unplugin:** report unnamed params once per route ([5205881](https://github.com/vuejs/router/commit/5205881adafbdf5abbe06d06b5bb10ebc7d9ada8))
+- **unplugin:** skip unnamed params in generated route types ([c694ec4](https://github.com/vuejs/router/commit/c694ec446f690c80744fd162f1670be806a36ce5))
+- **unplugin:** sort and dedupe params in generated types ([a25fa87](https://github.com/vuejs/router/commit/a25fa87c3e3311cfa49c14cbdec3b83b0a92782b))
+
+### Features
+
+- prevent race condition dev-only error ([#2789](https://github.com/vuejs/router/issues/2789)) ([d2b87d5](https://github.com/vuejs/router/commit/d2b87d59d6275f5ac71b4aeb5224e4adf3349347))
+- **scroll:** skip scroll computation based on history.scrollRestoration ([033f1c7](https://github.com/vuejs/router/commit/033f1c7d9dae3e58e26a8fe24f20ff832407b914)), closes [#2393](https://github.com/vuejs/router/issues/2393)
+- **unplugin:** don't crash on duplicate definePage() calls ([#2753](https://github.com/vuejs/router/issues/2753)) ([686bf9e](https://github.com/vuejs/router/commit/686bf9e7e84b083dec151ca09bbe77bcef3034f4))
+- **volar:** narrow `typeof useRoute` in a type context ([#2759](https://github.com/vuejs/router/issues/2759)) ([7a4c8ea](https://github.com/vuejs/router/commit/7a4c8ea83517aa66c09c98494aaac59b5e2e5da1))
+
+### Performance Improvements
+
+- avoid depending on the current route to resolve absolute locations ([9b7e3ee](https://github.com/vuejs/router/commit/9b7e3ee4e138019fbfc74f67a04c6ffaa8b23f8c))
+- **experimental:** avoid tracking currentRoute in absolute string locations ([084fcfc](https://github.com/vuejs/router/commit/084fcfcb4e1ec1f54bd38527b08c36fba7321809))
+- replace `json5` and `yaml` with `confbox` ([#2769](https://github.com/vuejs/router/issues/2769)) ([aab2876](https://github.com/vuejs/router/commit/aab2876e2703318024e02e03d15713191f2f95db))
+
+# [5.2.0](https://github.com/vuejs/router/compare/v5.1.0...v5.2.0) (2026-07-15)
+
+### Bug Fixes
+
+- allow pinia 4 ([1653533](https://github.com/vuejs/router/commit/165353372281f121dbfbe70479ffb5de2be4b4eb))
+- **scroll:** ignore stale async scrollBehavior results ([#2730](https://github.com/vuejs/router/issues/2730)) ([303dfe1](https://github.com/vuejs/router/commit/303dfe1974a164523ea268f6a608a04aca15a877))
+- **unplugin:** reject invalid hex digits in [x+hh] character codes ([#2744](https://github.com/vuejs/router/issues/2744)) ([4d96741](https://github.com/vuejs/router/commit/4d96741167d3d4cd25d447e218c3f56ac51348d2))
+
+### Features
+
+- add helpful diagnostics ([#2737](https://github.com/vuejs/router/issues/2737)) ([628fe18](https://github.com/vuejs/router/commit/628fe18af2ee49b6ac59ba1f72ccce1628c2fe7f))
+
+# [5.1.0](https://github.com/vuejs/router/compare/v5.0.7...v5.1.0) (2026-05-28)
+
+### Bug Fixes
+
+- allow undefined values for params in query ([4726e2b](https://github.com/vuejs/router/commit/4726e2b642cf846694cf53076809c53cc9dda907))
+- avoid importing unused param parsers ([41c00e7](https://github.com/vuejs/router/commit/41c00e7c7c716cc9ac4cc572a2717e9ea9fafede))
+- detect not set format ([aa89e2e](https://github.com/vuejs/router/commit/aa89e2ee07af714aaf4dd160f70e1ac436f46833))
+- deterministic param parser types order ([bf0fc9b](https://github.com/vuejs/router/commit/bf0fc9b60552966f5ad2bbe5d9250cc18d1e9123))
+- **experimental:** repeatable params in subsegments ([846640e](https://github.com/vuejs/router/commit/846640e4b50030223ca909b4f1f6d8179b833c1d))
+- filter invalid query params without failing to match ([db7178a](https://github.com/vuejs/router/commit/db7178a5945dac0d281b7651388b15994bbc8655))
+- fix auto import fixes and make experimental esm only ([db3a6b3](https://github.com/vuejs/router/commit/db3a6b376e26cdf8dad501d6f2cac01891f7e481))
+- **types:** add vite as optional peer dependency ([#2712](https://github.com/vuejs/router/issues/2712)) ([facbf6b](https://github.com/vuejs/router/commit/facbf6b1457fb4a754639748d02877881faffd55))
+
+### Code Refactoring
+
+- **experimental:** remove defineQueryParamParser and definePathParamParser ([315cc09](https://github.com/vuejs/router/commit/315cc09e6779615434186272503aba71684f7bc4))
+
+### Features
+
+- allow overriding the global Router type ([1cd93b3](https://github.com/vuejs/router/commit/1cd93b33b19209d486d852aedf7012b005dfe713))
+- allow string as a param parser for convenience ([be37b79](https://github.com/vuejs/router/commit/be37b79841437cd356adeb94bc62aa975ca31438))
+- emit runtime warning for invalid format in query params ([8259a09](https://github.com/vuejs/router/commit/8259a09c93f41bc152edb75869181b7f6704b35a))
+- force array type raw param parsers ([7a68b87](https://github.com/vuejs/router/commit/7a68b87c9ea18f870f7233c178cd9a8870c02f7c))
+- override useRouter() return with experimental types config ([39a344f](https://github.com/vuejs/router/commit/39a344f7b14525d5c607a6e17b671e7e32f9930c))
+- strict type for definePage param default ([0ae10cd](https://github.com/vuejs/router/commit/0ae10cdd5f14b1689a5e0f65856df93f4a000525))
+- support raw param parsers ([eadec55](https://github.com/vuejs/router/commit/eadec558824d9536ada998147acc652b4329af5c))
+- typed definePage params.path ([#2716](https://github.com/vuejs/router/issues/2716)) ([d65de74](https://github.com/vuejs/router/commit/d65de7494cf844d8abceab67741bf60e962535ed))
+
+### BREAKING CHANGES
+
+- **experimental:** these are now replaced by `defineParamParser` and
+  `defineParamParserRaw`. They should cover more use cases in a more
+  intuitive way. Feedback is welcome. See
+  https://router.vuejs.org/experimental/param-parsers.html
+
+## [5.0.7](https://github.com/vuejs/router/compare/v5.0.6...v5.0.7) (2026-05-13)
+
+### Bug Fixes
+
+- **matcher:** finalize param token before processing escaped colon ([#2654](https://github.com/vuejs/router/issues/2654)) ([20521b0](https://github.com/vuejs/router/commit/20521b033352223f898cdb17505c520a5646e812))
+- **query:** use Object.create(null) to prevent prototype pollution ([#2661](https://github.com/vuejs/router/issues/2661)) ([be88c75](https://github.com/vuejs/router/commit/be88c75600d1ccdf180f16c3752b8f37ae9e94c6))
+- **resolve:** omit empty optional params from resolved params ([#2434](https://github.com/vuejs/router/issues/2434)) ([1ef0964](https://github.com/vuejs/router/commit/1ef09646f772c9275252f70906f50c8fbf28c6af)), closes [#2419](https://github.com/vuejs/router/issues/2419)
+- **types:** wire RouteNamedMap via generated routes.d.ts ([#2700](https://github.com/vuejs/router/issues/2700)) ([aef9941](https://github.com/vuejs/router/commit/aef994156f0fc34a9030091ffa2be2f726afdd3e))
+- **unplugin:** apply definePage path-param parser overrides ([#2699](https://github.com/vuejs/router/issues/2699)) ([c807486](https://github.com/vuejs/router/commit/c807486263576b21b7f3806e8b08173e5558b8ac))
+- **unplugin:** Avoid generating empty routes ([#2642](https://github.com/vuejs/router/issues/2642)) ([10a8b77](https://github.com/vuejs/router/commit/10a8b773eecaa7facfb9291fc01a86d2506479b0))
+- **volar:** drop runtime `@vue/language-core` import ([#2710](https://github.com/vuejs/router/issues/2710)) ([8af50c9](https://github.com/vuejs/router/commit/8af50c9ccdddbcd51778414b310408aeaa48eda7))
+
+### Code Refactoring
+
+- **param-parsers:** simplify defineParamParser ([641200a](https://github.com/vuejs/router/commit/641200a6ddddf4a0c4e713bf6259f318e8ed0d30))
+
+### Features
+
+- make `defineParamParser()` more intuitive ([8715b21](https://github.com/vuejs/router/commit/8715b2115f5f1ad850186ce0857f9322ea509966))
+- **matcher:** hint at `params: {}` workaround in discarded params warning ([#2689](https://github.com/vuejs/router/issues/2689)) ([c2b13c6](https://github.com/vuejs/router/commit/c2b13c61605798321086b62bbd4fb14fca6fe7df)), closes [#1617](https://github.com/vuejs/router/issues/1617)
+- **param-parsers:** add include/exclude options ([91cdec3](https://github.com/vuejs/router/commit/91cdec3b05b046c10daefd4beed5fa35ea69374c)), closes [#2706](https://github.com/vuejs/router/issues/2706)
+- upgrade `@vue/devtools-api` ([87c3aff](https://github.com/vuejs/router/commit/87c3affe5c76697b49e468201a6a9244772cab90))
+
+### BREAKING CHANGES
+
+- **param-parsers:** the new experimental `defineParamParser()` is simpler and
+  internally handles arrays and nullish values, simplifying the writing of param
+  parsers:
+
+  ```ts
+  export const parser = defineParamParser<Date>({
+    get: value => {
+      const asDate = new Date(value)
+      if (Number.isNaN(asDate.getTime())) {
+        miss(`Invalid date: "${value}"`)
+      }
+
+      return asDate
+    },
+    set: value => value.toISOString(),
+  })
+  ```
+
+  Setting the first type param (here `Date`) is all you need now.
+
 ## [5.0.6](https://github.com/vuejs/router/compare/v5.0.5...v5.0.6) (2026-04-22)
 
 ### Bug Fixes
@@ -154,12 +277,8 @@ Other build tools (Webpack, Rollup, esbuild) import from `vue-router/unplugin`:
 ```ts
 import VueRouter from 'vue-router/unplugin'
 
-VueRouter.webpack({
-  /* ... */
-})
-VueRouter.rollup({
-  /* ... */
-})
+VueRouter.webpack({/* ... */})
+VueRouter.rollup({/* ... */})
 // etc.
 ```
 

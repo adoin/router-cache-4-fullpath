@@ -5,6 +5,7 @@ import { generateParamsTypes } from './generateParamParsers'
 import {
   EXPERIMENTAL_generateRouteParams,
   generateRouteParams,
+  normalizeParamsForTypes,
 } from './generateRouteParams'
 import { pad, formatMultilineUnion, toStringLiteral } from '../utils'
 
@@ -39,25 +40,46 @@ ${node
   )
 }
 
+// TODO: split into two functions, one for the experimental version and one for the non-experimental version, to avoid the if/else branching
+// and put the if/else branching in the caller function
+
 export function generateRouteRecordInfo(
   node: TreeNodeNamed,
   options: ResolvedOptions,
   paramParsersMap: ParamParsersMap
 ): string {
-  let paramParsers: Array<string | null> = []
-  if (options.experimental.paramParsers) {
-    paramParsers = generateParamsTypes(node.params, paramParsersMap)
-  }
+  // only the experimental version handles query params and param parsers, the
+  // other one only handles path params. Both normalize once so unnamed params
+  // are reported once per route instead of once per generated type
+  const params = options.experimental.paramParsers
+    ? normalizeParamsForTypes(node, node.params)
+    : []
+  const pathParams = options.experimental.paramParsers
+    ? []
+    : normalizeParamsForTypes(node, node.pathParams)
+  const paramParsers: Array<string | null> = options.experimental.paramParsers
+    ? generateParamsTypes(params, paramParsersMap)
+    : []
 
   const typeParams = [
     toStringLiteral(node.name),
     toStringLiteral(node.fullPath),
     options.experimental.paramParsers
-      ? EXPERIMENTAL_generateRouteParams(node, paramParsers, true)
-      : generateRouteParams(node, true),
+      ? EXPERIMENTAL_generateRouteParams(
+          params,
+          paramParsers,
+          true,
+          paramParsersMap
+        )
+      : generateRouteParams(pathParams, true),
     options.experimental.paramParsers
-      ? EXPERIMENTAL_generateRouteParams(node, paramParsers, false)
-      : generateRouteParams(node, false),
+      ? EXPERIMENTAL_generateRouteParams(
+          params,
+          paramParsers,
+          false,
+          paramParsersMap
+        )
+      : generateRouteParams(pathParams, false),
   ]
 
   const childRouteNames: string[] =

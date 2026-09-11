@@ -1,9 +1,9 @@
 import type { SFCBlock } from '@vue/compiler-sfc'
 import { parse as parseSFC } from '@vue/compiler-sfc'
 import type { ResolvedOptions } from '../options'
-import JSON5 from 'json5'
-import { parse as parseYaml } from 'yaml'
-import { warn } from './utils'
+import { parseJSON5 } from 'confbox/json5'
+import { parseYAML } from 'confbox/yaml'
+import { diagnostics } from '../diagnostics'
 import type { DefinePageQueryParamOptions } from '../../experimental/runtime'
 import type { RouteRecordRaw } from '../../types'
 
@@ -29,8 +29,16 @@ export interface CustomRouteBlock extends Partial<
   alias?: string[]
 
   params?: {
-    path?: Record<string, string>
+    /**
+     * Override the parser for a given path param. Set to `null` to remove a
+     * filename-based parser (e.g. revert `[id=int]` back to no parser).
+     */
+    path?: Record<string, string | null>
 
+    /**
+     * Declare query params for the route. The value is either a parser name
+     * or an options object with `parser`, `format`, `default`, and `required`.
+     */
     query?: Record<string, string | CustomRouteBlockQueryParamOptions>
   }
 }
@@ -52,31 +60,35 @@ function parseCustomBlock(
 
   if (lang === 'json5') {
     try {
-      return JSON5.parse(block.content)
+      return parseJSON5(block.content)
     } catch (err: any) {
-      warn(
-        `Invalid JSON5 format of <${block.type}> content in ${filePath}\n${err.message}`
-      )
+      diagnostics.VUE_ROUTER_B0012({
+        type: block.type,
+        filePath,
+        message: err.message,
+      })
     }
   } else if (lang === 'json') {
     try {
       return JSON.parse(block.content)
     } catch (err: any) {
-      warn(
-        `Invalid JSON format of <${block.type}> content in ${filePath}\n${err.message}`
-      )
+      diagnostics.VUE_ROUTER_B0013({
+        type: block.type,
+        filePath,
+        message: err.message,
+      })
     }
   } else if (lang === 'yaml' || lang === 'yml') {
     try {
-      return parseYaml(block.content)
+      return parseYAML(block.content)
     } catch (err: any) {
-      warn(
-        `Invalid YAML format of <${block.type}> content in ${filePath}\n${err.message}`
-      )
+      diagnostics.VUE_ROUTER_B0014({
+        type: block.type,
+        filePath,
+        message: err.message,
+      })
     }
   } else {
-    warn(
-      `Language "${lang}" for <${block.type}> is not supported. Supported languages are: json5, json, yaml, yml. Found in in ${filePath}.`
-    )
+    diagnostics.VUE_ROUTER_B0015({ lang, type: block.type, filePath })
   }
 }

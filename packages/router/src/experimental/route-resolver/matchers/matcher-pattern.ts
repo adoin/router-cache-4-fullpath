@@ -235,18 +235,19 @@ export class MatcherPatternPathDynamic<
         string,
         MatcherPatternPathDynamic_ParamOptions<any, any>
       >)[keyof TParamsOptions][0]
-    let repeatable: boolean | undefined
     let optional: boolean | undefined
     let value: ReturnType<NonNullable<ParamParser['set']>> | undefined
     const path =
       '/' +
       this.pathParts
         .map(part => {
+          // static part of the path, just return it
           if (typeof part === 'string') {
             return part
+            // path param
           } else if (typeof part === 'number') {
             paramName = this.paramsKeys[paramIndex++]
-            ;[parser, repeatable, optional] = this.params[paramName]
+            ;[parser /* repeatable */, , optional] = this.params[paramName]
             value = (parser?.set || identityFn)(params[paramName])
 
             // non optional repeatable params cannot be empty
@@ -258,6 +259,7 @@ export class MatcherPatternPathDynamic<
               ? value.map(encodeParam).join('/')
               : // part == 1 means a regular param, 0 means a splat
                 (part ? encodeParam : encodePath)(value)
+            // sub segments
           } else {
             return part
               .map(subPart => {
@@ -266,20 +268,15 @@ export class MatcherPatternPathDynamic<
                 }
 
                 paramName = this.paramsKeys[paramIndex++]
-                ;[parser, repeatable, optional] = this.params[paramName]
+                ;[parser /* repeatable */, , optional] = this.params[paramName]
                 value = (parser?.set || identityFn)(params[paramName])
 
-                // param cannot be repeatable when in a sub segment
-                if (__DEV__ && repeatable) {
-                  warn(
-                    `Param "${String(paramName)}" is repeatable, but used in a sub segment of the path: "${this.pathParts.join('')}". Repeated params can only be used as a full path segment: "/file/[ids]+/something-else". This will break in production.`
-                  )
-                  return Array.isArray(value)
-                    ? value.map(encodeParam).join('/')
-                    : encodeParam(value)
-                }
-
-                return encodeParam(value as string | null | undefined)
+                // a repeatable param in a sub segment joins its values with `/`
+                // so file-based routes like `rep.[ids]+` (sub segment
+                // ['rep/', 1]) and `set.[ids]+.other` round-trip correctly
+                return Array.isArray(value)
+                  ? value.map(encodeParam).join('/')
+                  : encodeParam(value as string | null | undefined)
               })
               .join('')
           }

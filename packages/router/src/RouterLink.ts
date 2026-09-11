@@ -25,7 +25,7 @@ import { routerKey, routeLocationKey } from './injectionSymbols'
 import type { RouteRecord } from './matcher/types'
 import type { NavigationFailure } from './errors'
 import { isArray, isBrowser, noop } from './utils'
-import { warn } from './warning'
+import { diagnostics } from './diagnostics'
 import { isRouteLocation } from './types'
 import type {
   RouteLocation,
@@ -146,23 +146,7 @@ export function useLink<Name extends keyof RouteMap = keyof RouteMap>(
 
     if (__DEV__ && (!hasPrevious || to !== previousTo)) {
       if (!isRouteLocation(to)) {
-        if (hasPrevious) {
-          warn(
-            `Invalid value for prop "to" in useLink()\n- to:`,
-            to,
-            `\n- previous to:`,
-            previousTo,
-            `\n- props:`,
-            props
-          )
-        } else {
-          warn(
-            `Invalid value for prop "to" in useLink()\n- to:`,
-            to,
-            `\n- props:`,
-            props
-          )
-        }
+        diagnostics.VUE_ROUTER_R0050({ to })
       }
 
       previousTo = to
@@ -428,9 +412,7 @@ function includesParams(
   for (const key in inner) {
     const innerValue = inner[key]
     const outerValue = outer[key]
-    if (typeof innerValue === 'string') {
-      if (innerValue !== outerValue) return false
-    } else {
+    if (isArray(innerValue)) {
       if (
         !isArray(outerValue) ||
         outerValue.length !== innerValue.length ||
@@ -439,6 +421,8 @@ function includesParams(
         )
       )
         return false
+    } else if (innerValue !== outerValue) {
+      return false
     }
   }
 

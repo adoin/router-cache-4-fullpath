@@ -1,5 +1,6 @@
 import fakePromise from 'faked-promise'
-import { createRouter, createMemoryHistory } from '../src'
+import { createRouter } from '../src/router'
+import { createMemoryHistory } from '../src/history/memory'
 import type { RouterOptions } from '../src/router'
 import type { RouteComponent } from '../src/types'
 import { ticks } from './utils'
@@ -268,7 +269,7 @@ describe('Lazy Loading', () => {
 
     expect(spy).toHaveBeenCalled()
     expect(spy).toHaveBeenLastCalledWith(error)
-    expect('uncaught error').toHaveBeenWarned()
+    expect('Uncaught error').toHaveBeenWarned()
 
     expect(router.currentRoute.value).toMatchObject({
       path: '/',
@@ -288,7 +289,7 @@ describe('Lazy Loading', () => {
     await router.push('/foo').catch(spy)
 
     expect(spy).toHaveBeenCalledTimes(1)
-    expect('uncaught error').toHaveBeenWarned()
+    expect('Uncaught error').toHaveBeenWarned()
 
     expect(router.currentRoute.value).toMatchObject({
       path: '/',
@@ -317,7 +318,7 @@ describe('Lazy Loading', () => {
     await router.push('/foo').catch(spy)
 
     expect(spy).toHaveBeenCalledWith(error)
-    expect('uncaught error').toHaveBeenWarned()
+    expect('Uncaught error').toHaveBeenWarned()
 
     expect(router.currentRoute.value).toMatchObject({
       path: '/',

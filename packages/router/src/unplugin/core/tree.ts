@@ -3,6 +3,7 @@ import {
   CONVENTION_OVERRIDE_NAME,
   createTreeNodeValue,
   escapeRegex,
+  isTreePathParam,
   type TreeNodeValueOptions,
   type TreePathParam,
   type TreeQueryParam,
@@ -369,27 +370,27 @@ export class TreeNode {
    * Array of route params for this node. It includes **all** the params from the parents as well.
    */
   get params(): (TreePathParam | TreeQueryParam)[] {
-    const params = [...this.value.params]
-    let node = this.parent
-    // add all the params from the parents
-    while (node) {
-      params.unshift(...node.value.params)
-      node = node.parent
-    }
-
-    return params
+    return [...this.pathParams, ...this.queryParams]
   }
 
   /**
-   * Array of route params coming from the path. It includes all the params from the parents as well.
+   * Array of route params coming from the path. It includes all the params
+   * from the parents as well. Use `node.value.pathParams` for the ones
+   * declared by this specific node.
    */
   get pathParams(): TreePathParam[] {
-    const params = this.value.isParam() ? [...this.value.pathParams] : []
+    const params = this.value.pathParams
+    if (this.value.overrides.path?.startsWith('/')) {
+      return params
+    }
+
     let node = this.parent
     // add all the params from the parents
     while (node) {
-      if (node.value.isParam()) {
-        params.unshift(...node.value.pathParams)
+      params.unshift(...node.value.pathParams)
+      // an absolute path drops everything above it from the url
+      if (node.value.overrides.path?.startsWith('/')) {
+        break
       }
       node = node.parent
     }
@@ -398,10 +399,21 @@ export class TreeNode {
   }
 
   /**
-   * Array of query params extracted from definePage. Only returns query params from this specific node.
+   * Array of query params extracted from definePage. It includes all the query
+   * params from the parents as well. Use `node.value.queryParams` for the ones
+   * declared by this specific node.
    */
   get queryParams(): TreeQueryParam[] {
-    return this.value.queryParams
+    const params = [...this.value.queryParams]
+
+    let node = this.parent
+    // add all the query params from the parents
+    while (node) {
+      params.unshift(...node.value.queryParams)
+      node = node.parent
+    }
+
+    return params
   }
 
   /**
@@ -473,10 +485,13 @@ export class TreeNode {
   }
 
   /**
-   * Is this node a splat (catch-all) param
+   * True if the last segment of the path is a splat (catch-all) param e.g.
+   * /some/thing/:path(.*). Useful to compute the trailing slash behavior of
+   * the route.
    */
-  get isSplat(): boolean {
-    return this.value.isParam() && this.value.pathParams.some(p => p.isSplat)
+  get endsWithSplat(): boolean {
+    const lastSegment = this.value.subSegments.at(-1)
+    return !!lastSegment && isTreePathParam(lastSegment) && lastSegment.isSplat
   }
 
   /**

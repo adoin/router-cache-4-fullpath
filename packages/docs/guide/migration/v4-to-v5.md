@@ -49,12 +49,8 @@ Other build tools (Webpack, Rollup, esbuild) import from `vue-router/unplugin`:
 ```ts
 import VueRouter from 'vue-router/unplugin'
 
-VueRouter.webpack({
-  /* ... */
-})
-VueRouter.rollup({
-  /* ... */
-})
+VueRouter.webpack({/* ... */})
+VueRouter.rollup({/* ... */})
 // etc.
 ```
 
@@ -105,20 +101,6 @@ import type { Options, EditableTreeNode } from 'vue-router/unplugin' // [!code +
     "plugins": [
       "unplugin-vue-router/volar/sfc-typed-router", // [!code --]
       "unplugin-vue-router/volar/sfc-route-blocks", // [!code --]
-    ],
-  },
-}
-```
-
-<!-- prettier-ignore -->
-```jsonc
-// tsconfig.json
-{
-  "compilerOptions": {
-    "rootDir": ".",
-  },
-  "vueCompilerOptions": {
-    "plugins": [
       "vue-router/volar/sfc-typed-router", // [!code ++]
       "vue-router/volar/sfc-route-blocks", // [!code ++]
     ],

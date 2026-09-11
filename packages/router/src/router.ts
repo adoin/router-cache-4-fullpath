@@ -23,7 +23,6 @@ import {
   getSavedScrollPosition,
   getScrollKey,
   saveScrollPosition,
-  computeScrollPosition,
   scrollToPosition,
 } from './scrollBehavior'
 import { createRouterMatcher } from './matcher'
@@ -56,7 +55,7 @@ import {
   extractComponentsGuards,
   guardToPromiseFn,
 } from './navigationGuards'
-import { warn } from './warning'
+import { diagnostics } from './diagnostics'
 import { RouterLink } from './RouterLink'
 import { RouterView } from './RouterView'
 import {
@@ -71,6 +70,7 @@ import type {
   EXPERIMENTAL_Router_Base,
   _OnReadyCallback,
 } from './experimental/router'
+import type { TypesConfig } from './config'
 
 /**
  * Options to initialize a {@link Router} instance.
@@ -85,7 +85,7 @@ export interface RouterOptions extends EXPERIMENTAL_RouterOptions_Base {
 /**
  * Router instance.
  */
-export interface Router extends EXPERIMENTAL_Router_Base<RouteRecordNormalized> {
+export interface RouterClassic extends EXPERIMENTAL_Router_Base<RouteRecordNormalized> {
   /**
    * Original options object passed to create the Router
    */
@@ -123,6 +123,24 @@ export interface Router extends EXPERIMENTAL_Router_Base<RouteRecordNormalized> 
 }
 
 /**
+ * Router instance.
+ *
+ * By default this resolves to the classic {@link RouterClassic}. Augment
+ * {@link TypesConfig} with a `Router` slot to swap the public type.
+ *
+ * ```ts
+ * import { router } from './router'
+ * declare module 'vue-router' {
+ *   interface TypesConfig {
+ *     Router: typeof router
+ *   }
+ * }
+ * ```
+ */
+export type Router =
+  TypesConfig extends Record<'Router', infer T> ? T : RouterClassic
+
+/**
  * Creates a Router instance that can be used by a Vue app.
  *
  * @param options - {@link RouterOptions}
@@ -144,6 +162,9 @@ export function createRouter(options: RouterOptions): Router {
   const currentRoute = shallowRef<RouteLocationNormalizedLoaded>(
     START_LOCATION_NORMALIZED
   )
+  // incremented whenever the route table changes so that `resolve()` can be
+  // used within `computed()` and still pick up added or removed routes
+  const routesVersion = shallowRef(0)
   let pendingLocation: RouteLocation = START_LOCATION_NORMALIZED
 
   // leave the scrollRestoration if no scrollBehavior is provided
@@ -169,26 +190,34 @@ export function createRouter(options: RouterOptions): Router {
     if (isRouteName(parentOrRoute)) {
       parent = matcher.getRecordMatcher(parentOrRoute)
       if (__DEV__ && !parent) {
-        warn(
-          `Parent route "${String(parentOrRoute)}" not found when adding child route`,
-          route
-        )
+        diagnostics.VUE_ROUTER_R0001({ name: String(parentOrRoute) })
       }
       record = route!
     } else {
       record = parentOrRoute
     }
 
-    return matcher.addRoute(record, parent)
+    const removeRoute = matcher.addRoute(record, parent)
+    routesVersion.value++
+    return () => {
+      removeRoute()
+      routesVersion.value++
+    }
   }
 
   function removeRoute(name: NonNullable<RouteRecordNameGeneric>) {
     const recordMatcher = matcher.getRecordMatcher(name)
     if (recordMatcher) {
       matcher.removeRoute(recordMatcher)
+      routesVersion.value++
     } else if (__DEV__) {
-      warn(`Cannot remove non-existent route "${String(name)}"`)
+      diagnostics.VUE_ROUTER_R0002({ name: String(name) })
     }
+  }
+
+  function clearRoutes() {
+    matcher.clearRoutes()
+    routesVersion.value++
   }
 
   function getRoutes() {
@@ -205,9 +234,17 @@ export function createRouter(options: RouterOptions): Router {
   ): RouteLocationResolved {
     // const resolve: Router['resolve'] = (rawLocation: RouteLocationRaw, currentLocation) => {
     // const objectLocation = routerLocationAsObject(rawLocation)
-    // we create a copy to modify it later
-    currentLocation = assign({}, currentLocation || currentRoute.value)
+    // depend on the route table so `computed()`s using `resolve()` are
+    // invalidated when routes are added or removed
+    routesVersion.value
     if (typeof rawLocation === 'string') {
+      // absolute locations do not depend on where the user currently is, so
+      // we avoid reading `currentRoute` to not track it as a dependency
+      currentLocation =
+        currentLocation ||
+        (rawLocation.startsWith('/')
+          ? START_LOCATION_NORMALIZED
+          : currentRoute.value)
       const locationNormalized = parseURL(
         parseQuery,
         rawLocation,
@@ -221,11 +258,9 @@ export function createRouter(options: RouterOptions): Router {
       const href = routerHistory.createHref(locationNormalized.fullPath)
       if (__DEV__) {
         if (href.startsWith('//'))
-          warn(
-            `Location "${rawLocation}" resolved to "${href}". A resolved location cannot start with multiple slashes.`
-          )
+          diagnostics.VUE_ROUTER_R0003({ location: rawLocation, href })
         else if (!matchedRoute.matched.length) {
-          warn(`No match found for location with path "${rawLocation}"`)
+          diagnostics.VUE_ROUTER_R0004({ path: rawLocation })
         }
       }
 
@@ -239,12 +274,20 @@ export function createRouter(options: RouterOptions): Router {
     }
 
     if (__DEV__ && !isRouteLocation(rawLocation)) {
-      warn(
-        `router.resolve() was passed an invalid location. This will fail in production.\n- Location:`,
-        rawLocation
-      )
+      diagnostics.VUE_ROUTER_R0005({ rawLocation })
       return resolve({})
     }
+
+    // we create a copy to modify it later
+    currentLocation = assign(
+      {},
+      currentLocation ||
+        (rawLocation.path != null &&
+        rawLocation.path.startsWith('/') &&
+        !('name' in rawLocation && rawLocation.name)
+          ? START_LOCATION_NORMALIZED
+          : currentRoute.value)
+    )
 
     let matcherLocation: MatcherLocationRaw
 
@@ -257,9 +300,7 @@ export function createRouter(options: RouterOptions): Router {
         // @ts-expect-error: the type is never
         Object.keys(rawLocation.params).length
       ) {
-        warn(
-          `Path "${rawLocation.path}" was passed with params but they will be ignored. Use a named route alongside params instead.`
-        )
+        diagnostics.VUE_ROUTER_R0006({ path: rawLocation.path })
       }
       matcherLocation = assign({}, rawLocation, {
         path: parseURL(parseQuery, rawLocation.path, currentLocation.path).path,
@@ -285,9 +326,7 @@ export function createRouter(options: RouterOptions): Router {
     const hash = rawLocation.hash || ''
 
     if (__DEV__ && hash && !hash.startsWith('#')) {
-      warn(
-        `A \`hash\` should always start with the character "#". Replace "${hash}" with "#${hash}".`
-      )
+      diagnostics.VUE_ROUTER_R0007({ hash })
     }
 
     // the matcher might have merged current location params, so
@@ -305,15 +344,11 @@ export function createRouter(options: RouterOptions): Router {
     const href = routerHistory.createHref(fullPath)
     if (__DEV__) {
       if (href.startsWith('//')) {
-        warn(
-          `Location "${rawLocation}" resolved to "${href}". A resolved location cannot start with multiple slashes.`
-        )
+        diagnostics.VUE_ROUTER_R0003({ location: rawLocation, href })
       } else if (!matchedRoute.matched.length) {
-        warn(
-          `No match found for location with path "${
-            rawLocation.path != null ? rawLocation.path : rawLocation
-          }"`
-        )
+        diagnostics.VUE_ROUTER_R0004({
+          path: rawLocation.path != null ? rawLocation.path : rawLocation,
+        })
       }
     }
 
@@ -398,15 +433,10 @@ export function createRouter(options: RouterOptions): Router {
         newTargetLocation.path == null &&
         !('name' in newTargetLocation)
       ) {
-        warn(
-          `Invalid redirect found:\n${JSON.stringify(
-            newTargetLocation,
-            null,
-            2
-          )}\n when navigating to "${
-            to.fullPath
-          }". A redirect must contain a name or path. This will break in production.`
-        )
+        diagnostics.VUE_ROUTER_R0008({
+          target: JSON.stringify(newTargetLocation, null, 2),
+          to: to.fullPath,
+        })
         throw new Error('Invalid redirect')
       }
 
@@ -507,9 +537,10 @@ export function createRouter(options: RouterOptions): Router {
                   redirectedFrom._count + 1
                 : 1) > 30
             ) {
-              warn(
-                `Detected a possibly infinite redirection in a navigation guard when going from "${from.fullPath}" to "${toLocation.fullPath}". Aborting to avoid a Stack Overflow.\n Are you always returning a new location within a navigation guard? That would lead to this error. Only return when redirecting or aborting, that should fix this. This might break in production if not fixed.`
-              )
+              diagnostics.VUE_ROUTER_R0009({
+                from: from.fullPath,
+                to: toLocation.fullPath,
+              })
               return Promise.reject(
                 new Error('Infinite redirect in navigation guard')
               )
@@ -783,12 +814,10 @@ export function createRouter(options: RouterOptions): Router {
       pendingLocation = toLocation
       const from = currentRoute.value
 
+      // Unknown-direction navigations cannot be tied to a history entry.
       // TODO: should be moved to web history?
-      if (isBrowser) {
-        saveScrollPosition(
-          getScrollKey(from.fullPath, info.delta),
-          computeScrollPosition()
-        )
+      if (isBrowser && info.delta) {
+        saveScrollPosition(getScrollKey(from.fullPath, info.delta))
       }
 
       navigate(toLocation, from)
@@ -916,7 +945,7 @@ export function createRouter(options: RouterOptions): Router {
       list.forEach(handler => handler(error, to, from))
     } else {
       if (__DEV__) {
-        warn('uncaught error during route navigation:')
+        diagnostics.VUE_ROUTER_R0010()
       }
       console.error(error)
     }
@@ -970,10 +999,16 @@ export function createRouter(options: RouterOptions): Router {
         history.state.scroll) ||
       null
 
-    return nextTick()
-      .then(() => scrollBehavior(to, from, scrollPosition))
-      .then(position => position && scrollToPosition(position))
-      .catch(err => triggerError(err, to, from))
+    return (
+      nextTick()
+        .then(() => scrollBehavior(to, from, scrollPosition))
+        // avoid scrollBehavior on old navigations
+        .then(
+          position =>
+            to === currentRoute.value && position && scrollToPosition(position)
+        )
+        .catch(err => to === currentRoute.value && triggerError(err, to, from))
+    )
   }
 
   const go = (delta: number) => routerHistory.go(delta)
@@ -990,7 +1025,7 @@ export function createRouter(options: RouterOptions): Router {
 
     addRoute,
     removeRoute,
-    clearRoutes: matcher.clearRoutes,
+    clearRoutes,
     hasRoute,
     getRoutes,
     resolve,
@@ -1013,6 +1048,8 @@ export function createRouter(options: RouterOptions): Router {
       app.component('RouterLink', RouterLink)
       app.component('RouterView', RouterView)
 
+      // augmented to the experimental shape it diverges from `createRouter`'s
+      // return type. FIXME.
       app.config.globalProperties.$router = router as Router
       Object.defineProperty(app.config.globalProperties, '$route', {
         enumerable: true,
@@ -1032,7 +1069,7 @@ export function createRouter(options: RouterOptions): Router {
         // see above
         started = true
         push(routerHistory.location).catch(err => {
-          if (__DEV__) warn('Unexpected error when starting the router:', err)
+          if (__DEV__) diagnostics.VUE_ROUTER_R0011({ cause: err })
         })
       }
 

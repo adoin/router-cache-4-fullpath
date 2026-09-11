@@ -49,7 +49,7 @@ And can optionally return any of the following values:
   })
   ```
 
-It's also possible to throw an `Error` if an unexpected situation was met. This will also cancel the navigation and call any callback registered via [`router.onError()`](../../api/interfaces/Router.md#onError).
+It's also possible to throw an `Error` if an unexpected situation was met. This will also cancel the navigation and call any callback registered via [`router.onError()`](/api/interfaces/RouterClassic.md#onError-).
 
 If nothing, `undefined` or `true` is returned, **the navigation is validated**, and the next navigation guard is called.
 
@@ -135,6 +135,30 @@ router.afterEach((to, from, failure) => {
 ```
 
 Learn more about navigation failures on [its guide](./navigation-failures.md).
+
+You can also combine after hooks with [route meta fields](./meta.md) to update
+the page title after a successful navigation. First, add a title to each route
+that needs one:
+
+```js
+const routes = [
+  {
+    path: '/about',
+    component: About,
+    meta: { title: 'About' },
+  },
+]
+```
+
+Then update the document title after navigation finishes:
+
+```js
+router.afterEach((to, from, failure) => {
+  if (!failure && typeof to.meta.title === 'string') {
+    document.title = to.meta.title
+  }
+})
+```
 
 ## Global injections within guards
 

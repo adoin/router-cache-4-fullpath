@@ -13,7 +13,7 @@ Hi! I'm really excited that you are interested in contributing to Vue Router. Be
 ## Issue Reporting Guidelines
 
 - Always use [https://new-issue.vuejs.org/](https://new-issue.vuejs.org/) to create new issues.
-- Here is a template to report a bug: [https://codesandbox.io/s/vue-router-v4-reproduction-tk1y7](https://codesandbox.io/s/vue-router-v4-reproduction-tk1y7). Please use it when reporting a bug
+- Here is a template to report a bug: [Vue SFC Playground](https://play.vuejs.org/#eNqlVGtv2jAU/SteNgmqFRvoNk1Ziuiqat20R9VN/bJMU0gMuE1sy3YoFeK/79rOi0L7ZUIQ5z7OPfeeizdBkTCOb3UQBqyQQhm0QamiiaFnUqItmitRoN6qpL2YNwFKlIaqxouJN7QhNrf2JVJinx/zBrkP36OYI4RLTfs+3b8XouSm33sJab2j4Dio0oFfZGghc8if2MBoOZpc0jwXttiLiMCrM0v3gIM2SvDF5LxUinLjOSOZmGUYkcqHNhv0yjnwvMzzK3Ci7dbBEI8T8WRVA147ll8Zv0NGnMYBiYPJJwFndCkKGpHW/2RGMgNLk3Zm3/byIlLXjKw2u1g3jN4jUsVV7og0g4F5+Vlic0DRb7QQ6uGSaQOP48rocbtKDxo1Gz1tg650LWptqJStZbcN7cQ1lmYF6NqFpoLrShSFTne49De2vaWnGR7i3j86tiEuW4fotx/RxquLeqQHzQmgxEH4sCW/dVndQKfHbnTbgw//A79bWE0Ybbdpu486VUwapKkpJcoTvgCJjQZ5rSbeCUd4ebS440mNBGs73lNwZ2b/V6eBOljIqzYoEgkXgOBQyk0+rhxQIUTOYm3tYlhzHCyNkTokpOTyboFhgKSNmL4lGSjVsWCqi8FMiXsN51tArqSIAy60YamrdQi0ck9HHpHxjK5xsYMwhTIkoysjRK4HiWRPYe0FTt/jER63XLu+Pca2HNwNWxic0bC+c7Z4NDa7RSyn6oc0DNZ7Z3wJ3FT3X5zNqJI25NMlTe8O2G/12rdxpSgwWNFOwyZRCwrXiHVf/PxO13BunIXIyhyin3FeUy3y0nL0YR9LngHtTpxj+9ltAeOLX/pibSjXdVOWqJuGi3ercf5M6y3dE/ymM0VtHnKqcartVQV33jGyF5rPmwmVURWisVwjIMsy9HI4HH6wrgLgGB/MhDGiCNFoKNfOLpMsA7KNBarEHGDRBCXoNXwdcJWd0zn817uRy3G3cgvfEkjTtEMgREP4jCsEaOev0TdU2SFBO+/wEJ8E2395AHxh). Please use it when reporting a bug
 
 ## Pull Request Guidelines
 
