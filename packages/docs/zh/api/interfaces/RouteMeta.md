@@ -12,13 +12,13 @@ editLink: false
 
 ```ts
 // typings.d.ts 或 router.ts
-import 'vue-x-router'
+import 'vue-smart-router';
 
-declare module 'vue-x-router' {
+declare module 'vue-smart-router' {
   interface RouteMeta {
     requiresAuth?: boolean
   }
-}
+ }
 ```
 
 ## 继承关系 %{#Hierarchy}%

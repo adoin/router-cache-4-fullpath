@@ -1,3 +1,11 @@
+import type { NavigationRedirectError } from '../errors'
+import {
+  createRouterError,
+  ErrorTypes,
+  isNavigationFailure,
+  type _ErrorListener,
+  type NavigationFailure,
+} from '../errors'
 import type { ShallowRef } from 'vue'
 import {
   nextTick,
@@ -7,44 +15,26 @@ import {
   warn,
   type App,
 } from 'vue'
-import { addDevtools } from '../devtools'
-import type { NavigationRedirectError } from '../errors'
-import {
-  ErrorTypes,
-  createRouterError,
-  isNavigationFailure,
-  type NavigationFailure,
-  type _ErrorListener,
-} from '../errors'
 import {
   NavigationType,
   type HistoryState,
   type RouterHistory,
 } from '../history/common'
-import {
-  routeLocationKey,
-  routerKey,
-  routerViewLocationKey,
-} from '../injectionSymbols'
-import { START_LOCATION_NORMALIZED, isSameRouteLocation } from '../location'
 import type { PathParserOptions } from '../matcher'
-import {
-  extractChangingRecords,
-  extractComponentsGuards,
-  guardToPromiseFn,
-} from '../navigationGuards'
-import type { parseQuery as originalParseQuery } from '../query'
+import type { experimental_parseQuery as originalParseQuery } from './query'
 import { stringifyQuery as originalStringifyQuery } from '../query'
-import type { _ScrollPositionNormalized } from '../scrollBehavior'
+import type { Router } from '../router'
 import {
-  computeScrollPosition,
+  type _ScrollPositionNormalized,
+  type RouterScrollBehavior,
   getSavedScrollPosition,
   getScrollKey,
   saveScrollPosition,
   scrollToPosition,
-  type RouterScrollBehavior,
 } from '../scrollBehavior'
 import type {
+  _NavigationGuardResolved,
+  _RouteRecordProps,
   NavigationGuard,
   NavigationGuardWithThis,
   NavigationHookAfter,
@@ -60,8 +50,6 @@ import type {
   RouteMap,
   RouteRecordNameGeneric,
   RouteRecordRedirectOption,
-  _NavigationGuardResolved,
-  _RouteRecordProps,
 } from '../typed-routes'
 import type {
   Lazy,
@@ -69,20 +57,33 @@ import type {
   RouteLocationOptions,
   RouteMeta,
 } from '../types'
-import { assign, isArray, isBrowser, noop } from '../utils'
 import { useCallbacks } from '../utils/callbacks'
+import { isSameRouteLocation, START_LOCATION_NORMALIZED } from '../location'
+import { assign, isArray, isBrowser, noop } from '../utils'
+import {
+  extractChangingRecords,
+  extractComponentsGuards,
+  guardToPromiseFn,
+} from '../navigationGuards'
+import { addDevtools } from '../devtools'
+import {
+  routeLocationKey,
+  routerKey,
+  routerViewLocationKey,
+} from '../injectionSymbols'
+import type {
+  EXPERIMENTAL_ResolverRecord_Base,
+  EXPERIMENTAL_ResolverRecord_Group,
+  EXPERIMENTAL_ResolverRecord_Matchable,
+  EXPERIMENTAL_ResolverFixed,
+} from './route-resolver/resolver-fixed'
 import type {
   ResolverLocationAsNamed,
   ResolverLocationAsPathRelative,
   ResolverLocationAsRelative,
   ResolverLocationResolved,
 } from './route-resolver/resolver-abstract'
-import type {
-  EXPERIMENTAL_ResolverFixed,
-  EXPERIMENTAL_ResolverRecord_Base,
-  EXPERIMENTAL_ResolverRecord_Group,
-  EXPERIMENTAL_ResolverRecord_Matchable,
-} from './route-resolver/resolver-fixed'
+import type { DataLoaderExtensions } from './data-loaders/meta-extensions'
 
 /**
  * resolve, reject arguments of Promise constructor
@@ -415,7 +416,9 @@ export interface EXPERIMENTAL_RouterOptions extends EXPERIMENTAL_RouterOptions_B
  *
  * @experimental This version is not stable, it's meant to replace {@link Router} in the future.
  */
-export interface EXPERIMENTAL_Router_Base<TRecord> {
+export interface EXPERIMENTAL_Router_Base<
+  TRecord,
+> extends DataLoaderExtensions {
   // NOTE: for dynamic routing we need this
   // <TRouteRecordRaw, TRouteRecord>
   /**
@@ -679,7 +682,9 @@ export function experimental_createRouter(
       currentLocation ??
         // relative string locations are always valid
         // so this is more of a convenience default
-        (typeof to === 'string' ? currentRoute.value : undefined)
+        (typeof to === 'string' && !to.startsWith('/')
+          ? currentRoute.value
+          : undefined)
     )
     const href = routerHistory.createHref(matchedRoute.fullPath)
 
@@ -1102,12 +1107,10 @@ export function experimental_createRouter(
       pendingLocation = toLocation
       const from = currentRoute.value
 
+      // Unknown-direction navigations cannot be tied to a history entry.
       // TODO: should be moved to web history?
-      if (isBrowser) {
-        saveScrollPosition(
-          getScrollKey(from.fullPath, info.delta),
-          computeScrollPosition()
-        )
+      if (isBrowser && info.delta) {
+        saveScrollPosition(getScrollKey(from.fullPath, info.delta))
       }
 
       navigate(toLocation, from)
@@ -1295,10 +1298,16 @@ export function experimental_createRouter(
         history.state.scroll) ||
       null
 
-    return nextTick()
-      .then(() => scrollBehavior(to, from, scrollPosition))
-      .then(position => position && scrollToPosition(position))
-      .catch(err => triggerError(err, to, from))
+    return (
+      nextTick()
+        .then(() => scrollBehavior(to, from, scrollPosition))
+        // avoid scrollBehavior on old navigations
+        .then(
+          position =>
+            to === currentRoute.value && position && scrollToPosition(position)
+        )
+        .catch(err => to === currentRoute.value && triggerError(err, to, from))
+    )
   }
 
   const go = (delta: number) => routerHistory.go(delta)

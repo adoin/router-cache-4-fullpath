@@ -5,8 +5,8 @@ import {
   type RouteLocationMatched,
   type RouteLocationNormalizedGeneric,
 } from 'vue-smart-router'
-import { handleHotUpdate, resolver } from 'vue-smart-router/auto-resolver'
 import { experimental_createRouter as createRouter } from 'vue-smart-router/experimental'
+import { resolver, handleHotUpdate } from 'vue-smart-router/auto-resolver'
 
 export const router = createRouter({
   history: createWebHistory(),

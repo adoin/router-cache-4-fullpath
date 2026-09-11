@@ -6,9 +6,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, toRefs } from 'vue'
+import { defineComponent, toRefs, reactive } from 'vue'
+import { getData, delay } from '../api'
 import { onBeforeRouteUpdate } from 'vue-smart-router'
-import { delay, getData } from '../api'
 
 const ComponentWithData = defineComponent({
   name: 'ComponentWithData',

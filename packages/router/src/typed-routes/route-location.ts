@@ -1,18 +1,18 @@
 import type {
-  RouteLocationMatched,
   RouteLocationOptions,
-  RouteParamsRawGeneric,
   RouteQueryAndHash,
   _RouteLocationBase,
+  RouteLocationMatched,
+  RouteParamsRawGeneric,
 } from '../types'
 import type { _LiteralUnion } from '../types/utils'
 // inlining the type as it avoids code splitting issues
-import type { RouteRecord, RouteRecordNormalized } from '../matcher/types'
 import type {
   RouteMap,
   RouteMapGeneric,
   RouteRecordInfoGeneric,
 } from './route-map'
+import type { RouteRecord, RouteRecordNormalized } from '../matcher/types'
 import type { RouteRecordNameGeneric } from './route-records'
 
 /**

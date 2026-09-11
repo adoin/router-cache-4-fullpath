@@ -1,19 +1,19 @@
 import { createWebHistory } from 'vue-smart-router'
+import {
+  experimental_createRouter,
+  createFixedResolver,
+  MatcherPatternPathStatic,
+  MatcherPatternPathDynamic,
+  normalizeRouteRecord,
+  PARAM_PARSER_INT,
+  MatcherPatternQueryParam,
+  miss,
+} from 'vue-smart-router/experimental'
 import type {
   EXPERIMENTAL_RouteRecordNormalized_Matchable,
-  EmptyParams,
   MatcherPatternHash,
   MatcherPatternQuery,
-} from 'vue-smart-router/experimental'
-import {
-  MatchMiss,
-  MatcherPatternPathDynamic,
-  MatcherPatternPathStatic,
-  MatcherPatternQueryParam,
-  PARAM_PARSER_INT,
-  createFixedResolver,
-  experimental_createRouter,
-  normalizeRouteRecord,
+  EmptyParams,
 } from 'vue-smart-router/experimental'
 import PageHome from '../pages/(home).vue'
 
@@ -31,7 +31,7 @@ const PARAM_PARSER_DATE = {
   get(value: string): Date {
     const asDate = new Date(value)
     if (Number.isNaN(asDate.getTime())) {
-      throw new MatchMiss(`Invalid date param: "${value}"`)
+      miss(`Invalid date param: "${value}"`)
     }
 
     return asDate

@@ -1,46 +1,50 @@
 import {
-  defineQuery,
-  useQuery,
-  useQueryCache,
-  type EntryKey,
-  type UseQueryOptions,
-  type UseQueryReturn,
-} from '@pinia/colada'
-import { shallowRef, watch, type ShallowRef } from 'vue'
-import type { LocationQuery } from '../../query'
-import type { Router } from '../../router'
-import type {
-  RouteLocationNormalizedLoaded,
-  RouteMap,
-} from '../../typed-routes'
-import { useRoute, useRouter } from '../../useApi'
-import type { DefineDataLoaderOptionsBase_DefinedData } from './createDataLoader'
-import { toLazyValue } from './createDataLoader'
-import {
+  type DataLoaderContextBase,
+  type DataLoaderEntryBase,
+  type DefineDataLoaderOptionsBase_LaxData,
+  type DefineLoaderFn,
+  type UseDataLoader,
+  type UseDataLoaderResult,
+  type _DefineLoaderEntryMap,
+  type _PromiseMerged,
+  type ErrorDefault,
   ABORT_CONTROLLER_KEY,
   APP_KEY,
-  DATA_LOADERS_EFFECT_SCOPE_KEY,
-  IS_SSR_KEY,
   IS_USE_DATA_LOADER_KEY,
   LOADER_ENTRIES_KEY,
-  NavigationResult,
   PENDING_LOCATION_KEY,
   STAGED_NO_VALUE,
+  IS_SSR_KEY,
+  DATA_LOADERS_EFFECT_SCOPE_KEY,
+  NavigationResult,
   assign,
   getCurrentContext,
   isSubsetOf,
   setCurrentContext,
   trackRoute,
-  type DataLoaderContextBase,
-  type DataLoaderEntryBase,
-  type DefineDataLoaderOptionsBase_LaxData,
-  type DefineLoaderFn,
-  type ErrorDefault,
-  type UseDataLoader,
-  type UseDataLoaderResult,
-  type _DefineLoaderEntryMap,
-  type _PromiseMerged,
 } from './entries/index'
+import { type ShallowRef, shallowRef, watch } from 'vue'
+import {
+  type EntryKey,
+  type UseQueryOptions,
+  type UseQueryReturn,
+  useQuery,
+  defineQuery,
+  useQueryCache,
+} from '@pinia/colada'
+import type { DefineDataLoaderOptionsBase_DefinedData } from './createDataLoader'
+import {
+  _DefineDataLoaderOptionsBase_Common,
+  toLazyValue,
+} from './createDataLoader'
+import type {
+  RouteLocationNormalizedLoaded,
+  RouteMap,
+} from '../../typed-routes'
+import { useRoute, useRouter } from '../../useApi'
+import type { Router } from '../../router'
+import type { LocationQuery } from '../query'
+import { diagnostics } from '../../diagnostics'
 
 /**
  * Creates a Pinia Colada data loader with `data` is always defined.
@@ -197,9 +201,7 @@ export function defineColadaLoader<Data>(
 
     if (process.env.NODE_ENV !== 'production') {
       if (parent !== currentContext[0]) {
-        console.warn(
-          `❌👶 "${key}" has a different parent than the current context. This shouldn't be happening. Please report a bug with a reproduction to https://github.com/vuejs/router/`
-        )
+        diagnostics.VUE_ROUTER_R1001({ key: `[${key.join(',')}]` })
       }
     }
     // set the current context before loading so nested loaders can use it
@@ -285,9 +287,7 @@ export function defineColadaLoader<Data>(
             const newData = ext.data.value
             if (newData instanceof NavigationResult) {
               if (process.env.NODE_ENV !== 'production') {
-                console.warn(
-                  '[vue-smart-router]: Returning a NavigationResult is deprecated. Use reroute() instead, which throws internally.'
-                )
+                diagnostics.VUE_ROUTER_R1002()
               }
               // prevent commit from running in finally
               entry.pendingTo = null
@@ -352,9 +352,7 @@ export function defineColadaLoader<Data>(
       // console.log(' ->', this.staged)
       if (process.env.NODE_ENV !== 'production') {
         if (this.staged === STAGED_NO_VALUE && this.stagedError === null) {
-          console.warn(
-            `Loader "${key}"'s "commit()" was called but there is no staged data.`
-          )
+          diagnostics.VUE_ROUTER_R1003({ key: String(key) })
         }
       }
       // if the entry is null, it means the loader never resolved, maybe there was an error
@@ -364,9 +362,7 @@ export function defineColadaLoader<Data>(
           process.env.NODE_ENV !== 'production' &&
           !this.tracked.has(joinKeys(key))
         ) {
-          console.warn(
-            `A query was defined with the same key as the loader "[${key.join(', ')}]". If the "key" is meant to be the same, you should directly use the data loader instead. If not, change the key of the "useQuery()".\nSee https://pinia-colada.esm.dev/#TODO`
-          )
+          diagnostics.VUE_ROUTER_R1006({ key: key.join(', ') })
           // avoid a crash that requires the page to be reloaded
           return
         }

@@ -8,10 +8,14 @@
 // Make sure to add this file to your tsconfig.json file as an "includes" or "files" entry.
 
 import type {
-    RouteRecordInfo
+  RouteRecordInfo,
+  ParamValue,
+  ParamValueOneOrMore,
+  ParamValueZeroOrMore,
+  ParamValueZeroOrOne,
 } from 'vue-smart-router'
 import type {
-    _ExtractParamParserType,
+  _ExtractParamParserType,
 } from 'vue-smart-router/experimental'
 
 // Custom route params parsers
@@ -20,17 +24,34 @@ type Param_monthValibot = _ExtractParamParserType<typeof import('./params/month-
 type Param_monthZod = _ExtractParamParserType<typeof import('./params/month-zod.ts').parser>
 type Param_npmOrg = _ExtractParamParserType<typeof import('./params/npm-org.ts').parser>
 type Param_semver = _ExtractParamParserType<typeof import('./params/semver.ts').parser>
+type Param_set = _ExtractParamParserType<typeof import('./params/set.ts').parser>
+type Param_testBoolQ = _ExtractParamParserType<typeof import('./params/test-bool-q.ts').parser>
+type Param_testColor = _ExtractParamParserType<typeof import('./params/test-color.ts').parser>
+type Param_testCsv = _ExtractParamParserType<typeof import('./params/test-csv.ts').parser>
+type Param_testNum = _ExtractParamParserType<typeof import('./params/test-num.ts').parser>
+type Param_testSet = _ExtractParamParserType<typeof import('./params/test-set.ts').parser>
+type Param_testSetShape = _ExtractParamParserType<typeof import('./params/test-set-shape.ts').parser>
 type Param_versionRange = _ExtractParamParserType<typeof import('./params/version-range.ts').parser>
 
 declare module 'vue-smart-router' {
   interface TypesConfig {
-    ParamParsers:
-      | 'date'
-      | 'month-valibot'
-      | 'month-zod'
-      | 'npm-org'
-      | 'semver'
-      | 'version-range'
+    _ParamParsers: {
+      'date': { type: Param_date }
+      'month-valibot': { type: Param_monthValibot }
+      'month-zod': { type: Param_monthZod }
+      'npm-org': { type: Param_npmOrg }
+      'semver': { type: Param_semver }
+      'set': { type: Param_set }
+      'test-bool-q': { type: Param_testBoolQ }
+      'test-color': { type: Param_testColor }
+      'test-csv': { type: Param_testCsv }
+      'test-num': { type: Param_testNum }
+      'test-set': { type: Param_testSet }
+      'test-set-shape': { type: Param_testSetShape }
+      'version-range': { type: Param_versionRange }
+    }
+    RouteNamedMap: import('vue-smart-router/auto-routes').RouteNamedMap
+    _RouteFileInfoMap: import('vue-smart-router/auto-routes')._RouteFileInfoMap
   }
 }
 
@@ -49,8 +70,8 @@ declare module 'vue-smart-router/auto-routes' {
     '/(packages)/package/[[org=npm-org]]/[pkgName]/[pkgVersion=semver]': RouteRecordInfo<
       '/(packages)/package/[[org=npm-org]]/[pkgName]/[pkgVersion=semver]',
       '/package/:org?/:pkgName/:pkgVersion',
-      { org: Exclude<Param_npmOrg, unknown[]> | null, pkgName: string, pkgVersion: Exclude<Param_semver, unknown[]> },
-      { org: Exclude<Param_npmOrg, unknown[]> | null, pkgName: string, pkgVersion: Exclude<Param_semver, unknown[]> },
+      { org: Exclude<Param_npmOrg, unknown[] | null> | null, pkgName: string, pkgVersion: Exclude<Param_semver, unknown[] | null> },
+      { org: Exclude<Param_npmOrg, unknown[] | null> | null, pkgName: string, pkgVersion: Exclude<Param_semver, unknown[] | null> },
       | never
     >,
     '/(packages)/package-old/[[org]]/[pkgName]/[pkgVersion]': RouteRecordInfo<
@@ -63,36 +84,29 @@ declare module 'vue-smart-router/auto-routes' {
     '/(packages)/package-range/[[org=npm-org]]/[pkgName]/[pkgVersion=version-range]': RouteRecordInfo<
       '/(packages)/package-range/[[org=npm-org]]/[pkgName]/[pkgVersion=version-range]',
       '/package-range/:org?/:pkgName/:pkgVersion',
-      { org: Exclude<Param_npmOrg, unknown[]> | null, pkgName: string, pkgVersion: Exclude<Param_versionRange, unknown[]> },
-      { org: Exclude<Param_npmOrg, unknown[]> | null, pkgName: string, pkgVersion: Exclude<Param_versionRange, unknown[]> },
+      { org: Exclude<Param_npmOrg, unknown[] | null> | null, pkgName: string, pkgVersion: Exclude<Param_versionRange, unknown[] | null> },
+      { org: Exclude<Param_npmOrg, unknown[] | null> | null, pkgName: string, pkgVersion: Exclude<Param_versionRange, unknown[] | null> },
       | never
     >,
     '/(packages)/package-zod/[[org=npm-org]]/[pkgName]/[pkgVersion]': RouteRecordInfo<
       '/(packages)/package-zod/[[org=npm-org]]/[pkgName]/[pkgVersion]',
       '/package-zod/:org?/:pkgName/:pkgVersion',
-      { org: Exclude<Param_npmOrg, unknown[]> | null, pkgName: string, pkgVersion: string },
-      { org: Exclude<Param_npmOrg, unknown[]> | null, pkgName: string, pkgVersion: string },
-      | never
-    >,
-    '/[a].[b]': RouteRecordInfo<
-      '/[a].[b]',
-      '/:a/:b',
-      { a: string, b: string },
-      { a: string, b: string },
+      { org: Exclude<Param_npmOrg, unknown[] | null> | null, pkgName: string, pkgVersion: string },
+      { org: Exclude<Param_npmOrg, unknown[] | null> | null, pkgName: string, pkgVersion: string },
       | never
     >,
     'not-found': RouteRecordInfo<
       'not-found',
       '/:path(.*)',
-      { path: string, page?: number, other?: boolean, active?: boolean, multi?: string[], req?: number, optionalWhen?: Exclude<Param_date, unknown[]>, when?: Exclude<Param_date, unknown[]> },
-      { path: string, page: number, other: boolean | undefined, active: boolean, multi: string[] | undefined, req: number, optionalWhen: Exclude<Param_date, unknown[]> | undefined, when: Exclude<Param_date, unknown[]> },
+      { active?: boolean, multi?: string[] | undefined, optionalWhen?: Exclude<Param_date, unknown[] | null> | undefined, other?: boolean | undefined, page?: number, path: string, req?: number, when?: Exclude<Param_date, unknown[] | null> },
+      { active: boolean, multi: string[] | undefined, optionalWhen: Exclude<Param_date, unknown[] | null> | undefined, other: boolean | undefined, page: number, path: string, req: number, when: Exclude<Param_date, unknown[] | null> },
       | never
     >,
     '/a.[b].c.[d]': RouteRecordInfo<
       '/a.[b].c.[d]',
       '/a/:b/c/:d',
-      { b: string, d: string },
-      { b: string, d: string },
+      { b: number, d: string },
+      { b: number, d: string },
       | never
     >,
     '/about': RouteRecordInfo<
@@ -105,8 +119,8 @@ declare module 'vue-smart-router/auto-routes' {
     '/b': RouteRecordInfo<
       '/b',
       '/b',
-      Record<never, never>,
-      Record<never, never>,
+      { date?: Extract<Param_date, unknown[]> | undefined, test?: Param_set /* raw param parser */ | undefined },
+      { date: Extract<Param_date, unknown[]> | undefined, test: Param_set /* raw param parser */ },
       | never
     >,
     '/blog/[slug]+': RouteRecordInfo<
@@ -147,8 +161,8 @@ declare module 'vue-smart-router/auto-routes' {
     '/events/[when=date]': RouteRecordInfo<
       '/events/[when=date]',
       '/events/:when',
-      { when: Exclude<Param_date, unknown[]> },
-      { when: Exclude<Param_date, unknown[]> },
+      { when: Exclude<Param_date, unknown[] | null> },
+      { when: Exclude<Param_date, unknown[] | null> },
       | never
     >,
     '/events/repeat/[when=date]+': RouteRecordInfo<
@@ -168,15 +182,22 @@ declare module 'vue-smart-router/auto-routes' {
     '/months/valibot-[month=month-valibot]': RouteRecordInfo<
       '/months/valibot-[month=month-valibot]',
       '/months/valibot-:month',
-      { month: Exclude<Param_monthValibot, unknown[]> },
-      { month: Exclude<Param_monthValibot, unknown[]> },
+      { month: Exclude<Param_monthValibot, unknown[] | null> },
+      { month: Exclude<Param_monthValibot, unknown[] | null> },
       | never
     >,
     '/months/zod-[month=month-zod]': RouteRecordInfo<
       '/months/zod-[month=month-zod]',
       '/months/zod-:month',
-      { month: Exclude<Param_monthZod, unknown[]>, mm?: Exclude<Param_monthZod, unknown[]> },
-      { month: Exclude<Param_monthZod, unknown[]>, mm: Exclude<Param_monthZod, unknown[]> },
+      { mm?: Exclude<Param_monthZod, unknown[] | null>, month: Exclude<Param_monthZod, unknown[] | null> },
+      { mm: Exclude<Param_monthZod, unknown[] | null>, month: Exclude<Param_monthZod, unknown[] | null> },
+      | never
+    >,
+    '/multi.[a].[b]': RouteRecordInfo<
+      '/multi.[a].[b]',
+      '/multi/:a/:b',
+      { a: string, b: string },
+      { a: string, b: string },
       | never
     >,
     '/nested/': RouteRecordInfo<
@@ -198,6 +219,118 @@ declare module 'vue-smart-router/auto-routes' {
       '/opt/:num?',
       { num: number | null },
       { num: number | null },
+      | never
+    >,
+    '/test-params/(list)': RouteRecordInfo<
+      '/test-params/(list)',
+      '/test-params',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/test-params/color.[c]': RouteRecordInfo<
+      '/test-params/color.[c]',
+      '/test-params/color/:c',
+      { c: Exclude<Param_testColor, unknown[] | null> },
+      { c: Exclude<Param_testColor, unknown[] | null> },
+      | never
+    >,
+    '/test-params/opt.[[id]]': RouteRecordInfo<
+      '/test-params/opt.[[id]]',
+      '/test-params/opt/:id?',
+      { id: Exclude<Param_testNum, unknown[] | null> | null },
+      { id: Exclude<Param_testNum, unknown[] | null> | null },
+      | never
+    >,
+    '/test-params/query': RouteRecordInfo<
+      '/test-params/query',
+      '/test-params/query',
+      { active?: Exclude<Param_testBoolQ, unknown[] | null>, ids?: Param_testCsv /* raw param parser */ | undefined, page?: number, tag?: string[] | undefined },
+      { active: Exclude<Param_testBoolQ, unknown[] | null>, ids: Param_testCsv /* raw param parser */, page: number, tag: string[] | undefined },
+      | never
+    >,
+    '/test-params/raw/opt.[[ids]]': RouteRecordInfo<
+      '/test-params/raw/opt.[[ids]]',
+      '/test-params/raw/opt/:ids?',
+      { ids: Param_testCsv /* raw param parser */ },
+      { ids: Param_testCsv /* raw param parser */ },
+      | never
+    >,
+    '/test-params/raw/rep.[ids]+': RouteRecordInfo<
+      '/test-params/raw/rep.[ids]+',
+      '/test-params/raw/rep/:ids+',
+      { ids: Param_testCsv /* raw param parser */ },
+      { ids: Param_testCsv /* raw param parser */ },
+      | never
+    >,
+    '/test-params/raw/repo.[[ids]]+': RouteRecordInfo<
+      '/test-params/raw/repo.[[ids]]+',
+      '/test-params/raw/repo/:ids*',
+      { ids: Param_testCsv /* raw param parser */ },
+      { ids: Param_testCsv /* raw param parser */ },
+      | never
+    >,
+    '/test-params/raw/req.[ids]': RouteRecordInfo<
+      '/test-params/raw/req.[ids]',
+      '/test-params/raw/req/:ids',
+      { ids: Param_testCsv /* raw param parser */ },
+      { ids: Param_testCsv /* raw param parser */ },
+      | never
+    >,
+    '/test-params/rep.[id]+': RouteRecordInfo<
+      '/test-params/rep.[id]+',
+      '/test-params/rep/:id+',
+      { id: Extract<Param_testNum, unknown[]> },
+      { id: Extract<Param_testNum, unknown[]> },
+      | never
+    >,
+    '/test-params/repo.[[id]]+': RouteRecordInfo<
+      '/test-params/repo.[[id]]+',
+      '/test-params/repo/:id*',
+      { id: Extract<Param_testNum, unknown[]> },
+      { id: Extract<Param_testNum, unknown[]> },
+      | never
+    >,
+    '/test-params/req.[id]': RouteRecordInfo<
+      '/test-params/req.[id]',
+      '/test-params/req/:id',
+      { id: Exclude<Param_testNum, unknown[] | null> },
+      { id: Exclude<Param_testNum, unknown[] | null> },
+      | never
+    >,
+    '/test-params/set/opt.[[ids]]': RouteRecordInfo<
+      '/test-params/set/opt.[[ids]]',
+      '/test-params/set/opt/:ids?',
+      { ids: Param_testSet /* raw param parser */ },
+      { ids: Param_testSet /* raw param parser */ },
+      | never
+    >,
+    '/test-params/set/rep.[ids]+': RouteRecordInfo<
+      '/test-params/set/rep.[ids]+',
+      '/test-params/set/rep/:ids+',
+      { ids: Param_testSet /* raw param parser */ },
+      { ids: Param_testSet /* raw param parser */ },
+      | never
+    >,
+    '/test-params/set/repo.[[ids]]+': RouteRecordInfo<
+      '/test-params/set/repo.[[ids]]+',
+      '/test-params/set/repo/:ids*',
+      { ids: Param_testSet /* raw param parser */ },
+      { ids: Param_testSet /* raw param parser */ },
+      | never
+    >,
+    '/test-params/set/req.[ids]': RouteRecordInfo<
+      '/test-params/set/req.[ids]',
+      '/test-params/set/req/:ids',
+      { ids: Param_testSet /* raw param parser */ },
+      { ids: Param_testSet /* raw param parser */ },
+      | never
+    >,
+    '/test-params/set-shape/repo.[[ids]]+': RouteRecordInfo<
+      '/test-params/set-shape/repo.[[ids]]+',
+      '/test-params/set-shape/repo/:ids*',
+      { ids: Param_testSetShape /* raw param parser */ },
+      { ids: Param_testSetShape /* raw param parser */ },
       | never
     >,
     '/tests/[[optional]]/end': RouteRecordInfo<
@@ -224,30 +357,30 @@ declare module 'vue-smart-router/auto-routes' {
     '/u[name]': RouteRecordInfo<
       '/u[name]',
       '/u:name',
-      { name: string },
-      { name: string },
+      { name: Exclude<Param_date, unknown[] | null> },
+      { name: Exclude<Param_date, unknown[] | null> },
       | '/u[name]/24'
       | '/u[name]/[userId=int]'
     >,
     '/u[name]/[userId=int]': RouteRecordInfo<
       '/u[name]/[userId=int]',
       '/u:name/:userId',
-      { name: string, userId: number },
-      { name: string, userId: number },
+      { name: Exclude<Param_date, unknown[] | null>, userId: number },
+      { name: Exclude<Param_date, unknown[] | null>, userId: number },
       | never
     >,
     '/u[name]/24': RouteRecordInfo<
       '/u[name]/24',
       '/u:name/24',
-      { name: string },
-      { name: string },
+      { name: Exclude<Param_date, unknown[] | null> },
+      { name: Exclude<Param_date, unknown[] | null> },
       | never
     >,
     '/users/[userId=int]': RouteRecordInfo<
       '/users/[userId=int]',
       '/users/:userId',
-      { userId: number, anyParam?: string, page?: number },
-      { userId: number, anyParam: string, page: number },
+      { anyParam?: string, page?: number, userId: number },
+      { anyParam: string, page: number, userId: number },
       | never
     >,
     '/users/sub-[first]-[second]': RouteRecordInfo<
@@ -296,6 +429,8 @@ declare module 'vue-smart-router/auto-routes' {
         | '/(home)'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/(packages)/_parent.vue': {
       routes:
@@ -305,53 +440,64 @@ declare module 'vue-smart-router/auto-routes' {
         | '/(packages)/package/[[org=npm-org]]/[pkgName]/[pkgVersion=semver]'
       views:
         | 'default'
+      pathParamNames:
+        | never
     }
     'src/pages/(packages)/package/[[org=npm-org]]/[pkgName]/[pkgVersion=semver].vue': {
       routes:
         | '/(packages)/package/[[org=npm-org]]/[pkgName]/[pkgVersion=semver]'
       views:
         | never
+      pathParamNames:
+        | 'pkgVersion'
     }
     'src/pages/(packages)/package-old/[[org]]/[pkgName]/[pkgVersion].vue': {
       routes:
         | '/(packages)/package-old/[[org]]/[pkgName]/[pkgVersion]'
       views:
         | never
+      pathParamNames:
+        | 'pkgVersion'
     }
     'src/pages/(packages)/package-range/[[org=npm-org]]/[pkgName]/[pkgVersion=version-range].vue': {
       routes:
         | '/(packages)/package-range/[[org=npm-org]]/[pkgName]/[pkgVersion=version-range]'
       views:
         | never
+      pathParamNames:
+        | 'pkgVersion'
     }
     'src/pages/(packages)/package-zod/[[org=npm-org]]/[pkgName]/[pkgVersion].vue': {
       routes:
         | '/(packages)/package-zod/[[org=npm-org]]/[pkgName]/[pkgVersion]'
       views:
         | never
-    }
-    'src/pages/[a].[b].vue': {
-      routes:
-        | '/[a].[b]'
-      views:
-        | never
+      pathParamNames:
+        | 'pkgVersion'
     }
     'src/pages/[...path].vue': {
       routes:
         | 'not-found'
       views:
         | never
+      pathParamNames:
+        | 'path'
     }
     'src/pages/a.[b].c.[d].vue': {
       routes:
         | '/a.[b].c.[d]'
       views:
         | never
+      pathParamNames:
+        | 'b'
+        | 'd'
     }
     'src/pages/about.vue': {
       routes:
         | '/about'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/b.vue': {
@@ -359,23 +505,31 @@ declare module 'vue-smart-router/auto-routes' {
         | '/b'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/blog/[slug]+.vue': {
       routes:
         | '/blog/[slug]+'
       views:
         | never
+      pathParamNames:
+        | 'slug'
     }
     'src/pages/blog/[[slugOptional]]+.vue': {
       routes:
         | '/blog/[[slugOptional]]+'
       views:
         | never
+      pathParamNames:
+        | 'slugOptional'
     }
     'src/pages/blog/info/(info).vue': {
       routes:
         | '/blog/info/(info)'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/blog/info/[[section]].vue': {
@@ -383,11 +537,15 @@ declare module 'vue-smart-router/auto-routes' {
         | '/blog/info/[[section]]'
       views:
         | never
+      pathParamNames:
+        | 'section'
     }
     'src/pages/emoji-🤡.vue': {
       routes:
         | '/emoji-🤡'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/events/[when=date].vue': {
@@ -395,17 +553,23 @@ declare module 'vue-smart-router/auto-routes' {
         | '/events/[when=date]'
       views:
         | never
+      pathParamNames:
+        | 'when'
     }
     'src/pages/events/repeat/[when=date]+.vue': {
       routes:
         | '/events/repeat/[when=date]+'
       views:
         | never
+      pathParamNames:
+        | 'when'
     }
     'src/pages/it\'s-fine/(lol).vue': {
       routes:
         | '/it\'s-fine/(lol)'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/months/valibot-[month=month-valibot].vue': {
@@ -413,12 +577,25 @@ declare module 'vue-smart-router/auto-routes' {
         | '/months/valibot-[month=month-valibot]'
       views:
         | never
+      pathParamNames:
+        | 'month'
     }
     'src/pages/months/zod-[month=month-zod].vue': {
       routes:
         | '/months/zod-[month=month-zod]'
       views:
         | never
+      pathParamNames:
+        | 'month'
+    }
+    'src/pages/multi.[a].[b].vue': {
+      routes:
+        | '/multi.[a].[b]'
+      views:
+        | never
+      pathParamNames:
+        | 'a'
+        | 'b'
     }
     'src/pages/nested/_parent.vue': {
       routes:
@@ -426,11 +603,15 @@ declare module 'vue-smart-router/auto-routes' {
         | '/nested/other'
       views:
         | 'default'
+      pathParamNames:
+        | never
     }
     'src/pages/nested/index.vue': {
       routes:
         | '/nested/'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/nested/other.vue': {
@@ -438,17 +619,151 @@ declare module 'vue-smart-router/auto-routes' {
         | '/nested/other'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/opt.[[num=int]].vue': {
       routes:
         | '/opt.[[num=int]]'
       views:
         | never
+      pathParamNames:
+        | 'num'
+    }
+    'src/pages/test-params/(list).vue': {
+      routes:
+        | '/test-params/(list)'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/test-params/color.[c].vue': {
+      routes:
+        | '/test-params/color.[c]'
+      views:
+        | never
+      pathParamNames:
+        | 'c'
+    }
+    'src/pages/test-params/opt.[[id]].vue': {
+      routes:
+        | '/test-params/opt.[[id]]'
+      views:
+        | never
+      pathParamNames:
+        | 'id'
+    }
+    'src/pages/test-params/query.vue': {
+      routes:
+        | '/test-params/query'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/test-params/raw/opt.[[ids]].vue': {
+      routes:
+        | '/test-params/raw/opt.[[ids]]'
+      views:
+        | never
+      pathParamNames:
+        | 'ids'
+    }
+    'src/pages/test-params/raw/rep.[ids]+.vue': {
+      routes:
+        | '/test-params/raw/rep.[ids]+'
+      views:
+        | never
+      pathParamNames:
+        | 'ids'
+    }
+    'src/pages/test-params/raw/repo.[[ids]]+.vue': {
+      routes:
+        | '/test-params/raw/repo.[[ids]]+'
+      views:
+        | never
+      pathParamNames:
+        | 'ids'
+    }
+    'src/pages/test-params/raw/req.[ids].vue': {
+      routes:
+        | '/test-params/raw/req.[ids]'
+      views:
+        | never
+      pathParamNames:
+        | 'ids'
+    }
+    'src/pages/test-params/rep.[id]+.vue': {
+      routes:
+        | '/test-params/rep.[id]+'
+      views:
+        | never
+      pathParamNames:
+        | 'id'
+    }
+    'src/pages/test-params/repo.[[id]]+.vue': {
+      routes:
+        | '/test-params/repo.[[id]]+'
+      views:
+        | never
+      pathParamNames:
+        | 'id'
+    }
+    'src/pages/test-params/req.[id].vue': {
+      routes:
+        | '/test-params/req.[id]'
+      views:
+        | never
+      pathParamNames:
+        | 'id'
+    }
+    'src/pages/test-params/set/opt.[[ids]].vue': {
+      routes:
+        | '/test-params/set/opt.[[ids]]'
+      views:
+        | never
+      pathParamNames:
+        | 'ids'
+    }
+    'src/pages/test-params/set/rep.[ids]+.vue': {
+      routes:
+        | '/test-params/set/rep.[ids]+'
+      views:
+        | never
+      pathParamNames:
+        | 'ids'
+    }
+    'src/pages/test-params/set/repo.[[ids]]+.vue': {
+      routes:
+        | '/test-params/set/repo.[[ids]]+'
+      views:
+        | never
+      pathParamNames:
+        | 'ids'
+    }
+    'src/pages/test-params/set/req.[ids].vue': {
+      routes:
+        | '/test-params/set/req.[ids]'
+      views:
+        | never
+      pathParamNames:
+        | 'ids'
+    }
+    'src/pages/test-params/set-shape/repo.[[ids]]+.vue': {
+      routes:
+        | '/test-params/set-shape/repo.[[ids]]+'
+      views:
+        | never
+      pathParamNames:
+        | 'ids'
     }
     'src/pages/tests/[[optional]]/end.vue': {
       routes:
         | '/tests/[[optional]]/end'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/tests/users/[username]/(user-home)/(user-home).vue': {
@@ -456,11 +771,15 @@ declare module 'vue-smart-router/auto-routes' {
         | '/tests/users/[username]/(user-home)/(user-home)'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/tests/users/[username]/(user)/profile.vue': {
       routes:
         | '/tests/users/[username]/(user)/profile'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/u[name].vue': {
@@ -470,17 +789,23 @@ declare module 'vue-smart-router/auto-routes' {
         | '/u[name]/[userId=int]'
       views:
         | 'default'
+      pathParamNames:
+        | 'name'
     }
     'src/pages/u[name]/[userId=int].vue': {
       routes:
         | '/u[name]/[userId=int]'
       views:
         | never
+      pathParamNames:
+        | 'userId'
     }
     'src/pages/u[name]/24.vue': {
       routes:
         | '/u[name]/24'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/users/[userId=int].vue': {
@@ -488,17 +813,24 @@ declare module 'vue-smart-router/auto-routes' {
         | '/users/[userId=int]'
       views:
         | never
+      pathParamNames:
+        | 'userId'
     }
     'src/pages/users/sub-[first]-[second].vue': {
       routes:
         | '/users/sub-[first]-[second]'
       views:
         | never
+      pathParamNames:
+        | 'first'
+        | 'second'
     }
     'src/pages/with-layout/(home).vue': {
       routes:
         | '/with-layout/(home)'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/with-layout/+layout.vue': {
@@ -506,11 +838,15 @@ declare module 'vue-smart-router/auto-routes' {
         | '/with-layout/+layout'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/with-layout/other.vue': {
       routes:
         | '/with-layout/other'
       views:
+        | never
+      pathParamNames:
         | never
     }
   }
@@ -527,5 +863,4 @@ declare module 'vue-smart-router/auto-routes' {
       : keyof RouteNamedMap
 }
 
-export { }
-
+export {}

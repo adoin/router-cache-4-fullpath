@@ -1,4 +1,6 @@
-import { createMemoryHistory, createRouter, createRouterMatcher } from '../src'
+import { createMemoryHistory } from '../src/history/memory'
+import { createRouter } from '../src/router'
+import { createRouterMatcher } from '../src/matcher'
 import type { FunctionalComponent } from 'vue'
 import { defineAsyncComponent, defineComponent, h } from 'vue'
 import { describe, expect, it } from 'vitest'
@@ -7,7 +9,7 @@ import { mockWarn } from './vitest-mock-warn'
 let component = defineComponent({})
 
 const NEXT_DEPRECATION_MESSAGE =
-  'The `next()` callback in navigation guards is deprecated. Return the value instead of calling `next(value)`.'
+  'The `next()` callback in navigation guards is deprecated.'
 
 describe('warnings', () => {
   mockWarn()
@@ -287,7 +289,7 @@ describe('warnings', () => {
     })
     await router.push('/foo')
     expect(
-      'It should be called exactly one time in each navigation guard'
+      'The "next" callback was called more than once in one navigation guard'
     ).toHaveBeenWarned()
     expect(NEXT_DEPRECATION_MESSAGE).toHaveBeenWarned()
   })

@@ -1,13 +1,6 @@
-import { createApp, ref } from 'vue';
-import type {
-    RouteComponent
-} from 'vue-smart-router';
-import {
-    createRouter,
-    createWebHistory,
-    useRouter,
-} from 'vue-smart-router';
-import '../global.css';
+import type { RouteComponent } from 'vue-smart-router'
+import { createRouter, createWebHistory, useRouter } from 'vue-smart-router'
+import { createApp, ref } from 'vue'
 
 const Home: RouteComponent = {
   template: `

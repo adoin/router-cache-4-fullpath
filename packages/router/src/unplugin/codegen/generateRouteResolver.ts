@@ -5,11 +5,12 @@ import { type ResolvedOptions } from '../options'
 import { toStringLiteral, ts } from '../utils'
 import type { ParamParsersMap } from './generateParamParsers'
 import {
-  generateNormalizedParamParsersDeclarations,
-  generateParamParserOptions,
   generatePathParamsOptions,
+  generateParamParserOptions,
+  generateNormalizedParamParsersDeclarations,
+  collectUsedParamParserNames,
 } from './generateParamParsers'
-import { formatMeta, generatePageImport } from './generateRouteRecords'
+import { generatePageImport, formatMeta } from './generateRouteRecords'
 
 /**
  * Compare two score sub-arrays element by element.
@@ -78,6 +79,13 @@ export function generateRouteResolver(
   importsMap: ImportsMap,
   paramParsersMap: ParamParsersMap
 ): string {
+  // restrict imports + normalized declarations to parsers actually referenced
+  // by a route, so unused parser files don't get pulled into the bundle
+  const usedParserNames = collectUsedParamParserNames(tree)
+  const usedParamParsersMap: ParamParsersMap = new Map(
+    Array.from(paramParsersMap).filter(([key]) => usedParserNames.has(key))
+  )
+
   const state: GenerateRouteResolverState = { id: 0, matchableRecords: [] }
   const records = tree.getChildrenSorted().map(node =>
     generateRouteRecord({
@@ -87,7 +95,7 @@ export function generateRouteResolver(
       state,
       options,
       importsMap,
-      paramParsersMap,
+      paramParsersMap: usedParamParsersMap,
     })
   )
 
@@ -97,7 +105,7 @@ export function generateRouteResolver(
   importsMap.add('vue-smart-router/experimental', 'normalizeRouteRecord')
 
   const normalizedDeclarations = generateNormalizedParamParsersDeclarations(
-    paramParsersMap,
+    usedParamParsersMap,
     importsMap
   )
 
@@ -317,7 +325,7 @@ function generatePathCode(
     ${node.regexp},
     ${generatePathParamsOptions(params, importsMap, paramParsersMap)},
     ${JSON.stringify(node.matcherPatternPathDynamicParts)},
-    ${node.isSplat ? 'null,' : '/* trailingSlash */'}
+    ${node.endsWithSplat ? 'null,' : '/* trailingSlash */'}
   ),`
   } else {
     return `path: new MatcherPatternPathStatic(${toStringLiteral(node.fullPath)}),`
@@ -368,7 +376,9 @@ export function generateRouteRecordQuery({
   importsMap: ImportsMap
   paramParsersMap: ParamParsersMap
 }) {
-  const queryParams = node.queryParams
+  // each record only declares its own query params: the resolver matches the
+  // whole chain of records and merges them
+  const queryParams = node.value.queryParams
   if (queryParams.length === 0) {
     return ''
   }
@@ -384,11 +394,23 @@ ${queryParams
       paramParsersMap
     )
 
+    // raw parsers receive the URL value as-is, so force array format to
+    // guarantee they see the full set of values for the key.
+    const isRawParser = !!(
+      param.parser && paramParsersMap.get(param.parser)?.isRaw
+    )
+    const invalidFormatWarn =
+      isRawParser &&
+      param.format === 'value' &&
+      `console.warn(${toStringLiteral(`Query param "${param.paramName}" in route "${node.fullPath}" uses raw param parser "${param.parser}" but specifies \`format: 'value'\`. The format is ignored because raw parsers always receive the array form. Set it to 'array' to silence the warning.`)}) ||`
+
+    const format = isRawParser ? 'array' : param.format || 'value'
+
     const args = [
-      `'${param.paramName}'`,
+      toStringLiteral(param.paramName),
       // TODO: allow param.queryKey
-      `'${param.paramName}'`,
-      `'${param.format}'`,
+      toStringLiteral(param.paramName),
+      toStringLiteral(format),
     ]
 
     if (parserOptions || param.defaultValue !== undefined || param.required) {
@@ -404,7 +426,7 @@ ${queryParams
       args.push(String(param.required))
     }
 
-    return `    new MatcherPatternQueryParam(${args.join(', ')})`
+    return `    ${invalidFormatWarn || ''}new MatcherPatternQueryParam(${args.join(', ')})`
   })
   .join(',\n')}
   ],`

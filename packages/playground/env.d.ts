@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-/// <reference path="../router/src/global.d.ts" />
+/// <reference path="vue-smart-router/global.d.ts"/>
 
 declare module '*.vue' {
   import type { Component } from 'vue'

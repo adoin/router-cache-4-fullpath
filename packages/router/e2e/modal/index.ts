@@ -1,21 +1,18 @@
+import type { RouteLocationNormalizedLoaded } from 'vue-smart-router'
 import {
-    computed,
-    createApp,
-    defineComponent,
-    readonly,
-    ref,
-    watchEffect,
-} from 'vue';
-import type {
-    RouteLocationNormalizedLoaded
-} from 'vue-smart-router';
+  createRouter,
+  createWebHistory,
+  useRoute,
+  loadRouteLocation,
+} from 'vue-smart-router'
 import {
-    createRouter,
-    createWebHistory,
-    loadRouteLocation,
-    useRoute,
-} from 'vue-smart-router';
-import '../global.css';
+  createApp,
+  readonly,
+  ref,
+  watchEffect,
+  computed,
+  defineComponent,
+} from 'vue'
 
 const users = readonly([
   { name: 'John' },

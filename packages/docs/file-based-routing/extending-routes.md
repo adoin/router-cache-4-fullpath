@@ -23,6 +23,8 @@ VueRouter({
 
 Routes modified this way will be reflected in the generated `typed-router.d.ts` file.
 
+`beforeWriteFiles()` also exposes pass-through route nodes created by folders that only contain child routes. This lets you [configure a parent route without adding a component](./file-based-routing#configuring-parent-routes-without-a-component), including [route groups](./file-based-routing#adding-options-to-a-route-group).
+
 ## In-Component Routing
 
 It's possible to override the route configuration directly in the page component file. These changes are picked up by the plugin and reflected in the generated `typed-router.d.ts` file.
@@ -52,7 +54,7 @@ If you are using ESLint, you will need [to declare it as a global variable](./es
 
 You cannot use variables in `definePage()` as its passed parameter gets extracted at build time and is removed from `<script setup>`. Similar to other macros like `definePageMeta()` in Nuxt.
 
-For similar reasons, `beforeEnter` guards are **not supported** in `definePage()`. Their function nature make them look like they can access outside variable when they can't. **Use a [global navigation guard](../guide/advanced/navigation-guards.md#global-before-guards**) with [route meta fields](../guide/advanced/meta.md) instead, **or add the guard at runtime (see [Extending routes at runtime](#extending-routes-at-runtime) below)**.
+For similar reasons, `beforeEnter` guards are **not supported** in `definePage()`. Their function nature make them look like they can access outside variable when they can't. **Use a [global navigation guard](../guide/advanced/navigation-guards.md#global-before-guards)** with [route meta fields](../guide/advanced/meta.md) instead, **or add the guard at runtime (see [Extending routes at runtime](#extending-routes-at-runtime) below)**.
 
 :::
 

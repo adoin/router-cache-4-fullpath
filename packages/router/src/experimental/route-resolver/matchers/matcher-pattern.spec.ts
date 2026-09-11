@@ -5,7 +5,8 @@ import {
 } from './matcher-pattern'
 import { MatcherPatternPathStar } from './matcher-pattern-path-star'
 import { miss } from './errors'
-import { definePathParamParser } from './param-parsers'
+import { defineParamParserRaw } from './param-parsers'
+import { mockWarn } from '../../../../__tests__/vitest-mock-warn'
 
 describe('MatcherPatternPathStatic', () => {
   describe('match()', () => {
@@ -125,10 +126,19 @@ describe('MatcherPatternPathStar', () => {
       const pattern = new MatcherPatternPathStar('/team/')
       expect(pattern.build({ pathMatch: '/hey' })).toBe('/team//hey')
     })
+
+    it('keeps the declared case of the prefix', () => {
+      const pattern = new MatcherPatternPathStar('/Team')
+      expect(pattern.build({ pathMatch: '/123' })).toBe('/Team/123')
+      // match() stays case insensitive
+      expect(pattern.match('/team/123')).toEqual({ pathMatch: '/123' })
+    })
   })
 })
 
 describe('MatcherPatternPathDynamic', () => {
+  mockWarn()
+
   it('single param', () => {
     const pattern = new MatcherPatternPathDynamic(
       /^\/teams\/([^/]+?)\/b$/i,
@@ -376,6 +386,48 @@ describe('MatcherPatternPathDynamic', () => {
     )
   })
 
+  it('repeatable param in a sub segment', () => {
+    // produced by file-based routing for `set.[ids]+.other`
+    const pattern = new MatcherPatternPathDynamic(
+      /^\/set\/(.+?)\/other$/,
+      {
+        ids: [{}, true],
+      },
+      [['set/', 1, '/other']]
+    )
+
+    expect(pattern.match('/set/123/other')).toEqual({ ids: ['123'] })
+    expect(pattern.match('/set/123/456/other')).toEqual({
+      ids: ['123', '456'],
+    })
+    expect(pattern.build({ ids: ['123'] })).toBe('/set/123/other')
+    expect(pattern.build({ ids: ['123', '456'] })).toBe('/set/123/456/other')
+  })
+
+  it('multiple repeatable params in a sub segment', () => {
+    // produced by file-based routing for `before.[ids]+.middle.[other]+.after`
+    const pattern = new MatcherPatternPathDynamic(
+      /^\/before\/(.+?)\/middle\/(.+?)\/after$/,
+      {
+        ids: [{}, true],
+        other: [{}, true],
+      },
+      [['before/', 1, '/middle/', 1, '/after']]
+    )
+
+    expect(pattern.match('/before/a/middle/c/after')).toEqual({
+      ids: ['a'],
+      other: ['c'],
+    })
+    expect(pattern.match('/before/a/b/middle/c/d/after')).toEqual({
+      ids: ['a', 'b'],
+      other: ['c', 'd'],
+    })
+    expect(pattern.build({ ids: ['a', 'b'], other: ['c', 'd'] })).toBe(
+      '/before/a/b/middle/c/d/after'
+    )
+  })
+
   it('can have a trailing slash after a single param', () => {
     const pattern = new MatcherPatternPathDynamic(
       /^\/teams\/([^/]+?)\/$/i,
@@ -557,25 +609,31 @@ describe('MatcherPatternPathDynamic', () => {
   })
 
   describe('custom param parsers', () => {
-    const doubleParser = definePathParamParser({
-      get: (v: string | null) => {
+    const doubleParser = defineParamParserRaw<number | null>({
+      get: v => {
         const value = Number(v) * 2
         if (!Number.isFinite(value)) {
           miss()
         }
         return value
       },
-      set: (v: number | null) => (v == null ? null : String(v / 2)),
+      set: v => (v == null ? null : String(v / 2)),
     })
 
-    const nullAwareParser = definePathParamParser({
-      get: (v: string | null) => {
+    const nullAwareParser = defineParamParserRaw<
+      | 'was-null'
+      | 'was-undefined'
+      | `processed-${string}`
+      // allow extra values that are impossible for tests
+      | null
+      | ''
+    >({
+      get: v => {
         if (v === null) return 'was-null'
         if (v === undefined) return 'was-undefined'
         return `processed-${v}`
       },
-      set: (v: string | null) =>
-        v === 'was-null' ? null : String(v).replace('processed-', ''),
+      set: v => (v === 'was-null' ? null : String(v).replace('processed-', '')),
     })
 
     it('single regular param', () => {

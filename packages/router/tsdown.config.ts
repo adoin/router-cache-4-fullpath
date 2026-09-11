@@ -1,12 +1,8 @@
-import { readFileSync } from 'node:fs'
+import { type InlineConfig } from 'tsdown'
+import pkg from './package.json' with { type: 'json' }
+import fs from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { type InlineConfig } from 'tsdown'
-import fs from 'node:fs/promises'
-
-const pkg = JSON.parse(
-  readFileSync(new URL('./package.json', import.meta.url), 'utf8')
-) as { name: string; version: string }
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -26,7 +22,7 @@ const commonOptions = {
   },
   outputOptions: {
     banner,
-    name: 'VueSmartRouter',
+    name: 'VueRouter',
     globals: {
       vue: 'Vue',
       '@vue/devtools-api': 'VueDevtoolsApi',
@@ -56,13 +52,16 @@ export * from './vue-smart-router.js'
 `.trimStart()
     )
   },
-  // Externalize everything and avoid mistakenly including dependencies in the
-  // bundle of vue-smart-router runtime
-  skipNodeModulesBundle: true,
+  deps: {
+    // Externalize everything and avoid mistakenly including dependencies in the
+    // bundle of vue-smart-router runtime
+    neverBundle: true,
+  },
 } satisfies InlineConfig
 
 const esm = {
   ...commonOptions,
+  name: 'vue-smart-router esm',
   entry: {
     ...commonOptions.entry,
     'experimental/index': './src/experimental/index.ts',
@@ -76,6 +75,7 @@ const esm = {
 
 const esmBrowser = {
   ...commonOptions,
+  name: 'vue-smart-router esm-browser',
   outputOptions: {
     ...commonOptions.outputOptions,
     dir: undefined, // must be unset with file
@@ -90,6 +90,7 @@ const esmBrowser = {
 
 const esmBrowserProd = {
   ...esmBrowser,
+  name: 'vue-smart-router esm-browser prod',
   target: 'es2015',
   minify: true,
   outputOptions: {
@@ -105,6 +106,7 @@ const esmBrowserProd = {
 
 const cjs = {
   ...commonOptions,
+  name: 'vue-smart-router cjs',
   format: 'cjs',
   outputOptions: {
     ...commonOptions.outputOptions,
@@ -121,6 +123,7 @@ const cjs = {
 
 const cjsProd = {
   ...cjs,
+  name: 'vue-smart-router cjs prod',
   minify: true,
   outputOptions: {
     ...cjs.outputOptions,
@@ -131,6 +134,7 @@ const cjsProd = {
 const iife = {
   ...commonOptions,
   format: 'iife',
+  name: 'vue-smart-router iife',
   outputOptions: {
     ...commonOptions.outputOptions,
     dir: undefined, // must be unset with file
@@ -143,11 +147,17 @@ const iife = {
     __FEATURE_PROD_DEVTOOLS__: `false`,
     __STRIP_DEVTOOLS__: `true`,
   },
+  deps: {
+    // left out in prod but not in regular build
+    alwaysBundle: ['nostics'],
+    neverBundle: ['vue', '@vue/devtools-api'],
+  },
 } satisfies InlineConfig
 
 const iifeProd = {
   ...iife,
   target: 'es2015',
+  name: 'vue-smart-router iife prod',
   minify: true,
   outputOptions: {
     ...iife.outputOptions,
@@ -174,9 +184,19 @@ const unplugin = {
     'unplugin/types': './src/unplugin/types.ts',
   },
   platform: 'node' as const,
-  dts: true,
-  // avoid inlining rolldown and other unplugin deps
-  skipNodeModulesBundle: true,
+  dts: {
+    enabled: true,
+    eager: true,
+  },
+  name: 'unplugin',
+  deps: {
+    // avoid inlining rolldown and other unplugin deps
+    neverBundle: true,
+  },
+  checks: {
+    // FIXME: this currently fails for no reason, maybe a bug in rolldown?
+    importIsUndefined: false,
+  },
   sourcemap: false,
   outputOptions: {
     banner,
@@ -187,12 +207,15 @@ const unplugin = {
 // Volar plugin build configuration
 const volar = {
   format: ['cjs'] as const,
+  name: 'volar',
   entry: {
     'volar/sfc-route-blocks': './src/volar/entries/sfc-route-blocks.ts',
     'volar/sfc-typed-router': './src/volar/entries/sfc-typed-router.ts',
   },
-  // these are part of volar core
-  external: ['@vue/language-core', 'muggle-string', 'pathe'],
+  deps: {
+    // these are part of volar core
+    neverBundle: ['@vue/language-core', 'muggle-string', 'pathe'],
+  },
   dts: true,
   sourcemap: false,
   outputOptions: {

@@ -13,9 +13,7 @@ import VueRouter from 'vue-smart-router/vite'
 
 export default defineConfig({
   plugins: [
-    VueRouter({
-      /* options */
-    }),
+    VueRouter({/* options */}),
     // ⚠️ Vue 必须放在 VueRouter() 之后
     Vue(),
   ],
@@ -27,9 +25,7 @@ import VueRouter from 'vue-smart-router/unplugin/rollup'
 
 export default {
   plugins: [
-    VueRouter({
-      /* options */
-    }),
+    VueRouter({/* options */}),
     // ⚠️ Vue 必须放在 VueRouter() 之后
     Vue(),
   ],
@@ -39,22 +35,14 @@ export default {
 ```ts [webpack.config.js]
 module.exports = {
   /* ... */
-  plugins: [
-    require('vue-smart-router/unplugin/webpack')({
-      /* options */
-    }),
-  ],
+  plugins: [require('vue-smart-router/unplugin/webpack')({/* options */})],
 }
 ```
 
 ```ts [vue.config.js]
 module.exports = {
   configureWebpack: {
-    plugins: [
-      require('vue-smart-router/unplugin/webpack')({
-        /* options */
-      }),
-    ],
+    plugins: [require('vue-smart-router/unplugin/webpack')({/* options */})],
   },
 }
 ```

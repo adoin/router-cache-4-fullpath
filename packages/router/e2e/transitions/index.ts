@@ -1,7 +1,6 @@
-import { createApp, defineComponent, nextTick, ref } from 'vue';
-import type { RouteComponent } from 'vue-smart-router';
-import { createRouter, createWebHistory } from 'vue-smart-router';
-import '../global.css';
+import type { RouteComponent } from 'vue-smart-router'
+import { createRouter, createWebHistory } from 'vue-smart-router'
+import { createApp, defineComponent, nextTick, ref } from 'vue'
 
 // const delay = (t: number) => new Promise(r => setTimeout(r, t))
 

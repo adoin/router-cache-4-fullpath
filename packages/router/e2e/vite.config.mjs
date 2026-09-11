@@ -1,10 +1,10 @@
 // these are require syntax
+import fs from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { resolve, join, dirname } from 'node:path'
+import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import history from 'connect-history-api-fallback'
-import fs from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
 // and these are the same with import
 
 const __filename = fileURLToPath(import.meta.url)

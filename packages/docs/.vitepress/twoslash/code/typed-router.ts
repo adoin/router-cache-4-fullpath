@@ -1,6 +1,13 @@
 /* prettier-ignore */
 import type { RouteRecordInfo } from 'vue-smart-router'
 
+declare module 'vue-smart-router' {
+  interface TypesConfig {
+    ParamParsers: never
+    RouteNamedMap: import('vue-smart-router/auto-routes').RouteNamedMap
+  }
+}
+
 declare module 'vue-smart-router/auto-routes' {
   export interface RouteNamedMap {
     '/': RouteRecordInfo<
@@ -8,6 +15,13 @@ declare module 'vue-smart-router/auto-routes' {
       '/',
       Record<never, never>,
       Record<never, never>,
+      never
+    >
+    '/books/[id]': RouteRecordInfo<
+      '/books/[id]',
+      '/books/:id',
+      { id: string },
+      { id: string },
       never
     >
     '/users': RouteRecordInfo<

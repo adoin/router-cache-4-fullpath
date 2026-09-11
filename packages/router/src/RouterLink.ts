@@ -1,29 +1,32 @@
 import {
-  computed,
   defineComponent,
-  getCurrentInstance,
   h,
+  type PropType,
   inject,
+  computed,
   reactive,
   unref,
-  watchEffect,
+  type VNode,
+  type UnwrapRef,
+  type VNodeProps,
   type AllowedComponentProps,
-  type AnchorHTMLAttributes,
   type ComponentCustomProps,
+  getCurrentInstance,
+  watchEffect,
   // this is a workaround for https://github.com/microsoft/rushstack/issues/1050
   // this file is meant to be prepended to the generated dist/src/RouterLink.d.ts
   // @ts-ignore
   type ComputedRef,
   type MaybeRef,
-  type PropType,
-  type UnwrapRef,
-  type VNode,
-  type VNodeProps,
+  type AnchorHTMLAttributes,
 } from 'vue'
-import type { NavigationFailure } from './errors'
-import { routeLocationKey, routerKey } from './injectionSymbols'
 import { isSameRouteLocationParams, isSameRouteRecord } from './location'
+import { routerKey, routeLocationKey } from './injectionSymbols'
 import type { RouteRecord } from './matcher/types'
+import type { NavigationFailure } from './errors'
+import { isArray, isBrowser, noop } from './utils'
+import { diagnostics } from './diagnostics'
+import { isRouteLocation } from './types'
 import type {
   RouteLocation,
   RouteLocationAsPath,
@@ -33,9 +36,6 @@ import type {
   RouteLocationResolved,
   RouteMap,
 } from './typed-routes'
-import { isRouteLocation } from './types'
-import { isArray, isBrowser, noop } from './utils'
-import { warn } from './warning'
 
 export interface RouterLinkOptions {
   /**
@@ -146,23 +146,7 @@ export function useLink<Name extends keyof RouteMap = keyof RouteMap>(
 
     if (__DEV__ && (!hasPrevious || to !== previousTo)) {
       if (!isRouteLocation(to)) {
-        if (hasPrevious) {
-          warn(
-            `Invalid value for prop "to" in useLink()\n- to:`,
-            to,
-            `\n- previous to:`,
-            previousTo,
-            `\n- props:`,
-            props
-          )
-        } else {
-          warn(
-            `Invalid value for prop "to" in useLink()\n- to:`,
-            to,
-            `\n- props:`,
-            props
-          )
-        }
+        diagnostics.VUE_ROUTER_R0050({ to })
       }
 
       previousTo = to
@@ -428,9 +412,7 @@ function includesParams(
   for (const key in inner) {
     const innerValue = inner[key]
     const outerValue = outer[key]
-    if (typeof innerValue === 'string') {
-      if (innerValue !== outerValue) return false
-    } else {
+    if (isArray(innerValue)) {
       if (
         !isArray(outerValue) ||
         outerValue.length !== innerValue.length ||
@@ -439,6 +421,8 @@ function includesParams(
         )
       )
         return false
+    } else if (innerValue !== outerValue) {
+      return false
     }
   }
 

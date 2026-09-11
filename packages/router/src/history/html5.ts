@@ -13,7 +13,7 @@ import {
 } from './common'
 import type { _ScrollPositionNormalized } from '../scrollBehavior'
 import { computeScrollPosition } from '../scrollBehavior'
-import { warn } from '../warning'
+import { diagnostics } from '../diagnostics'
 import { stripBase } from '../location'
 import { assign } from '../utils'
 
@@ -127,14 +127,14 @@ function useHistoryListeners(
   }
 
   function beforeUnloadListener() {
-    if (document.visibilityState === 'hidden') {
-      const { history } = window
-      if (!history.state) return
-      history.replaceState(
-        assign({}, history.state, { scroll: computeScrollPosition() }),
-        ''
-      )
-    }
+    const { history } = window
+    if (!history.state) return
+    history.replaceState(
+      assign({}, history.state, {
+        scroll: computeScrollPosition(),
+      }),
+      ''
+    )
   }
 
   function destroy() {
@@ -142,16 +142,13 @@ function useHistoryListeners(
     teardowns = []
     window.removeEventListener('popstate', popStateHandler)
     window.removeEventListener('pagehide', beforeUnloadListener)
-    document.removeEventListener('visibilitychange', beforeUnloadListener)
   }
 
   // set up the listeners and prepare teardown callbacks
   window.addEventListener('popstate', popStateHandler)
   // https://developer.chrome.com/blog/page-lifecycle-api/
-  // note: iOS safari does not fire beforeunload, so we
-  // use pagehide and visibilitychange instead
+  // note: iOS safari does not fire beforeunload, so we use pagehide instead
   window.addEventListener('pagehide', beforeUnloadListener)
-  document.addEventListener('visibilitychange', beforeUnloadListener)
 
   return {
     pauseListeners,
@@ -167,8 +164,7 @@ function buildState(
   back: HistoryLocation | null,
   current: HistoryLocation,
   forward: HistoryLocation | null,
-  replaced: boolean = false,
-  computeScroll: boolean = false
+  replaced: boolean = false
 ): StateEntry {
   return {
     back,
@@ -176,7 +172,7 @@ function buildState(
     forward,
     replaced,
     position: window.history.length,
-    scroll: computeScroll ? computeScrollPosition() : null,
+    scroll: null,
   }
 }
 
@@ -235,7 +231,7 @@ function useHistoryStateNavigation(base: string) {
       historyState.value = state
     } catch (err) {
       if (__DEV__) {
-        warn('Error with push/replace State', err)
+        diagnostics.VUE_ROUTER_R0120({ cause: err })
       } else {
         console.error(err)
       }
@@ -280,11 +276,7 @@ function useHistoryStateNavigation(base: string) {
     )
 
     if (__DEV__ && !history.state) {
-      warn(
-        `history.state seems to have been manually replaced without preserving the necessary values. Make sure to preserve existing history state if you are manually calling history.replaceState:\n\n` +
-          `history.replaceState(history.state, '', url)\n\n` +
-          `You can find more information at https://router.vuejs.org/guide/migration/#Usage-of-history-state`
-      )
+      diagnostics.VUE_ROUTER_R0121()
     }
 
     changeLocation(currentState.current, currentState, true)

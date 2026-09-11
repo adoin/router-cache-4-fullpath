@@ -1,11 +1,11 @@
-import { PiniaColada } from '@pinia/colada'
-import { createPinia } from 'pinia'
 import { createApp } from 'vue'
-import { RouterLink, RouterView } from 'vue-smart-router'
-import { DataLoaderPlugin } from 'vue-smart-router/experimental'
-import App from './App.vue'
-import { router } from './router/resolver'
 import './style.css'
+import App from './App.vue'
+import { createPinia } from 'pinia'
+import { PiniaColada } from '@pinia/colada'
+import { router } from './router/resolver'
+import { DataLoaderPlugin } from 'vue-smart-router/experimental'
+import { RouterLink, RouterView } from 'vue-smart-router'
 
 const app = createApp(App)
 
@@ -19,8 +19,8 @@ app.component('RouterLink', RouterLink)
 app.component('RouterView', RouterView)
 router.afterEach((to, from, failure) => {
   if (failure) {
-    console.error('⛔️ Failed navigation', from.fullPath, '->', to.fullPath)
-    console.error(failure)
+    console.info('⛔️ Failed navigation', from.fullPath, '->', to.fullPath)
+    console.warn(failure)
   }
 })
 router.onError(err => {
@@ -39,3 +39,9 @@ router.isReady().then(() => {
     console.log('🧭', from.fullPath, '->', to.fullPath)
   })
 })
+
+declare module 'vue-smart-router' {
+  export interface TypesConfig {
+    Router: typeof router
+  }
+}

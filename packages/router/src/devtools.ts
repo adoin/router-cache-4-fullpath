@@ -1,21 +1,21 @@
 import { setupDevtoolsPlugin } from '@vue/devtools-api'
 import type {
   CustomInspectorNode,
-  CustomInspectorState,
   InspectorNodeTag,
+  CustomInspectorState,
   TimelineEvent,
 } from '@vue/devtools-kit'
-import { watch, type App } from 'vue'
-import type { UseLinkDevtoolsContext } from './RouterLink'
-import type { RouterViewDevtoolsContext } from './RouterView'
+import { type App, watch } from 'vue'
 import { decode } from './encoding'
 import { isSameRouteRecord } from './location'
 import type { RouterMatcher } from './matcher'
 import type { RouteRecordMatcher } from './matcher/pathMatcher'
 import type { PathParser } from './matcher/pathParserRanker'
 import type { Router } from './router'
+import type { UseLinkDevtoolsContext } from './RouterLink'
+import type { RouterViewDevtoolsContext } from './RouterView'
+import { assign, isAbsolutePath, isArray } from './utils'
 import type { RouteLocationNormalized } from './typed-routes'
-import { assign, isArray } from './utils'
 
 /**
  * Copies a route location and removes any problematic properties that cannot be shown in devtools (e.g. Vue instances).
@@ -560,7 +560,7 @@ function isRouteMatching(route: RouteRecordMatcher, filter: string): boolean {
 
   // also allow partial matching on the path
   if (
-    !filter.startsWith('/') &&
+    !isAbsolutePath(filter) &&
     (decodedPath.includes(filter) || path.includes(filter))
   )
     return true

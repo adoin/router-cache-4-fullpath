@@ -1,17 +1,17 @@
-import { describe, expectTypeOf, it } from 'vitest'
+import { describe, it, expectTypeOf } from 'vitest'
 import type {
+  RouteRecordName,
   ParamValue,
   ParamValueZeroOrMore,
-  RouteLocationAsPathTypedList,
-  RouteLocationAsRelativeTypedList,
-  RouteLocationAsStringTypedList,
-  RouteLocationNormalizedLoadedTypedList,
-  RouteLocationNormalizedTypedList,
-  RouteLocationResolvedTypedList,
-  RouteLocationTypedList,
   RouteRecordInfo,
-  RouteRecordName,
-} from '../src'
+  RouteLocationTypedList,
+  RouteLocationNormalizedTypedList,
+  RouteLocationNormalizedLoadedTypedList,
+  RouteLocationAsRelativeTypedList,
+  RouteLocationAsPathTypedList,
+  RouteLocationAsStringTypedList,
+  RouteLocationResolvedTypedList,
+} from '../src/typed-routes'
 
 // NOTE: A type allows us to make it work only in this test file
 // https://github.com/microsoft/TypeScript/issues/15300

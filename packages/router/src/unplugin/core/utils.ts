@@ -1,8 +1,9 @@
-import { pascalCase } from 'scule'
-import type { ResolvedOptions, RoutesFolderOptionResolved } from '../options'
-import { toStringLiteral } from '../utils'
 import type { TreeNode } from './tree'
 import type { RouteRecordOverride, TreePathParam } from './treeNodeValue'
+import { pascalCase } from 'scule'
+import type { ResolvedOptions, RoutesFolderOptionResolved } from '../options'
+import { _OverridableOption } from '../options'
+import { toStringLiteral } from '../utils'
 
 export function warn(
   msg: string,

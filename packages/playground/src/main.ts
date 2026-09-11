@@ -1,14 +1,14 @@
 // necessary for webpack
-import type { ComponentPublicInstance } from 'vue'
 import { createApp } from 'vue'
+import type { ComponentPublicInstance } from 'vue'
+import { router, routerHistory } from './router'
+import { globalState } from './store'
+import App from './App.vue'
 import {
   useRoute,
   type ParamValue,
   type RouteRecordInfo,
 } from 'vue-smart-router'
-import App from './App.vue'
-import { router, routerHistory } from './router'
-import { globalState } from './store'
 
 declare global {
   interface Window {

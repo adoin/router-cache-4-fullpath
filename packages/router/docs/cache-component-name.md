@@ -6,7 +6,7 @@
 
 ## 安装
 
-本仓库发布的 npm 包名是 **`vue-smart-router`**（**不是**官方 `vue-router`），安装时不要写错包名。
+本仓库发布的 npm 包名是 **`vue-smart-router`**（**不是**官方 `vue-smart-router`），安装时不要写错包名。
 
 ```bash
 # pnpm（推荐）
@@ -19,7 +19,7 @@ npm install vue-smart-router
 yarn add vue-smart-router
 ```
 
-`vue-smart-router` 与官方 `vue-router` 的 peer 要求一致，需与项目中的 **Vue 3** 版本匹配（参见包内 `peerDependencies`）。从 `vue-router` 迁到本 fork 时，请**全局**把依赖与 import 从 `vue-router` 改为 `vue-smart-router`（子路径如 `vue-smart-router/auto-routes` 同理）。
+`vue-smart-router` 与官方 `vue-smart-router` 的 peer 要求一致，需与项目中的 **Vue 3** 版本匹配（参见包内 `peerDependencies`）。从 `vue-smart-router` 迁到本 fork 时，请**全局**把依赖与 import 从 `vue-smart-router` 改为 `vue-smart-router`（子路径如 `vue-smart-router/auto-routes` 同理）。
 
 ## 背景
 
@@ -104,7 +104,7 @@ import { createRouter, useRoute, useRouter } from 'vue-smart-router'
 import type { RouteLocationNormalizedLoaded } from 'vue-smart-router'
 ```
 
-文件式路由、Vite 插件等子路径也一律用 **`vue-smart-router/...`**（如 `vue-smart-router/auto-routes`），与官方 `vue-router/...` 的命名对应关系以本包 `package.json` 的 `exports` 为准。
+文件式路由、Vite 插件等子路径也一律用 **`vue-smart-router/...`**（如 `vue-smart-router/auto-routes`），与官方 `vue-smart-router/...` 的命名对应关系以本包 `package.json` 的 `exports` 为准。
 
 ## 注意
 

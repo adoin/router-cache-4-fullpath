@@ -1,14 +1,13 @@
-import { computed, createApp, defineComponent, reactive, ref } from 'vue'
 import {
-    createRouter,
-    createWebHistory,
-    onBeforeRouteLeave,
-    onBeforeRouteUpdate,
-    useRoute,
-    useRouter,
+  createRouter,
+  createWebHistory,
+  onBeforeRouteUpdate,
+  onBeforeRouteLeave,
+  useRoute,
+  useRouter,
 } from 'vue-smart-router'
+import { createApp, ref, reactive, defineComponent, computed } from 'vue'
 import { isArray } from '../../src/utils'
-import '../global.css'
 
 // override existing style on dev with shorter times
 if (!__CI__) {

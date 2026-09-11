@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const isVisible = ref(false)
 const nameStorage = 'MADVUE-BANNER-MARCH-25'

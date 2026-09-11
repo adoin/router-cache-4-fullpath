@@ -1,14 +1,7 @@
-import { createApp, ref } from 'vue';
-import type {
-    RouteComponent,
-    RouterScrollBehavior
-} from 'vue-smart-router';
-import {
-    createRouter,
-    createWebHistory
-} from 'vue-smart-router';
-import '../global.css';
-import { scrollWaiter } from './scrollWaiter';
+import type { RouteComponent, RouterScrollBehavior } from 'vue-smart-router'
+import { createRouter, createWebHistory } from 'vue-smart-router'
+import { createApp, ref } from 'vue'
+import { scrollWaiter } from './scrollWaiter'
 
 const Home: RouteComponent = { template: '<div class="home">home</div>' }
 const Foo: RouteComponent = { template: '<div class="foo">foo</div>' }

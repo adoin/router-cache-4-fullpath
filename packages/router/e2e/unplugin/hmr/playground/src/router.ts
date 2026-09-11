@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-smart-router'
-import { handleHotUpdate, routes } from 'vue-smart-router/auto-routes'
+import { routes, handleHotUpdate } from 'vue-smart-router/auto-routes'
 
 export const router = createRouter({
   history: createWebHistory(),

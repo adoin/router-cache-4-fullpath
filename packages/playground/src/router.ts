@@ -1,21 +1,21 @@
 import { createRouter, createWebHistory } from 'vue-smart-router'
-import { scrollWaiter } from './scrollWaiter'
-import { globalState } from './store'
-import ComponentWithData from './views/ComponentWithData.vue'
-import Dynamic from './views/Dynamic.vue'
-import GuardedWithLeave from './views/GuardedWithLeave.vue'
 import Home from './views/Home.vue'
-import KeepAliveProbe from './views/KeepAliveProbe.vue'
-import LongView from './views/LongView.vue'
 import Nested from './views/Nested.vue'
 import NestedWithId from './views/NestedWithId.vue'
-import NotFound from './views/NotFound.vue'
-import RepeatedParams from './views/RepeatedParams.vue'
+import Dynamic from './views/Dynamic.vue'
 import User from './views/User.vue'
+import NotFound from './views/NotFound.vue'
 const component = () => {
   console.log('fetching component')
   return import('./views/Generic.vue')
 }
+import LongView from './views/LongView.vue'
+import GuardedWithLeave from './views/GuardedWithLeave.vue'
+import ComponentWithData from './views/ComponentWithData.vue'
+import { globalState } from './store'
+import { scrollWaiter } from './scrollWaiter'
+import RepeatedParams from './views/RepeatedParams.vue'
+import KeepAliveProbe from './views/KeepAliveProbe.vue'
 let removeRoute: (() => void) | undefined
 
 export const routerHistory = createWebHistory()

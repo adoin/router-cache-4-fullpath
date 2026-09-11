@@ -5,12 +5,12 @@
 
 // TODO: remove these file, it's no longer needed after the merge of unplugin-vue-router into vue-smart-router
 
-export type { EditableTreeNode } from './core/extendRoutes'
+export type { Options } from './options'
 export type { TreeNode } from './core/tree'
 export type {
   TreeNodeValue,
-  TreeNodeValueGroup,
-  TreeNodeValueParam,
   TreeNodeValueStatic,
+  TreeNodeValueParam,
+  TreeNodeValueGroup,
 } from './core/treeNodeValue'
-export type { Options } from './options'
+export type { EditableTreeNode } from './core/extendRoutes'

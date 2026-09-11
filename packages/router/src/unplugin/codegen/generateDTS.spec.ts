@@ -34,8 +34,9 @@ describe('generateDTS', () => {
 
       declare module 'vue-smart-router' {
         interface TypesConfig {
-          ParamParsers:
-
+          _ParamParsers: {}
+          RouteNamedMap: import('vue-smart-router/auto-routes').RouteNamedMap
+          _RouteFileInfoMap: import('vue-smart-router/auto-routes')._RouteFileInfoMap
         }
       }
 
@@ -72,5 +73,31 @@ describe('generateDTS', () => {
       export {}
       "
     `)
+  })
+
+  // Bug found in for https://github.com/vuejs/router/discussions/2696:
+  // typed routes must work when the user never imports `vue-smart-router/auto-routes`.
+  // The wiring to `TypesConfig.RouteNamedMap` must live inside the `declare module 'vue-smart-router'`
+  // block of the generated d.ts (which the user always includes), not inside the
+  // `vue-smart-router/auto-routes` module declaration (which is only loaded if imported).
+  // in v6, we should just move the interface to vue-smart-router too
+  it('wires RouteNamedMap into the vue-smart-router TypesConfig augmentation', () => {
+    const dts = generateDTS({
+      routesModule: 'vue-smart-router/auto-routes',
+      routeNamedMap: 'export interface RouteNamedMap {}',
+      routeFileInfoMap: 'export interface _RouteFileInfoMap {}',
+      paramsTypesDeclaration: '',
+      customParamsTypeList: [],
+    })
+
+    const vueRouterBlock = dts.match(
+      /declare module 'vue-smart-router' \{[\s\S]*?\n\}/
+    )?.[0]
+    expect(
+      vueRouterBlock,
+      "expected a 'declare module \\'vue-smart-router\\'' block"
+    ).toBeTruthy()
+    expect(vueRouterBlock).toContain('RouteNamedMap:')
+    expect(vueRouterBlock).toContain('_RouteFileInfoMap:')
   })
 })

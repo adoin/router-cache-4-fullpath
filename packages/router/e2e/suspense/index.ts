@@ -1,22 +1,13 @@
-import type {
-    FunctionalComponent
-} from 'vue';
 import {
-    createApp,
-    defineComponent,
-    h,
-    reactive,
-    ref,
-} from 'vue';
-import {
-    RouterView,
-    createRouter,
-    createWebHistory,
-    onBeforeRouteLeave,
-    onBeforeRouteUpdate,
-    useRoute,
-} from 'vue-smart-router';
-import '../global.css';
+  createRouter,
+  createWebHistory,
+  onBeforeRouteUpdate,
+  onBeforeRouteLeave,
+  RouterView,
+  useRoute,
+} from 'vue-smart-router'
+import type { FunctionalComponent } from 'vue'
+import { createApp, ref, reactive, defineComponent, h } from 'vue'
 
 const Home = defineComponent({
   template: `

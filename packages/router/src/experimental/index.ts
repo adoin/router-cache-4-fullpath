@@ -1,52 +1,51 @@
 export { experimental_createRouter, normalizeRouteRecord } from './router'
 export type {
+  EXPERIMENTAL_Router_Base,
+  EXPERIMENTAL_Router,
   EXPERIMENTAL_RouteRecordNormalized,
-  EXPERIMENTAL_RouteRecordNormalized_Group,
-  EXPERIMENTAL_RouteRecordNormalized_Matchable,
+  EXPERIMENTAL_RouterOptions_Base,
+  EXPERIMENTAL_RouterOptions,
   EXPERIMENTAL_RouteRecordRaw,
   EXPERIMENTAL_RouteRecord_Base,
   EXPERIMENTAL_RouteRecord_Group,
+  EXPERIMENTAL_RouteRecordNormalized_Group,
   EXPERIMENTAL_RouteRecord_Matchable,
-  EXPERIMENTAL_Router,
-  EXPERIMENTAL_RouterOptions,
-  EXPERIMENTAL_RouterOptions_Base,
-  EXPERIMENTAL_Router_Base,
+  EXPERIMENTAL_RouteRecordNormalized_Matchable,
 } from './router'
 
-export {
-  MatcherPatternPathDynamic,
-  MatcherPatternPathStatic,
-} from './route-resolver/matchers/matcher-pattern'
 export { createFixedResolver } from './route-resolver/resolver-fixed'
+export {
+  MatcherPatternPathStatic,
+  MatcherPatternPathDynamic,
+} from './route-resolver/matchers/matcher-pattern'
 
 export type {
   EmptyParams,
-  MatcherParamsFormatted,
   MatcherPattern,
   MatcherPatternHash,
   MatcherPatternPath,
-  MatcherPatternPathDynamic_ParamOptions,
+  MatcherParamsFormatted,
   MatcherQueryParams,
   MatcherQueryParamsValue,
+  MatcherPatternPathDynamic_ParamOptions,
 } from './route-resolver/matchers/matcher-pattern'
 
 export {
-  MatcherPatternQueryParam,
   type MatcherPatternQuery,
+  MatcherPatternQueryParam,
 } from './route-resolver/matchers/matcher-pattern-query'
 
 export {
-  PARAM_PARSER_BOOL,
   PARAM_PARSER_INT,
-  normalizeParamParser as _normalizeParamParser,
-  defineParamParser,
-  definePathParamParser,
-  defineQueryParamParser,
+  PARAM_PARSER_BOOL,
   type ParamParser,
+  defineParamParser,
+  defineParamParserRaw,
+  normalizeParamParser as _normalizeParamParser,
   type ExtractParamParserType as _ExtractParamParserType,
 } from './route-resolver/matchers/param-parsers'
 
-export { MatchMiss as _MatchMiss, miss } from './route-resolver/matchers/errors'
+export { miss, MatchMiss as _MatchMiss } from './route-resolver/matchers/errors'
 
 /**
  * Internal functions and types for the experimental router.
@@ -55,12 +54,17 @@ export { MatchMiss as _MatchMiss, miss } from './route-resolver/matchers/errors'
 
 // Runtime exports (definePage macro)
 export {
-  _mergeRouteRecord,
   definePage,
+  _mergeRouteRecord,
   type DefinePage,
-  type DefinePageQueryParamOptions,
   type ParamParserType,
   type ParamParserType_Native,
+  type ParamParsers as _ParamParsers,
+  type ParamParsers_Native as _ParamParsers_Native,
+  type ParamParserTypeOf,
+  type DefinePageQueryParamOptions,
+  type DefinePageQueryParamOptionsAny as _DefinePageQueryParamOptionsAny,
+  type PathParamNamesForFilePath as _PathParamNamesForFilePath,
 } from './runtime'
 
 // Data loaders exports
@@ -68,27 +72,27 @@ export {
   // Core
   DataLoaderPlugin,
   NavigationResult as _NavigationResult,
-  // Utilities
-  getCurrentContext,
   reroute,
-  setCurrentContext,
-  toLazyValue,
-  trackRoute,
   useIsDataLoading,
-  withLoaderContext,
-  type DataLoaderContextBase,
-  type DataLoaderEntryBase,
   type DataLoaderPluginOptions,
-  type DefineDataLoaderOptionsBase_DefinedData,
-  type DefineDataLoaderOptionsBase_LaxData,
-  type DefineLoaderFn,
-  // Types config
-  type ErrorDefault,
   type SetupLoaderGuardOptions,
   // Loader types
   type UseDataLoader,
   type UseDataLoaderInternals,
   type UseDataLoaderResult,
+  type DataLoaderContextBase,
+  type DataLoaderEntryBase,
+  type DefineDataLoaderOptionsBase_LaxData,
+  type DefineDataLoaderOptionsBase_DefinedData,
+  type DefineLoaderFn,
+  // Utilities
+  getCurrentContext,
+  setCurrentContext,
+  withLoaderContext,
+  trackRoute,
+  toLazyValue,
+  // Types config
+  type ErrorDefault,
 } from './data-loaders/entries/index'
 
 // TODO: only keep _NavigationResult in next major
@@ -108,15 +112,15 @@ export class NavigationResult extends NavResult {
 // Basic loader
 export {
   defineBasicLoader,
-  type DataLoaderBasicEntry,
+  type DefineDataLoaderOptions_LaxData,
+  type DefineDataLoaderOptions_DefinedData,
   type DataLoaderContext,
+  type UseDataLoaderBasic_LaxData,
+  type UseDataLoaderBasic_DefinedData,
+  type DataLoaderBasicEntry,
   // deprecated
   type DefineDataLoaderOptions,
-  type DefineDataLoaderOptions_DefinedData,
-  type DefineDataLoaderOptions_LaxData,
   type UseDataLoaderBasic,
-  type UseDataLoaderBasic_DefinedData,
-  type UseDataLoaderBasic_LaxData,
 } from './data-loaders/defineLoader'
 
 // FIXME: this was getting merged with non experimental code

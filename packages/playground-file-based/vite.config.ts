@@ -1,8 +1,8 @@
-import Vue from '@vitejs/plugin-vue'
-import AutoScaffold from 'auto-scaffold/vite'
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
+import Vue from '@vitejs/plugin-vue'
 import VueRouter from 'vue-smart-router/vite'
+import AutoScaffold from 'auto-scaffold/vite'
 // import AutoImport from 'unplugin-auto-import/vite'
 import VueDevtools from 'vite-plugin-vue-devtools'
 
@@ -19,7 +19,7 @@ export default defineConfig({
     }),
     // FIXME: why doesn't it work when imported from vue-smart-router/vite
     VueRouter({
-      logs: true,
+      // logs: true,
       dts: './src/routes.d.ts',
 
       experimental: {

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import SemVerInfo from '@/components/SemVerInfo.vue'
 import { useRoute } from 'vue-smart-router'
+import SemVerInfo from '@/components/SemVerInfo.vue'
 
 const route = useRoute()
 </script>

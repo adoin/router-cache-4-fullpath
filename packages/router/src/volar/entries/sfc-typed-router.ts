@@ -1,8 +1,8 @@
+import { relative } from 'pathe'
 import type { VueLanguagePlugin } from '@vue/language-core'
 import { replaceSourceRange, toString } from 'muggle-string'
-import { relative } from 'pathe'
-import type ts from 'typescript'
 import { augmentVlsCtx } from '../utils/augment-vls-ctx'
+import type ts from 'typescript'
 
 /*
   Future ideas:
@@ -51,8 +51,16 @@ const plugin: VueLanguagePlugin<{ options?: { rootDir?: string } }> = ({
       // NOTE: this might not work if different from the root passed to VueRouter unplugin
       const relativeFilePath = rootDir ? relative(rootDir, fileName) : fileName
 
-      const useRouteNameType = `import('vue-smart-router/auto-routes')._RouteNamesForFilePath<'${relativeFilePath}'>`
+      // Escape backslashes/apostrophes so we can safely embed the file path
+      // inside a single-quoted TS string literal type argument.
+      const escapedFilePath = relativeFilePath
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+
+      const useRouteNameType = `import('vue-smart-router/auto-routes')._RouteNamesForFilePath<'${escapedFilePath}'>`
       const useRouteNameTypeParam = `<${useRouteNameType}>`
+
+      const definePageFilePathTypeParam = `<'${escapedFilePath}'>`
 
       if (sfc.scriptSetup) {
         visit(sfc.scriptSetup.ast)
@@ -91,6 +99,41 @@ const plugin: VueLanguagePlugin<{ options?: { rootDir?: string } }> = ({
               ` as ReturnType<typeof useRoute${useRouteNameTypeParam}>)`
             )
           }
+        } else if (
+          ts.isTypeQueryNode(node) &&
+          ts.isIdentifier(node.exprName) &&
+          ts.idText(node.exprName) === 'useRoute' &&
+          !node.typeArguments &&
+          !sfc.scriptSetup!.lang.startsWith('js')
+        ) {
+          // Without type arguments, `typeof useRoute` falls back to the generic
+          // default (every route), so `ReturnType<typeof useRoute>` is wider
+          // than what `useRoute()` actually returns in this file. Instantiate
+          // it with this file's routes so both agree.
+          replaceSourceRange(
+            embeddedCode.content,
+            sfc.scriptSetup!.name,
+            node.exprName.end,
+            node.exprName.end,
+            useRouteNameTypeParam
+          )
+        } else if (
+          ts.isCallExpression(node) &&
+          ts.isIdentifier(node.expression) &&
+          ts.idText(node.expression) === 'definePage' &&
+          !node.typeArguments &&
+          node.arguments.length === 1 &&
+          !sfc.scriptSetup!.lang.startsWith('js')
+        ) {
+          // Inject the file path so `definePage`'s `params.path` keys can be
+          // narrowed to this file's actual path params.
+          replaceSourceRange(
+            embeddedCode.content,
+            sfc.scriptSetup!.name,
+            node.expression.end,
+            node.expression.end,
+            definePageFilePathTypeParam
+          )
         } else {
           ts.forEachChild(node, visit)
         }

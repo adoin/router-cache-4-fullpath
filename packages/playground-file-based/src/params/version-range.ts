@@ -1,7 +1,7 @@
-import { Range, parse, validRange, type SemVer } from 'semver'
-import { definePathParamParser, miss } from 'vue-smart-router/experimental'
+import { defineParamParser, miss } from 'vue-smart-router/experimental'
+import { parse, type SemVer, Range, validRange } from 'semver'
 
-export const parser = definePathParamParser({
+export const parser = defineParamParser({
   get: (value: string): SemVer | Range => {
     return (
       parse(value, false, false) ||
