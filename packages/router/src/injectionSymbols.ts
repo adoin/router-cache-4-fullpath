@@ -53,6 +53,11 @@ export const routerViewLocationKey = Symbol(
   __DEV__ ? 'router view location' : ''
 ) as InjectionKey<Ref<RouteLocationNormalizedLoaded>>
 
+/** @internal Detached views do not participate in URL navigation guards. */
+export const routerViewDetachedKey = Symbol(
+  __DEV__ ? 'router view detached' : ''
+) as InjectionKey<ComputedRef<boolean>>
+
 /**
  * Callbacks called by the closest ancestor router-view once it displays a new
  * route. Used by `onRouteRendered()`.

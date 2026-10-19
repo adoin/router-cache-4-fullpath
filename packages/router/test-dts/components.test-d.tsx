@@ -43,5 +43,11 @@ describe('Components', () => {
     expectTypeOf<JSX.Element>(<RouterView class="view" />)
     expectTypeOf<JSX.Element>(<RouterView name="foo" />)
     expectTypeOf<JSX.Element>(<RouterView route={router.currentRoute.value} />)
+    expectTypeOf<JSX.Element>(
+      <RouterView route={router.currentRoute.value} detached />
+    )
+    expectTypeOf<JSX.Element>(<RouterView cacheComponentName="fullPath" />)
+    // @ts-expect-error detached is a boolean
+    expectError(<RouterView detached="yes" />)
   })
 })

@@ -14,9 +14,9 @@ import type {
 import type { NavigationFailure, NavigationRedirectError } from './errors'
 import { createRouterError, ErrorTypes } from './errors'
 import type { ComponentOptions, ComputedRef } from 'vue'
-import { onUnmounted, onActivated, onDeactivated } from 'vue'
+import { onUnmounted, onActivated, onDeactivated, watch } from 'vue'
 import { inject, getCurrentInstance } from 'vue'
-import { matchedRouteKey } from './injectionSymbols'
+import { matchedRouteKey, routerViewDetachedKey } from './injectionSymbols'
 import type { RouteRecordNormalized } from './matcher/types'
 import { isESModule, isRouteComponent } from './utils'
 import { diagnostics } from './diagnostics'
@@ -39,15 +39,40 @@ function registerGuard(
 
   // Track the current record the guard is registered with
   let currentRecord = record
+  const detached = inject(routerViewDetachedKey, undefined)
+  let active = true
+  let registered = false
 
   const removeFromList = () => {
-    currentRecord[name].delete(guard)
+    if (registered) currentRecord[name].delete(guard)
+    registered = false
   }
 
-  onUnmounted(removeFromList)
-  onDeactivated(removeFromList)
+  const deactivate = () => {
+    active = false
+    removeFromList()
+  }
+  const register = () => {
+    if (active && !detached?.value) {
+      currentRecord[name].add(guard)
+      registered = true
+    }
+  }
+  onUnmounted(deactivate)
+  onDeactivated(deactivate)
+  if (detached) {
+    watch(
+      detached,
+      () => {
+        removeFromList()
+        register()
+      },
+      { flush: 'sync' }
+    )
+  }
 
   onActivated(() => {
+    active = true
     // When reactivated, check if the active record has changed (e.g., keep-alive
     // component reactivated for a different route). If so, register with the new record.
     const newRecord = activeRecordRef.value
@@ -57,10 +82,10 @@ function registerGuard(
     if (newRecord) {
       currentRecord = newRecord
     }
-    currentRecord[name].add(guard)
+    register()
   })
 
-  currentRecord[name].add(guard)
+  register()
 }
 
 /**
