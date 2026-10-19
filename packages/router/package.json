@@ -1,6 +1,6 @@
 {
   "name": "vue-smart-router",
-  "version": "5.4.0",
+  "version": "5.4.1",
   "homepage": "https://github.com/adoin/router-cache-4-fullpath#readme",
   "bugs": {
     "url": "https://github.com/adoin/router-cache-4-fullpath/issues"
@@ -122,6 +122,9 @@
     },
     "./dist/*": "./dist/*"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "vitest --ui",
     "build": "tsdown",
@@ -207,8 +210,5 @@
   "vetur": {
     "tags": "vetur/tags.json",
     "attributes": "vetur/attributes.json"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }
