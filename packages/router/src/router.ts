@@ -26,6 +26,7 @@ import {
   scrollToPosition,
 } from './scrollBehavior'
 import { createRouterMatcher } from './matcher'
+import type { RouterMatcher } from './matcher'
 import type {
   NavigationFailure,
   NavigationRedirectError,
@@ -42,13 +43,14 @@ import {
   stringifyQuery as originalStringifyQuery,
 } from './query'
 import type { App } from 'vue'
-import { shallowRef, nextTick, unref, shallowReactive } from 'vue'
+import { shallowRef, nextTick, unref } from 'vue'
 import type { RouteRecordNormalized } from './matcher/types'
 import {
   parseURL,
   stringifyURL,
   isSameRouteLocation,
   START_LOCATION_NORMALIZED,
+  createReactiveRoute,
 } from './location'
 import {
   extractChangingRecords,
@@ -80,6 +82,17 @@ export interface RouterOptions extends EXPERIMENTAL_RouterOptions_Base {
    * Initial list of routes that should be added to the router.
    */
   routes: Readonly<RouteRecordRaw[]>
+
+  /**
+   * Allows Nuxt and SSR apps to pass a prebuilt matcher created with
+   * `createRouterMatcher`. Sharing a matcher between routers is only safe when
+   * no router mutates it (e.g. via `addRoute`).
+   *
+   * @internal for Nuxt only
+   * @deprecated This is only exposed for Nuxt, it's replaced in the
+   * upcoming router by the `resolver` option
+   */
+  matcher?: RouterMatcher
 }
 
 /**
@@ -146,7 +159,8 @@ export type Router =
  * @param options - {@link RouterOptions}
  */
 export function createRouter(options: RouterOptions): Router {
-  const matcher = createRouterMatcher(options.routes, options)
+  const matcher =
+    options.matcher || createRouterMatcher(options.routes, options)
   const parseQuery = options.parseQuery || originalParseQuery
   const stringifyQuery = options.stringifyQuery || originalStringifyQuery
   const routerHistory = options.history
@@ -1073,16 +1087,8 @@ export function createRouter(options: RouterOptions): Router {
         })
       }
 
-      const reactiveRoute = {} as RouteLocationNormalizedLoaded
-      for (const key in START_LOCATION_NORMALIZED) {
-        Object.defineProperty(reactiveRoute, key, {
-          get: () => currentRoute.value[key as keyof RouteLocationNormalized],
-          enumerable: true,
-        })
-      }
-
       app.provide(routerKey, router as Router)
-      app.provide(routeLocationKey, shallowReactive(reactiveRoute))
+      app.provide(routeLocationKey, createReactiveRoute(currentRoute))
       app.provide(routerViewLocationKey, currentRoute)
 
       const unmountApp = app.unmount

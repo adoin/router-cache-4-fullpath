@@ -89,6 +89,21 @@ export const diagnostics = /*#__PURE__*/ defineDiagnostics({
         `param "${p.paramName}" declares a parser twice in "${p.segment}": "${p.filenameParser}" in the file name and "${p.declaredParser}" in \`params.path\`. Keeping "${p.declaredParser}".`,
       fix: 'Remove one of the two parsers.',
     },
+    VUE_ROUTER_B0023: {
+      why: (p: {
+        paramName: string
+        segment: string
+        re: string
+        reason: string
+      }) =>
+        `Invalid custom regexp /${p.re}/ for param "${p.paramName}" in "${p.segment}": ${p.reason}. Using the default regexp.`,
+      fix: 'Fix the `re` option of the param in `params.path`.',
+    },
+    VUE_ROUTER_B0024: {
+      why: (p: { paramName: string; segment: string; re: string }) =>
+        `Custom regexp /${p.re}/ for repeatable param "${p.paramName}" in "${p.segment}" can match "/". Each value is not checked against the regexp after the path is split.`,
+      fix: 'Exclude "/" from the regexp, e.g. use `[^/]` instead of `.`.',
+    },
 
     // --- core/customBlock.ts ---
     VUE_ROUTER_B0012: {
@@ -136,6 +151,18 @@ export const diagnostics = /*#__PURE__*/ defineDiagnostics({
       why: (p: { parser: string; fullPath: string }) =>
         `Parameter parser "${p.parser}" not found for route "${p.fullPath}".`,
       fix: 'Define the param parser or use one of the native parsers.',
+    },
+
+    // --- core/treeNodeValue.ts ---
+    VUE_ROUTER_B0022: {
+      why: (p: {
+        segment: string
+        usedParamName: string
+        ignoredParamNames: string
+      }) =>
+        `Only one hash param can be declared per route. In "${p.segment}", using "${p.usedParamName}" and ignoring: ${p.ignoredParamNames}.`,
+      fix: (p: { usedParamName: string; ignoredParamNames: string }) =>
+        `Keep only one from ${p.ignoredParamNames} and ${p.usedParamName} or merge them into one single property.`,
     },
   },
 })

@@ -38,11 +38,11 @@ function walk(directory, files = []) {
 
 function renamePackage(content) {
   return content
-    .replaceAll('unplugin-vue-router', '__UNPLUGIN_VUE_ROUTER__')
-    .replaceAll('vue-router-mock', '__VUE_ROUTER_MOCK__')
-    .replaceAll('vue-router', 'vue-smart-router')
-    .replaceAll('__VUE_ROUTER_MOCK__', 'vue-router-mock')
-    .replaceAll('__UNPLUGIN_VUE_ROUTER__', 'unplugin-vue-router')
+    .replaceAll('unplugin-vue-smart-router', '__UNPLUGIN_VUE_ROUTER__')
+    .replaceAll('vue-smart-router-mock', '__VUE_ROUTER_MOCK__')
+    .replaceAll('vue-smart-router', 'vue-smart-router')
+    .replaceAll('__VUE_ROUTER_MOCK__', 'vue-smart-router-mock')
+    .replaceAll('__UNPLUGIN_VUE_ROUTER__', 'unplugin-vue-smart-router')
 }
 
 for (const file of walk(root)) {

@@ -3,7 +3,6 @@
 packageVersions:
   vue: 3.5.28
   vue-smart-router: 5.0.2
-  '@vue/devtools-api': 8.0.6
 ---
 
 # 安装
@@ -82,7 +81,8 @@ Vue Router 同时支持 **_ES module_** 和 **_global_** 构建版本。我们�
     "imports": {
       "vue": "https://unpkg.com/vue@{{ $frontmatter.packageVersions?.vue }}/dist/vue.esm-browser.js",
       "vue-smart-router": "https://unpkg.com/vue-smart-router@{{ $frontmatter.packageVersions?.['vue-smart-router'] }}/dist/vue-smart-router.esm-browser.js",
-      "@vue/devtools-api": "https://unpkg.com/@vue/devtools-api@{{ $frontmatter.packageVersions?.['@vue/devtools-api'] }}/dist/vue-devtools-api.esm-browser.js"
+      "nostics": "https://unpkg.com/nostics@1/dist/index.mjs",
+      "@vue/devtools-api": "https://unpkg.com/@vue/devtools-api@8/dist/vue-devtools-api.esm-browser.js"
     }
   }
 </script>
@@ -111,4 +111,4 @@ Vue Router 同时支持 **_ES module_** 和 **_global_** 构建版本。我们�
 
 对应的 Vue Router 生产构建版本为 `vue-smart-router.global.prod.js`。
 
-<RuleKitLink />
+<!-- <RuleKitLink /> -->

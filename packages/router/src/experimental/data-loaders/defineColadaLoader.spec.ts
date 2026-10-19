@@ -12,7 +12,7 @@ import {
   setCurrentContext,
 } from './entries/index'
 import { getRouter, testDefineLoader } from '../../tests/data-loaders'
-// import { getRouter } from 'vue-router-mock'
+// import { getRouter } from 'vue-smart-router-mock'
 import { enableAutoUnmount, mount } from '@vue/test-utils'
 import RouterViewMock from '../../tests/data-loaders/RouterViewMock.vue'
 import { setActivePinia, createPinia, getActivePinia } from 'pinia'

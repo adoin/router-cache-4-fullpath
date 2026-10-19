@@ -3,7 +3,6 @@
 packageVersions:
   vue: 3.5.28
   vue-smart-router: 5.0.2
-  '@vue/devtools-api': 8.0.6
 ---
 
 # Installation
@@ -86,7 +85,8 @@ Each build comes with a development and production version. The development vers
     "imports": {
       "vue": "https://unpkg.com/vue@{{ $frontmatter.packageVersions?.vue }}/dist/vue.esm-browser.js",
       "vue-smart-router": "https://unpkg.com/vue-smart-router@{{ $frontmatter.packageVersions?.['vue-smart-router'] }}/dist/vue-smart-router.esm-browser.js",
-      "@vue/devtools-api": "https://unpkg.com/@vue/devtools-api@{{ $frontmatter.packageVersions?.['@vue/devtools-api'] }}/dist/vue-devtools-api.esm-browser.js"
+      "nostics": "https://unpkg.com/nostics@1/dist/index.mjs",
+      "@vue/devtools-api": "https://unpkg.com/@vue/devtools-api@8/dist/vue-devtools-api.esm-browser.js"
     }
   }
 </script>
@@ -115,4 +115,4 @@ Each build comes with a development and production version. The development vers
 
 The corresponding production build of Vue Router is called `vue-smart-router.global.prod.js`.
 
-<RuleKitLink />
+<!-- <RuleKitLink /> -->

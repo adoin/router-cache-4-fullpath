@@ -508,7 +508,7 @@ export function testDefineLoader<Context = void>(
       await expect(p).rejects.toThrow('nope')
     })
 
-    // https://github.com/posva/unplugin-vue-router/issues/763
+    // https://github.com/posva/unplugin-vue-smart-router/issues/763
     for (const reason of [undefined, new Error('custom abort reason')]) {
       it(`propagates abortions with ${reason ? 'Error' : 'undefined'} from nested loaders, commit: ${commit}`, async () => {
         const alwaysAbortsLoader = mockedLoader({
@@ -709,7 +709,7 @@ export function testDefineLoader<Context = void>(
       expect(data.value).toEqual('resolved')
     })
 
-    // https://github.com/posva/unplugin-vue-router/issues/584
+    // https://github.com/posva/unplugin-vue-smart-router/issues/584
     it(`skips child loaders if parent throws a NavigationResult, commit: ${commit}`, async () => {
       // Parent loader that redirects
       const parentLoader = mockedLoader({
@@ -1665,7 +1665,7 @@ export function testDefineLoader<Context = void>(
   it.todo('can be first non-lazy then lazy', async () => {})
   it.todo('can be first non-lazy then lazy', async () => {})
 
-  // https://github.com/posva/unplugin-vue-router/issues/495
+  // https://github.com/posva/unplugin-vue-smart-router/issues/495
   // in the issue above we have one page with a loader
   // this page is conditionally rendered based on an error state
   // when resetting the error state, there is also a duplicated navigation

@@ -135,7 +135,7 @@ const routes = [
 ]
 ```
 
-In this specific scenario, we are using a [custom regexp](./route-matching-syntax.md#custom-regexp-in-params) between parentheses and marking the `pathMatch` param as [optionally repeatable](./route-matching-syntax.md#optional-parameters). This allows us to directly navigate to the route if we need to by splitting the `path` into an array:
+In this specific scenario, we are using a [custom regexp](./route-matching-syntax.md#Custom-regex-in-params) between parentheses and marking the `pathMatch` param as [optionally repeatable](./route-matching-syntax.md#Optional-parameters). This allows us to directly navigate to the route if we need to by splitting the `path` into an array:
 
 ```js
 router.push({
@@ -152,7 +152,7 @@ See more in the [repeated params](./route-matching-syntax.md#Repeatable-params) 
 
 If you are using [History mode](./history-mode.md), make sure to follow the instructions to correctly configure your server as well.
 
-<RuleKitLink />
+<!-- <RuleKitLink /> -->
 
 ## Advanced Matching Patterns
 

@@ -8,7 +8,7 @@ outline: 'deep'
 - Target Major Version: Vue 3, Vue Router 4
 - Reference Issues: -
 - [Discussion](https://github.com/vuejs/rfcs/discussions/460)
-- [Implementation PR](https://github.com/posva/unplugin-vue-router/tree/main/src/data-loaders)
+- [Implementation PR](https://github.com/posva/unplugin-vue-smart-router/tree/main/src/data-loaders)
 
 ## Todo List
 
@@ -34,7 +34,7 @@ That is the goal of this RFC, to standardize and improve data fetching with vue-
 - Avoid `<Suspense>`
   - No cascading loading states
   - No double mounting
-  - [more...](#suspense)
+  - [more...](#Suspense)
 - Provide atomic and global access to loading/error states
 - Allow 3rd party libraries to extend the loaders functionality by establish a set of Interfaces that can be implemented. This targets libraries like [VueFire](https://vuefire.vuejs.org), [@pinia/colada][pinia-colada], [vue-apollo](https://apollo.vuejs.org/), [@tanstack/vue-query][vue-query], etc to provide features like caching, pagination, etc. specific to their use cases.
 
@@ -43,7 +43,7 @@ That is the goal of this RFC, to standardize and improve data fetching with vue-
 - Automatically rerun when used params/query params/hash changes (avoid unnecessary fetches)
 - -->
 
-This proposal concerns Vue Router 4 and is implemented under [unplugin-vue-router][uvr]. This enables types in data loaders but **is not necessary**. This feature is independent of the rest of the plugin and can be used without it, namely **without file-based routing**.
+This proposal concerns Vue Router 4 and is implemented under [unplugin-vue-smart-router][uvr]. This enables types in data loaders but **is not necessary**. This feature is independent of the rest of the plugin and can be used without it, namely **without file-based routing**.
 
 ::: tip
 In this RFC, data loaders are often referred as _loaders_ for short. API names also use the word _loader_ instead of _data loader_ for brevity.
@@ -174,7 +174,7 @@ There are currently too many ways of handling data fetching with vue-smart-route
   - Only loads once (on mounting)
   - Does not wait for navigation (or requires double mounting: pending + current view)
   - Requires handling UI loading state
-  - [And more](#suspense)
+  - [And more](#Suspense)
 
 People are left with a low level API (navigation guards) to handle data fetching themselves. This is often a difficult problem to solve because it requires an extensive knowledge of the Router concepts and in reality, very few people know them. This leads to incomplete implementations that don't handle all the edge cases and don't provide a good user experience.
 
@@ -184,21 +184,21 @@ Thus, the goal of this proposal is to provide a simple yet extendable way of def
 
 The design of Data Loaders is split into two parts
 
-- [Implementations](#implementations)
+- [Implementations](#Implementations)
   - A bare-bone data loader
   - A more advanced data loader with client side caching using [@pinia/colada][pinia-colada]
-- The set of [Interfaces (types)](#interfaces) that define a Data Loader (WIP)
+- The set of [Interfaces (types)](#Interfaces) that define a Data Loader (WIP)
 
 ::: tip
-You might only be interested in trying out Data Loaders. In that case, check out the [implementations](#implementations) section for instructions on how to use this. It's still recommended to read the rest of the RFC to understand what to expect from Data Loaders.
+You might only be interested in trying out Data Loaders. In that case, check out the [implementations](#Implementations) section for instructions on how to use this. It's still recommended to read the rest of the RFC to understand what to expect from Data Loaders.
 :::
 
 ### Data Loader Setup
 
-`DataLoaderPlugin` adds the [navigation guard](#the-navigation-guard) that handles the data loaders. It requires access to the router instance to attach the navigation guard as well as some other options:
+`DataLoaderPlugin` adds the [navigation guard](#The-Navigation-Guard) that handles the data loaders. It requires access to the router instance to attach the navigation guard as well as some other options:
 
 - `router`: The Vue Router instance.
-- `selectNavigationResult` (optional): Called wih an array of `NavigationResult` returned by loaders. It allows to decide the _fate_ of the navigation that was modified by loaders. See [NavigationResult](#handling-multiple-navigation-results)
+- `selectNavigationResult` (optional): Called wih an array of `NavigationResult` returned by loaders. It allows to decide the _fate_ of the navigation that was modified by loaders. See [NavigationResult](#Handling-multiple-navigation-results)
 
 ```ts{2,9}
 import { createApp } from 'vue'
@@ -238,7 +238,7 @@ export const useUserData = defineLoader('/users/[id]', async route => {
 })
 ```
 
-The rest of the parameters are up to the implementation of the loader but they should accept [extra options](#defineloader-options).
+The rest of the parameters are up to the implementation of the loader but they should accept [extra options](#defineLoader-options).
 
 Within loaders there is no access to the current component or page instance, but it's possible to access global injections created with `app.provide()`. This includes stores created with [Pinia](https://pinia.vuejs.org).
 
@@ -530,7 +530,7 @@ export const useUserData = defineLoader(
 )
 ```
 
-`new NavigationResult()` accepts as its only argument anything that [can be returned in a navigation guard](https://router.vuejs.org/guide/advanced/navigation-guards.html#global-before-guards) to alter the navigation. e.g. it doesn't accept `true` or `undefined` as these do not modify the navigation.
+`new NavigationResult()` accepts as its only argument anything that [can be returned in a navigation guard](https://router.vuejs.org/guide/advanced/navigation-guards.html#Global-Before-Guards) to alter the navigation. e.g. it doesn't accept `true` or `undefined` as these do not modify the navigation.
 
 Some alternatives:
 
@@ -550,7 +550,7 @@ Throwing an error does not trigger the `selectNavigationResult()` method. Instea
 
 #### Handling multiple navigation results
 
-Since navigation loaders can run in parallel, they can return different navigation results as well. In this case, you can decide which result should be used by providing a `selectNavigationResult()` method to [`DataLoaderPlugin`](#data-loader-setup):
+Since navigation loaders can run in parallel, they can return different navigation results as well. In this case, you can decide which result should be used by providing a `selectNavigationResult()` method to [`DataLoaderPlugin`](#Data-Loader-Setup):
 
 ```ts{3-6} twoslash
 import 'vue-smart-router/auto-routes'
@@ -705,7 +705,7 @@ If you use a loader in a component while it wasn't exported by a page, it won't 
 
 ### TypeScript
 
-Types are automatically generated for the routes by [unplugin-vue-router][uvr] and can be referenced with the name of each route to hint `defineLoader()` the possible values of the current types. On top of that, `defineLoader()` infers the returned types:
+Types are automatically generated for the routes by [unplugin-vue-smart-router][uvr] and can be referenced with the name of each route to hint `defineLoader()` the possible values of the current types. On top of that, `defineLoader()` infers the returned types:
 
 ```vue twoslash
 <script lang="ts">
@@ -817,7 +817,7 @@ This aligns with the future [Navigation API](https://github.com/WICG/navigation-
 Defining a minimal set of information and options for Data Loaders is what enables external libraries to implement their own data loaders. They are meant to extend these interfaces to add more features that are specific to them. You can see a practical example with the [Pinia Colada](./colada/) implementation.
 
 ::: danger
-This section is still a work in progress, see the [implementations](#implementations) instead.
+This section is still a work in progress, see the [implementations](#Implementations) instead.
 :::
 
 ### Global API
@@ -838,7 +838,7 @@ TBD: is this worth it? Are any other functions needed?
 
 ## Drawbacks
 
-- At first, it looks less intuitive than just awaiting something inside `setup()` with `<Suspense>` [but it doesn't have its limitations](#suspense) and have many more features
+- At first, it looks less intuitive than just awaiting something inside `setup()` with `<Suspense>` [but it doesn't have its limitations](#Suspense) and have many more features
 - Requires an extra `<script>` tag but only for page components. A macro `definePageLoader()`/`defineLoader()` could be error-prone as it's very tempting to use reactive state declared within the component's `<script setup>` but that's not possible as the loader must be created outside of its `setup()` function
 
 ## Alternatives
@@ -969,7 +969,7 @@ On top of this it's important to note that this RFC doesn't limit you: you can s
   })
   ```
 
-  This has the problem of not being able to use the `route.name` to determine the correct typed params (with [unplugin-vue-router][uvr]):
+  This has the problem of not being able to use the `route.name` to determine the correct typed params (with [unplugin-vue-smart-router][uvr]):
 
   ```ts
   import { getUserById } from '../api'
@@ -990,6 +990,7 @@ On top of this it's important to note that this RFC doesn't limit you: you can s
   ::: details
 
   Variables could be named differently and proposals are welcome:
+
   - `isLoading` -> `isPending`, `pending` (same as Nuxt)
   - Rename `defineLoader()` to `defineDataFetching()` (or others)
 
@@ -998,7 +999,7 @@ On top of this it's important to note that this RFC doesn't limit you: you can s
 - Nested/Sequential Loaders drawbacks
 
   ::: details
-  - Allowing `await getUserById()` could make people think they should also await inside `<script setup>` and that would be a problem because it would force them to use `<Suspense>` when they don't need to. I think this is solved by changing the return type of the loader to a promise of just data, making it easy to spot the mistake. It could also be solved by forcing the need of a parameter `to` to ensure the type safety as explained [above](#sequential-fetching).
+  - Allowing `await getUserById()` could make people think they should also await inside `<script setup>` and that would be a problem because it would force them to use `<Suspense>` when they don't need to. I think this is solved by changing the return type of the loader to a promise of just data, making it easy to spot the mistake. It could also be solved by forcing the need of a parameter `to` to ensure the type safety as explained [above](#Sequential-fetching).
 
   - Another alternative is to pass an array of loaders to the loader that needs them and let it retrieve them through an argument, but it feels _considerably_ less ergonomic:
 
@@ -1070,7 +1071,7 @@ On top of this it's important to note that this RFC doesn't limit you: you can s
 
 ## Adoption strategy
 
-Introduce this as part of [unplugin-vue-router][uvr] to test it first and make it part of the router later on.
+Introduce this as part of [unplugin-vue-smart-router][uvr] to test it first and make it part of the router later on.
 
 ## Unresolved questions
 
@@ -1087,6 +1088,6 @@ TODO: we could attach an effect scope it each loader, allowing creating reactive
 
  -->
 
-[uvr]: https://github.com/posva/unplugin-vue-router 'unplugin-vue-router'
+[uvr]: https://github.com/posva/unplugin-vue-smart-router 'unplugin-vue-smart-router'
 [pinia-colada]: https://github.com/posva/pinia-colada '@pinia/colada'
 [vue-query]: https://tanstack.com/query/latest/docs/framework/vue/overview '@tanstack/vue-query'

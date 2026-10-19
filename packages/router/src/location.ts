@@ -1,9 +1,10 @@
+import { shallowReactive, type Ref } from 'vue'
 import type { LocationQuery, LocationQueryRaw } from './query'
 import type { RouteParamValue, RouteParamsGeneric } from './types'
 import type { RouteRecord } from './matcher/types'
 import { diagnostics } from './diagnostics'
 import { isAbsolutePath, isArray } from './utils'
-import { decode, encodeHash } from './encoding'
+import { decode } from './encoding'
 import type {
   RouteLocation,
   RouteLocationNormalizedLoaded,
@@ -101,37 +102,6 @@ export function parseURL(
     query,
     hash: decode(hash),
   }
-}
-
-/**
- * Creates a `fullPath` property from the `path`, `query` and `hash` properties
- *
- * @param  stringifyQuery - custom function to stringify the query object. It should handle encoding values
- * @param  path - An encdoded path
- * @param  query - A decoded query object
- * @param  hash - A decoded hash
- * @returns a valid `fullPath`
- */
-export function NEW_stringifyURL(
-  stringifyQuery: (query?: LocationQueryRaw) => string,
-  path: `/${string}`,
-  query?: LocationPartial['query'],
-  hash?: LocationPartial['hash']
-): `/${string}`
-export function NEW_stringifyURL(
-  stringifyQuery: (query?: LocationQueryRaw) => string,
-  path: string,
-  query?: LocationPartial['query'],
-  hash?: LocationPartial['hash']
-): string
-export function NEW_stringifyURL(
-  stringifyQuery: (query?: LocationQueryRaw) => string,
-  path: string,
-  query?: LocationPartial['query'],
-  hash: LocationPartial['hash'] = ''
-): string {
-  const searchText = stringifyQuery(query)
-  return path + (searchText && '?') + searchText + encodeHash(hash)
 }
 
 /**
@@ -318,4 +288,22 @@ export const START_LOCATION_NORMALIZED: RouteLocationNormalizedLoaded = {
   matched: [],
   meta: {},
   redirectedFrom: undefined,
+}
+
+/**
+ * Creates the reactive route returned by `useRoute()` from a route ref.
+ *
+ * @internal
+ */
+export function createReactiveRoute(
+  routeRef: Ref<RouteLocationNormalizedLoaded>
+): RouteLocationNormalizedLoaded {
+  const route = {} as RouteLocationNormalizedLoaded
+  for (const key in START_LOCATION_NORMALIZED) {
+    Object.defineProperty(route, key, {
+      get: () => routeRef.value[key as keyof RouteLocationNormalizedLoaded],
+      enumerable: true,
+    })
+  }
+  return shallowReactive(route)
 }

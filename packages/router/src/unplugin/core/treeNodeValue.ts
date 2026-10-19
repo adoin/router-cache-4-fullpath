@@ -1,4 +1,7 @@
-import type { CustomRouteBlock } from './customBlock'
+import type {
+  CustomRouteBlock,
+  CustomRouteBlockPathParamOptions,
+} from './customBlock'
 import { joinPath, mergeRouteRecordOverride } from './utils'
 import { diagnostics } from '../diagnostics'
 import { encodePath } from '../utils/encoding'
@@ -53,13 +56,22 @@ class _TreeNodeValueBase {
    * Overrides defined by each file. The map is necessary to handle named views.
    */
   private _overrides = new Map<string, RouteRecordOverride>()
-  // TODO: measure perf bottlenecks with large trees and use caching if it can potentially improve
+  /**
+   * Merged result of `_overrides`. Reset by every method that writes to them.
+   */
+  private _mergedOverrides: RouteRecordOverride | null = null
 
   /**
    * Params already warned about declaring a parser twice, so the warning is
    * emitted once per param even though `pathParams` is a getter.
    */
   private _warnedParsers = new Set<string>()
+  private _warnedRegexps = new Set<string>()
+
+  /**
+   * Ignored hash params last warned about, for the same reason.
+   */
+  private _warnedHashParams = ''
 
   /**
    * View name (Vue Router feature) mapped to their corresponding file. By default, the view name is `default` unless
@@ -126,12 +138,14 @@ class _TreeNodeValueBase {
       if (!config) continue
       if (typeof config === 'string') {
         queryParams.push({
+          type: 'query',
           paramName,
           parser: config,
           format: null,
         })
       } else {
         queryParams.push({
+          type: 'query',
           paramName,
           parser: config.parser || null,
           format: config.format || null,
@@ -145,11 +159,46 @@ class _TreeNodeValueBase {
   }
 
   /**
-   * Gets all the params for the node including path and query params. This
-   * does not include params from parent nodes.
+   * Gets hash params declared on this node.
    */
-  get params(): (TreePathParam | TreeQueryParam)[] {
-    return [...this.pathParams, ...this.queryParams]
+  get hashParams(): TreeHashParam[] {
+    const hash = this.overrides.params?.hash ?? {}
+    const paramNames = Object.keys(hash)
+    // the last one wins, like other overrides
+    const paramName = paramNames.at(-1)
+    if (paramNames.length > 1) {
+      const ignoredParamNames = paramNames.slice(0, -1).join(', ')
+      if (this._warnedHashParams !== ignoredParamNames) {
+        this._warnedHashParams = ignoredParamNames
+        diagnostics.VUE_ROUTER_B0022({
+          segment: this.rawSegment,
+          usedParamName: paramName!,
+          ignoredParamNames,
+        })
+      }
+    }
+
+    let config = paramName ? hash[paramName] : undefined
+    if (typeof config === 'string') config = { parser: config }
+
+    return paramName && config
+      ? [
+          {
+            type: 'hash',
+            paramName,
+            parser: config.parser || null,
+            defaultValue: config.default,
+            required: config.required,
+          },
+        ]
+      : []
+  }
+
+  /**
+   * Gets path, query, and hash params declared on this node.
+   */
+  get params(): TreeParam[] {
+    return [...this.pathParams, ...this.queryParams, ...this.hashParams]
   }
 
   /**
@@ -179,7 +228,16 @@ class _TreeNodeValueBase {
     }
 
     return params.map(param => {
-      const parser = declaredParsers[param.paramName]
+      const declared = declaredParsers[param.paramName]
+      const { parser, re }: CustomRouteBlockPathParamOptions =
+        declared && typeof declared === 'object'
+          ? declared
+          : { parser: declared }
+
+      if (re != null) {
+        param = { ...param, re: this._validateParamRe(param, re) }
+      }
+
       // an explicit `null` removes the parser declared in the file name
       if (parser === undefined) {
         return param
@@ -197,6 +255,58 @@ class _TreeNodeValueBase {
 
       return { ...param, parser }
     })
+  }
+
+  /**
+   * Returns the regexp source if it can be used to match the param, `null`
+   * otherwise.
+   */
+  private _validateParamRe(param: TreePathParam, re: string): string | null {
+    let reason: string | undefined
+    if (param.isSplat) {
+      reason = 'splat params always match everything'
+    } else {
+      try {
+        // escapes `/` in sources from `<route>` blocks
+        re = new RegExp(re).source
+        // matching the empty alternative gives back one entry per group
+        const groups = new RegExp(re + '|').exec('')!.length - 1
+        if (groups > 0) {
+          reason = 'it contains capturing groups, use `(?:...)` instead'
+        } else if (new RegExp(`^(?:${re})$`).test('')) {
+          reason = 'it matches an empty value'
+        }
+      } catch (err: any) {
+        reason = err.message
+      }
+    }
+
+    if (reason) {
+      if (!this._warnedRegexps.has(param.paramName)) {
+        this._warnedRegexps.add(param.paramName)
+        diagnostics.VUE_ROUTER_B0023({
+          paramName: param.paramName,
+          segment: this.rawSegment,
+          re,
+          reason,
+        })
+      }
+      return null
+    }
+
+    if (param.repeatable && !this._warnedRegexps.has(param.paramName)) {
+      // heuristic: misses regexps that only match `/` between other chars
+      if (new RegExp(`^(?:${re})$`).test('/')) {
+        this._warnedRegexps.add(param.paramName)
+        diagnostics.VUE_ROUTER_B0024({
+          paramName: param.paramName,
+          segment: this.rawSegment,
+          re,
+        })
+      }
+    }
+
+    return re
   }
 
   toString(): string {
@@ -228,8 +338,8 @@ class _TreeNodeValueBase {
     return this._type === TreeNodeType.group
   }
 
-  get overrides() {
-    return [...this._overrides.entries()]
+  get overrides(): RouteRecordOverride {
+    return (this._mergedOverrides ??= [...this._overrides.entries()]
       .sort(([nameA], [nameB]) =>
         nameA === nameB
           ? 0
@@ -242,11 +352,12 @@ class _TreeNodeValueBase {
       )
       .reduce((acc, [_path, routeBlock]) => {
         return mergeRouteRecordOverride(acc, routeBlock)
-      }, {} as RouteRecordOverride)
+      }, {} as RouteRecordOverride))
   }
 
   setOverride(filePath: string, routeBlock: CustomRouteBlock | undefined) {
     this._overrides.set(filePath, routeBlock || {})
+    this._mergedOverrides = null
   }
 
   /**
@@ -258,6 +369,7 @@ class _TreeNodeValueBase {
     for (const [_filePath, routeBlock] of this._overrides) {
       delete routeBlock[key]
     }
+    this._mergedOverrides = null
   }
 
   /**
@@ -272,6 +384,7 @@ class _TreeNodeValueBase {
       filePath,
       mergeRouteRecordOverride(existing, routeBlock)
     )
+    this._mergedOverrides = null
   }
 
   /**
@@ -300,6 +413,7 @@ class _TreeNodeValueBase {
 
     const existing = this._overrides.get(EDITS_OVERRIDE_NAME)!
     existing[key] = value
+    this._mergedOverrides = null
   }
 }
 
@@ -347,16 +461,39 @@ export class TreeNodeValueGroup extends _TreeNodeValueBase {
   }
 }
 
+export type TreeParam = TreePathParam | TreeQueryParam | TreeHashParam
+
 export interface TreePathParam {
+  type: 'path'
   paramName: string
   modifier: string
   optional: boolean
   repeatable: boolean
   isSplat: boolean
   parser: string | null
+  /**
+   * Source of the custom regexp used to match the param. `null` uses the
+   * default one.
+   */
+  re: string | null
+}
+
+export interface TreeHashParam {
+  type: 'hash'
+  paramName: string
+  parser: string | null
+  defaultValue?: string
+  required?: boolean
+}
+
+export function isTreeHashParam(
+  param: TreeParam | PathSubSegment
+): param is TreeHashParam {
+  return typeof param !== 'string' && param.type === 'hash'
 }
 
 export interface TreeQueryParam {
+  type: 'query'
   paramName: string
 
   queryKey?: string
@@ -379,18 +516,21 @@ export interface TreeQueryParam {
 }
 
 /**
- * Checks if a TreePathParam or TreeQueryParam is optional.
+ * Checks if a path, query, or hash param is optional.
  *
  * @internal
  */
-export function isTreeParamOptional(
-  param: TreePathParam | TreeQueryParam
-): boolean {
-  if ('optional' in param) {
+export function isTreeParamOptional(param: TreeParam): boolean {
+  if (param.type === 'path') {
     return param.optional
   }
-  // Query params are optional if they have a defaultValue OR if they're not required
-  return param.defaultValue !== undefined || !param.required
+  return hasTreeParamDefault(param) || !param.required
+}
+
+export function hasTreeParamDefault(
+  param: TreeQueryParam | TreeHashParam
+): boolean {
+  return param.defaultValue !== undefined && param.defaultValue !== 'undefined'
 }
 
 /**
@@ -398,10 +538,9 @@ export function isTreeParamOptional(
  *
  * @internal
  */
-export function isTreeParamRepeatable(
-  param: TreePathParam | TreeQueryParam
-): boolean {
-  if ('repeatable' in param) {
+export function isTreeParamRepeatable(param: TreeParam): boolean {
+  if (isTreeHashParam(param)) return false
+  if (param.type === 'path') {
     return param.repeatable
   }
   return param.format === 'array'
@@ -413,9 +552,9 @@ export function isTreeParamRepeatable(
  * @internal
  */
 export function isTreePathParam(
-  param: TreePathParam | TreeQueryParam | PathSubSegment
+  param: TreeParam | PathSubSegment
 ): param is TreePathParam {
-  return typeof param !== 'string' && 'modifier' in param
+  return typeof param !== 'string' && param.type === 'path'
 }
 
 /**
@@ -478,6 +617,9 @@ export class TreeNodeValueParam extends _TreeNodeValueBase {
    * Generates the regex pattern for the path segment.
    */
   get re(): string {
+    const customRegexps = new Map(
+      this.pathParams.map(param => [param.paramName, param.re])
+    )
     let regexp = ''
     for (var i = 0; i < this.subSegments.length; i++) {
       var segment = this.subSegments[i]
@@ -489,7 +631,15 @@ export class TreeNodeValueParam extends _TreeNodeValueBase {
       } else if (segment.isSplat) {
         regexp += '(.*)'
       } else {
-        var re = segment.repeatable ? '(.+?)' : '([^/]+?)'
+        var customRe = customRegexps.get(segment.paramName)
+        var re = customRe
+          ? segment.repeatable
+            ? // each repetition must match the custom regexp
+              `((?:${customRe})(?:\\/(?:${customRe}))*)`
+            : `(${customRe})`
+          : segment.repeatable
+            ? '(.+?)'
+            : '([^/]+?)'
         if (segment.optional) {
           // check ahead if there is a static segment after this one that starts with a slash
           // TODO: trailingSlash behavior
@@ -522,8 +672,8 @@ export class TreeNodeValueParam extends _TreeNodeValueBase {
           this.params
             .map(
               p =>
-                ('format' in p ? '?' : '') +
-                `${p.paramName}${'modifier' in p ? p.modifier : ''}` +
+                (p.type === 'query' ? '?' : '') +
+                `${p.paramName}${p.type === 'path' ? p.modifier : ''}` +
                 (p.parser ? '=' + p.parser : '')
             )
             .join(', ') +
@@ -723,7 +873,9 @@ function parseFileSegment(
           `Invalid hex code "${buffer}" in segment "${segment}"`
         )
       }
-      pathSegment += String.fromCharCode(parseInt(buffer, 16))
+      const char = String.fromCharCode(parseInt(buffer, 16))
+      pathSegment += char
+      subSegments.push(char)
     }
     buffer = ''
   }
@@ -986,11 +1138,13 @@ function parseRawPathSegment(
  */
 function createEmptyRouteParam(): TreePathParam {
   return {
+    type: 'path',
     paramName: '',
     parser: null,
     modifier: '',
     optional: false,
     repeatable: false,
     isSplat: false,
+    re: null,
   }
 }

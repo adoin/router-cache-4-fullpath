@@ -31,9 +31,15 @@ export interface CustomRouteBlock extends Partial<
   params?: {
     /**
      * Override the parser for a given path param. Set to `null` to remove a
-     * filename-based parser (e.g. revert `[id=int]` back to no parser).
+     * filename-based parser (e.g. revert `[id=int]` back to no parser). The
+     * options object also allows a custom regexp source with `re`.
      */
-    path?: Record<string, string | null>
+    path?: Record<string, string | null | CustomRouteBlockPathParamOptions>
+
+    /**
+     * Declare one parser that receives the hash content without the leading `#`.
+     */
+    hash?: Record<string, string | CustomRouteBlockHashParamOptions>
 
     /**
      * Declare query params for the route. The value is either a parser name
@@ -43,6 +49,14 @@ export interface CustomRouteBlock extends Partial<
   }
 }
 
+export interface CustomRouteBlockPathParamOptions {
+  parser?: string | null
+  /**
+   * Source of the regexp used to match the param. `null` uses the default one.
+   */
+  re?: string | null
+}
+
 export interface CustomRouteBlockQueryParamOptions {
   parser?: string
   format?: DefinePageQueryParamOptions['format']
@@ -50,6 +64,11 @@ export interface CustomRouteBlockQueryParamOptions {
   default?: string
   required?: boolean
 }
+
+export type CustomRouteBlockHashParamOptions = Omit<
+  CustomRouteBlockQueryParamOptions,
+  'format'
+>
 
 function parseCustomBlock(
   block: SFCBlock,

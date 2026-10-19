@@ -32,6 +32,7 @@ import type {
 } from '../../typed-routes'
 import type { Router } from '../../router'
 import { useRoute, useRouter } from '../../useApi'
+import { assign } from '../../utils'
 
 /**
  * Creates a data loader composable that can be exported by pages to attach the data loading to a route. In this version `data` is always defined.
@@ -353,7 +354,7 @@ export function defineBasicLoader<Data>(
       // we could also check for: but that would break nested loaders since they need to be always called to be associated with the parent
       // && entry.to !== route
       // the user managed to render the router view after a valid navigation + a failed navigation
-      // https://github.com/posva/unplugin-vue-router/issues/495
+      // https://github.com/posva/unplugin-vue-smart-router/issues/495
       !entry.pendingLoad
     ) {
       // console.log(
@@ -402,7 +403,7 @@ export function defineBasicLoader<Data>(
       .finally(() => setCurrentContext(currentContext))
 
     setCurrentContext(currentContext)
-    return Object.assign(promise, useDataLoaderResult)
+    return assign(promise, useDataLoaderResult)
   }
 
   // mark it as a data loader

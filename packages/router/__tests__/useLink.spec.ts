@@ -167,6 +167,69 @@ describe('useLink', () => {
       expect(link.isActive.value).toBe(true)
       expect(link.isExactActive.value).toBe(true)
     })
+
+    describe('optional params', () => {
+      async function linkToAbout(to: UseLinkOptions['to']) {
+        const aboutRoute = normalizeRouteRecord({
+          name: 'about',
+          path: new MatcherPatternPathDynamic(
+            /^\/about(?:\/(test))?$/,
+            { mode: [] },
+            ['about', 1]
+          ),
+          components: { default: {} },
+        })
+        const router = experimental_createRouter({
+          history: createMemoryHistory(),
+          resolver: createFixedResolver([aboutRoute]),
+        })
+        await router.push('/about')
+
+        let link!: ReturnType<typeof useLink>
+        mount(
+          {
+            setup() {
+              link = useLink({ to })
+              return () => ''
+            },
+          },
+          { global: { plugins: [router] } }
+        )
+
+        return link
+      }
+
+      it('is active when the optional param is missing', async () => {
+        const link = await linkToAbout({ name: 'about', params: {} })
+
+        expect(link.isActive.value).toBe(true)
+        expect(link.isExactActive.value).toBe(true)
+      })
+
+      it('is active when the optional param is null', async () => {
+        const link = await linkToAbout({
+          name: 'about',
+          params: { mode: null },
+        })
+
+        expect(link.isActive.value).toBe(true)
+        expect(link.isExactActive.value).toBe(true)
+      })
+
+      it('is active for the path without a trailing slash', async () => {
+        const link = await linkToAbout('/about')
+
+        expect(link.isActive.value).toBe(true)
+        expect(link.isExactActive.value).toBe(true)
+      })
+
+      it('is inactive for the path with a trailing slash', async () => {
+        const link = await linkToAbout('/about/')
+
+        expect(link.isActive.value).toBe(false)
+        expect(link.isExactActive.value).toBe(false)
+      })
+    })
   })
 
   describe('warnings', () => {

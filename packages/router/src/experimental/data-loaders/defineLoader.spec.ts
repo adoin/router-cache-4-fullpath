@@ -18,7 +18,7 @@ import {
   setCurrentContext,
 } from './entries/index'
 import { getRouter, testDefineLoader } from '../../tests/data-loaders'
-// import { getRouter } from 'vue-router-mock'
+// import { getRouter } from 'vue-smart-router-mock'
 import { enableAutoUnmount, mount } from '@vue/test-utils'
 import RouterViewMock from '../../tests/data-loaders/RouterViewMock.vue'
 import { mockPromise } from '../../tests/utils'
@@ -259,7 +259,7 @@ describe(
 
     describe('warns', () => {
       // this might happen if the user forgets to export a loader
-      // https://github.com/posva/unplugin-vue-router/issues/759
+      // https://github.com/posva/unplugin-vue-smart-router/issues/759
       it('warns if a NavigationResult is returned (deprecated)', async () => {
         const router = getRouter()
         const l1 = mockedLoader({ key: 'my-key' })

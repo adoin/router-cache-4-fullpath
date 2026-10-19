@@ -1,3 +1,42 @@
+# [5.4.0](https://github.com/vuejs/router/compare/v5.3.1...v5.4.0) (2026-10-07)
+
+- feat(experimental)!: normalize query values to arrays (#2824) ([f1fbc06](https://github.com/vuejs/router/commit/f1fbc067e489aa310c1ea028c48bcffa4f024b76)), closes [#2824](https://github.com/vuejs/router/issues/2824)
+
+### Bug Fixes
+
+- **experimental:** align hash parameter parsing with queries ([cf25179](https://github.com/vuejs/router/commit/cf25179f3e3e14a7cea46802e8e51d9bd4a70b47))
+- **experimental:** disallow required with a default for query params ([f60e9e3](https://github.com/vuejs/router/commit/f60e9e37a95b45bf65594667e36913fff1e82088))
+- **experimental:** do not inherit params, query, or hash on redirects ([02a9265](https://github.com/vuejs/router/commit/02a92656346b574d11f67545d5f2fb3d09bcdf9f))
+- **experimental:** exclude defaults from required hash params ([346e2cd](https://github.com/vuejs/router/commit/346e2cde82e6849f23229fd44f476cc463d08880))
+- **experimental:** keep declared case of static prefix in MatcherPatternPathStar.build() ([#2798](https://github.com/vuejs/router/issues/2798)) ([4dc6bfa](https://github.com/vuejs/router/commit/4dc6bfa165491877f98434036deaf000e1583aed))
+- **experimental:** keep last hash param instead of throwing ([d1e8ac1](https://github.com/vuejs/router/commit/d1e8ac174d274ebfbda693116ecd1fb0749cfe47))
+- **experimental:** make hash params optional and nullable ([d9a4ceb](https://github.com/vuejs/router/commit/d9a4ceb056e48cc6f19f95ed46328a6ed59a3541))
+- **experimental:** make query params with a default optional on push ([fb604ea](https://github.com/vuejs/router/commit/fb604ea61b37510ab71d95fd451bd28a2cc1b76b))
+- **history:** invalidate obsolete scroll positions ([#2814](https://github.com/vuejs/router/issues/2814)) ([071f196](https://github.com/vuejs/router/commit/071f1969be1348e797a55d0d8afb72b8068154dc))
+- resolve experimental guard redirects against target on history navigation ([2c5fbd6](https://github.com/vuejs/router/commit/2c5fbd6308d1091105531769da2e7b598aa9dfce))
+- **unplugin:** keep hex character codes in param segments regexp ([#2811](https://github.com/vuejs/router/issues/2811)) ([07663eb](https://github.com/vuejs/router/commit/07663eb6be6b44c9f65b1b0ea2caaffc25bf1431))
+- **unplugin:** sanitize named view in definePage import ([#2809](https://github.com/vuejs/router/issues/2809)) ([0711dff](https://github.com/vuejs/router/commit/0711dff9e2abf50d84db3276fe9bda0c5e84c879))
+
+### Features
+
+- accept a prebuilt matcher in `createRouter` ([#2804](https://github.com/vuejs/router/issues/2804)) ([9de967f](https://github.com/vuejs/router/commit/9de967f46ca4d39a962880684eee0a09d5d175e4))
+- diagnose experimental beforeEnter migration ([b695cd0](https://github.com/vuejs/router/commit/b695cd0f7f61585527d166d36a68da6a0bf1d351))
+- **experimental:** allow custom regexp for path params in definePage ([#2822](https://github.com/vuejs/router/issues/2822)) ([3a192ad](https://github.com/vuejs/router/commit/3a192ad18119ab636491af074448c4611e7de50f))
+- **experimental:** configure required and default hash params ([cef5cfa](https://github.com/vuejs/router/commit/cef5cfae42c87078a87f2f8939908a07fad505b3))
+- **experimental:** extract hash params with definePage ([dbf2d9e](https://github.com/vuejs/router/commit/dbf2d9e22f27826d9884929dbcad0d7bffa582bf))
+- **experimental:** never decode the hash, protect-only encoding ([#2760](https://github.com/vuejs/router/issues/2760)) ([aca2c83](https://github.com/vuejs/router/commit/aca2c83a5088cdfcaf153bf088dcf28e5b29c84f))
+- **experimental:** warn about legacy optional param removal ([#2818](https://github.com/vuejs/router/issues/2818)) ([c2f92a4](https://github.com/vuejs/router/commit/c2f92a4dd7c10bbd7a7414d866c61bbb7345c972))
+- **router:** restore hashes and top by default ([7c3851f](https://github.com/vuejs/router/commit/7c3851f830e461720cd5ab63caac1ce3b513a5bc))
+- useScrollRestoration and onRouteRendered ([#2805](https://github.com/vuejs/router/issues/2805)) ([e3dde5e](https://github.com/vuejs/router/commit/e3dde5eb545a81c4a3425bc3b635ff7fd89b6448))
+
+### Performance Improvements
+
+- **unplugin:** cache merged route overrides ([#2821](https://github.com/vuejs/router/issues/2821)) ([732b723](https://github.com/vuejs/router/commit/732b723e670065f76c69f782cc2c4ec0f3eb4d50))
+
+### BREAKING CHANGES
+
+- in the new experimental router, all query values are arrays by default, to simplify type checks. Using param parsers still allow to extract one single value and are unchanged
+
 ## [5.3.1](https://github.com/vuejs/router/compare/v5.3.0...v5.3.1) (2026-09-02)
 
 ### Bug Fixes
@@ -208,7 +247,7 @@
 
 # [5.0.0](https://github.com/vuejs/router/compare/v4.6.4...v5.0.0) (2026-01-29)
 
-Vue Router 5 merges [unplugin-vue-router](https://uvr.esm.is) into the core package. See [the migration guide](https://router.vuejs.org/guide/migration/v4-to-v5.html) for instructions on how to upgrade from unplugin-vue-router to Vue Router 5.
+Vue Router 5 merges [unplugin-vue-smart-router](https://uvr.esm.is) into the core package. See [the migration guide](https://router.vuejs.org/guide/migration/v4-to-v5.html) for instructions on how to upgrade from unplugin-vue-smart-router to Vue Router 5.
 
 ### Bug Fixes
 
@@ -230,33 +269,33 @@ Vue Router 5 merges [unplugin-vue-router](https://uvr.esm.is) into the core pack
 
 # [5.0.0-beta.0](https://github.com/vuejs/router/compare/v4.6.4...v5.0.0-beta.0) (2026-01-19)
 
-Vue Router 5 merges [unplugin-vue-router](https://uvr.esm.is) into the core package. It has no breaking changes itself, so you should be able to upgrade it no matter if you use unplugin-vue-router or Vue Router 4 without file-based routing, and everything should just work. If not, please open an issue!
+Vue Router 5 merges [unplugin-vue-smart-router](https://uvr.esm.is) into the core package. It has no breaking changes itself, so you should be able to upgrade it no matter if you use unplugin-vue-smart-router or Vue Router 4 without file-based routing, and everything should just work. If not, please open an issue!
 
 > [!NOTE]
-> If you are not using unplugin-vue-router, there are no breaking changes affecting you
+> If you are not using unplugin-vue-smart-router, there are no breaking changes affecting you
 
 ---
 
-## Migrating from unplugin-vue-router
+## Migrating from unplugin-vue-smart-router
 
-If you're already using `unplugin-vue-router`, migration is mostly import changes.
+If you're already using `unplugin-vue-smart-router`, migration is mostly import changes.
 
-### Migration Checklist (unplugin-vue-router)
+### Migration Checklist (unplugin-vue-smart-router)
 
 This is the TLDR version of the steps below:
 
-- [ ] Remove `unplugin-vue-router` dependency
+- [ ] Remove `unplugin-vue-smart-router` dependency
 - [ ] Update `vue-smart-router` to v5
-- [ ] Change plugin import: `unplugin-vue-router/vite` → `vue-smart-router/vite`
-- [ ] Change data loader imports: `unplugin-vue-router/data-loaders/*` → `vue-smart-router/experimental`
-- [ ] Change utility imports: `unplugin-vue-router` → `vue-smart-router/unplugin`
-- [ ] Change Volar plugins: `unplugin-vue-router/volar/*` → `vue-smart-router/volar/*`
-- [ ] Remove `unplugin-vue-router/client` from tsconfig / env.d.ts
+- [ ] Change plugin import: `unplugin-vue-smart-router/vite` → `vue-smart-router/vite`
+- [ ] Change data loader imports: `unplugin-vue-smart-router/data-loaders/*` → `vue-smart-router/experimental`
+- [ ] Change utility imports: `unplugin-vue-smart-router` → `vue-smart-router/unplugin`
+- [ ] Change Volar plugins: `unplugin-vue-smart-router/volar/*` → `vue-smart-router/volar/*`
+- [ ] Remove `unplugin-vue-smart-router/client` from tsconfig / env.d.ts
 
 ### 1. Update Dependencies
 
 ```bash
-pnpm remove unplugin-vue-router
+pnpm remove unplugin-vue-smart-router
 pnpm update vue-smart-router@5
 ```
 
@@ -266,7 +305,7 @@ pnpm update vue-smart-router@5
 
 ```ts
 // Before
-import VueRouter from 'unplugin-vue-router/vite'
+import VueRouter from 'unplugin-vue-smart-router/vite'
 
 // After
 import VueRouter from 'vue-smart-router/vite'
@@ -286,9 +325,9 @@ VueRouter.rollup({/* ... */})
 
 ```ts
 // Before
-import { defineBasicLoader } from 'unplugin-vue-router/data-loaders/basic'
-import { defineColadaLoader } from 'unplugin-vue-router/data-loaders/pinia-colada'
-import { DataLoaderPlugin } from 'unplugin-vue-router/data-loaders'
+import { defineBasicLoader } from 'unplugin-vue-smart-router/data-loaders/basic'
+import { defineColadaLoader } from 'unplugin-vue-smart-router/data-loaders/pinia-colada'
+import { DataLoaderPlugin } from 'unplugin-vue-smart-router/data-loaders'
 
 // After
 import {
@@ -309,7 +348,7 @@ import {
   createRoutesContext,
   getFileBasedRouteName,
   getPascalCaseRouteName,
-} from 'unplugin-vue-router'
+} from 'unplugin-vue-smart-router'
 
 // After
 import {
@@ -326,7 +365,7 @@ import {
 
 ```ts
 // Before
-import type { Options, EditableTreeNode } from 'unplugin-vue-router'
+import type { Options, EditableTreeNode } from 'unplugin-vue-smart-router'
 
 // After
 import type { Options, EditableTreeNode } from 'vue-smart-router/unplugin'
@@ -343,8 +382,8 @@ import type { Options, EditableTreeNode } from 'vue-smart-router/unplugin'
   },
   "vueCompilerOptions": {
     "plugins": [
-      "unplugin-vue-router/volar/sfc-typed-router",
-      "unplugin-vue-router/volar/sfc-route-blocks"
+      "unplugin-vue-smart-router/volar/sfc-typed-router",
+      "unplugin-vue-smart-router/volar/sfc-route-blocks"
     ]
   }
 }
@@ -388,7 +427,7 @@ route.params.id // ✅ typed as string
 Remove the old client types reference. These were either added to an `env.d.ts`:
 
 ```diff
--/// <reference types="unplugin-vue-router/client" />
+-/// <reference types="unplugin-vue-smart-router/client" />
 ```
 
 or to your `tsconfig.json`:
@@ -396,7 +435,7 @@ or to your `tsconfig.json`:
 ```json
 // Before
 {
-  "include": ["./typed-router.d.ts", "unplugin-vue-router/client"]
+  "include": ["./typed-router.d.ts", "unplugin-vue-smart-router/client"]
 }
 
 // After
@@ -453,11 +492,11 @@ Add back `dist/vue-smart-router.esm-bundler.js` for better retro compatibility w
 
 This release refactors the build to use `tsup`. Please report any issue you may find regarding to types or incorrectly unresolved exports
 
-There is a new `vue-smart-router/experimental` export which is used mainly by `unplugin-vue-router` with the new custom resolvers that bring a smaller router runtime, faster route matching, custom param types and matching on query parameters. There is still some work to do so the API is still experimental and may change in future releases. If you want to give it a try, check the [experimental playground in unplugin-vue-router](https://github.com/posva/unplugin-vue-router/tree/main/playground-experimental). If you use file based routing, this will be a transparent upgrade for you (in the future). Currently it still lacks a couple of features like `alias` and dynamic routing.
+There is a new `vue-smart-router/experimental` export which is used mainly by `unplugin-vue-smart-router` with the new custom resolvers that bring a smaller router runtime, faster route matching, custom param types and matching on query parameters. There is still some work to do so the API is still experimental and may change in future releases. If you want to give it a try, check the [experimental playground in unplugin-vue-smart-router](https://github.com/posva/unplugin-vue-smart-router/tree/main/playground-experimental). If you use file based routing, this will be a transparent upgrade for you (in the future). Currently it still lacks a couple of features like `alias` and dynamic routing.
 
 ### Features
 
-- A new experimental Custom resolvers features, meant to replace in the future the current implementation but partially introduced through `vue-smart-router/experimental`. Meant to be used in combination with `unplugin-vue-router` for the moment. Still lacking documentation
+- A new experimental Custom resolvers features, meant to replace in the future the current implementation but partially introduced through `vue-smart-router/experimental`. Meant to be used in combination with `unplugin-vue-smart-router` for the moment. Still lacking documentation
 
 ### Bug Fixes
 
@@ -601,7 +640,7 @@ There is a new `vue-smart-router/experimental` export which is used mainly by `u
 
 ### Bug Fixes
 
-- **devtools:** display children with empty parent ([d7af338](https://github.com/vuejs/router/commit/d7af338d9e27e77ac109bf7495e057a2df9a8752)), closes [posva/unplugin-vue-router#235](https://github.com/posva/unplugin-vue-router/issues/235)
+- **devtools:** display children with empty parent ([d7af338](https://github.com/vuejs/router/commit/d7af338d9e27e77ac109bf7495e057a2df9a8752)), closes [posva/unplugin-vue-smart-router#235](https://github.com/posva/unplugin-vue-smart-router/issues/235)
 
 ## [4.2.4](https://github.com/vuejs/router/compare/v4.2.3...v4.2.4) (2023-07-06)
 

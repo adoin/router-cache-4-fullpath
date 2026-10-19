@@ -1,9 +1,9 @@
 # Migrating to Vue Router 5
 
-<RuleKitLink />
+<!-- <RuleKitLink /> -->
 
 > [!TIP]
-> Vue Router 5 is a transition release that merges [unplugin-vue-router](https://uvr.esm.is) (file-based routing) into the core package. **If you're using Vue Router 4 without unplugin-vue-router, there are no breaking changes** - you can upgrade without any code modifications. The only exception is that the _iife_ build no longer includes `@vue/devtools-api` because it has been upgraded to v8 and does not expose an IIFE build itself. You can track that change in [this issue](https://github.com/vuejs/devtools/issues/989).
+> Vue Router 5 is a transition release that merges [unplugin-vue-smart-router](https://uvr.esm.is) (file-based routing) into the core package. **If you're using Vue Router 4 without unplugin-vue-smart-router, there are no breaking changes** - you can upgrade without any code modifications. The only exception is that the _iife_ build no longer includes `@vue/devtools-api` because it has been upgraded to v8 and does not expose an IIFE build itself. You can track that change in [this issue](https://github.com/vuejs/devtools/issues/989).
 >
 > Vue Router 6 will be ESM-only and remove deprecated APIs. v5 gives you time to prepare for that transition.
 
@@ -15,9 +15,9 @@ No breaking changes. Update your dependency and you're done:
 pnpm update vue-smart-router@5
 ```
 
-## From unplugin-vue-router
+## From unplugin-vue-smart-router
 
-If you were using unplugin-vue-router for file-based routing, migration is mostly import path changes.
+If you were using unplugin-vue-smart-router for file-based routing, migration is mostly import path changes.
 
 ### Migration Checklist (TLDR)
 
@@ -30,7 +30,7 @@ import MigrationChecklist from '../../.vitepress/theme/components/MigrationCheck
 ### 1. Update Dependencies
 
 ```bash
-pnpm remove unplugin-vue-router
+pnpm remove unplugin-vue-smart-router
 pnpm update vue-smart-router@5
 ```
 
@@ -40,7 +40,7 @@ pnpm update vue-smart-router@5
 
 <!-- prettier-ignore -->
 ```ts
-import VueRouter from 'unplugin-vue-router/vite' // [!code --]
+import VueRouter from 'unplugin-vue-smart-router/vite' // [!code --]
 import VueRouter from 'vue-smart-router/vite' // [!code ++]
 ```
 
@@ -58,9 +58,9 @@ VueRouter.rollup({/* ... */})
 
 <!-- prettier-ignore -->
 ```ts
-import { defineBasicLoader } from 'unplugin-vue-router/data-loaders/basic' // [!code --]
-import { defineColadaLoader } from 'unplugin-vue-router/data-loaders/pinia-colada' // [!code --]
-import { DataLoaderPlugin } from 'unplugin-vue-router/data-loaders' // [!code --]
+import { defineBasicLoader } from 'unplugin-vue-smart-router/data-loaders/basic' // [!code --]
+import { defineColadaLoader } from 'unplugin-vue-smart-router/data-loaders/pinia-colada' // [!code --]
+import { DataLoaderPlugin } from 'unplugin-vue-smart-router/data-loaders' // [!code --]
 import { defineBasicLoader, DataLoaderPlugin } from 'vue-smart-router/experimental' // [!code ++]
 import { defineColadaLoader } from 'vue-smart-router/experimental/pinia-colada' // [!code ++]
 ```
@@ -76,7 +76,7 @@ import {
   createRoutesContext,
   getFileBasedRouteName,
   getPascalCaseRouteName,
-} from 'unplugin-vue-router' // [!code --]
+} from 'unplugin-vue-smart-router' // [!code --]
 } from 'vue-smart-router/unplugin' // [!code ++]
 ```
 
@@ -84,7 +84,7 @@ import {
 
 <!-- prettier-ignore -->
 ```ts
-import type { Options, EditableTreeNode } from 'unplugin-vue-router' // [!code --]
+import type { Options, EditableTreeNode } from 'unplugin-vue-smart-router' // [!code --]
 import type { Options, EditableTreeNode } from 'vue-smart-router/unplugin' // [!code ++]
 ```
 
@@ -99,8 +99,8 @@ import type { Options, EditableTreeNode } from 'vue-smart-router/unplugin' // [!
   },
   "vueCompilerOptions": {
     "plugins": [
-      "unplugin-vue-router/volar/sfc-typed-router", // [!code --]
-      "unplugin-vue-router/volar/sfc-route-blocks", // [!code --]
+      "unplugin-vue-smart-router/volar/sfc-typed-router", // [!code --]
+      "unplugin-vue-smart-router/volar/sfc-route-blocks", // [!code --]
       "vue-smart-router/volar/sfc-typed-router", // [!code ++]
       "vue-smart-router/volar/sfc-route-blocks", // [!code ++]
     ],
@@ -129,7 +129,7 @@ Remove the old client types reference. These were either added to an `env.d.ts`:
 
 <!-- prettier-ignore -->
 ```ts
-/// <reference types="unplugin-vue-router/client" /> // [!code --]
+/// <reference types="unplugin-vue-smart-router/client" /> // [!code --]
 ```
 
 or to your `tsconfig.json`:
@@ -139,7 +139,7 @@ or to your `tsconfig.json`:
 {
   "include": [
     "./typed-router.d.ts", // [!code --]
-    "unplugin-vue-router/client", // [!code --]
+    "unplugin-vue-smart-router/client", // [!code --]
     // ...
   ],
 }

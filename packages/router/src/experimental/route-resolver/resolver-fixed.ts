@@ -1,14 +1,15 @@
 import {
   experimental_normalizeQuery as normalizeQuery,
   experimental_parseQuery as parseQuery,
+  warnNonArrayQueryValues,
 } from '../query'
 import { stringifyQuery } from '../../query'
-import { experimental_parseURL as parseURL } from '../location'
 import {
-  type LocationNormalized,
-  NEW_stringifyURL,
-  resolveRelativePath,
-} from '../../location'
+  experimental_parseURL as parseURL,
+  experimental_stringifyURL as stringifyURL,
+} from '../location'
+import { encodeHash } from '../encoding'
+import { type LocationNormalized, resolveRelativePath } from '../../location'
 import type {
   MatcherPatternPath,
   MatcherPatternHash,
@@ -27,6 +28,7 @@ import type {
 import { NO_MATCH_LOCATION } from './resolver-abstract'
 import type { MatcherPatternQuery } from './matchers/matcher-pattern-query'
 import { warn } from '../../warning'
+import { assign } from '../../utils'
 
 /**
  * Base interface for a resolver record that can be extended.
@@ -169,9 +171,7 @@ export function createFixedResolver<
       ]
     | [
         location: ResolverLocationAsNamed,
-        // Same as above
-        // currentLocation?: NEW_LocationResolved<TRecord> | undefined
-        currentLocation?: undefined,
+        currentLocation?: ResolverLocationResolved<TRecord>,
       ]
     | [
         relativeLocation: ResolverLocationAsRelative,
@@ -186,7 +186,7 @@ export function createFixedResolver<
     const pathParams = record.path.match(url.path)
     const hashParams = record.hash?.match(url.hash)
     const matched = buildMatched(record)
-    const queryParams: MatcherQueryParams = Object.assign(
+    const queryParams: MatcherQueryParams = assign(
       {},
       ...matched.flatMap(record =>
         record.query?.map(query => query.match(url.query))
@@ -194,7 +194,7 @@ export function createFixedResolver<
     )
     // TODO: test performance
     // for (const record of matched) {
-    //   Object.assign(queryParams, record.query?.match(url.query))
+    //   assign(queryParams, record.query?.match(url.query))
     // }
 
     // we found our match!
@@ -204,6 +204,10 @@ export function createFixedResolver<
   function resolve(
     ...[to, currentLocation]: _resolveArgs
   ): ResolverLocationResolved<TRecord> {
+    if (__DEV__ && typeof to === 'object') {
+      warnNonArrayQueryValues(to.query)
+    }
+
     // named location, e.g. { name: 'foo', params }
     // or relative location (second argument is current location)
     if (typeof to === 'object' && (to.name || to.path == null)) {
@@ -218,14 +222,14 @@ export function createFixedResolver<
         // @ts-expect-error: to is never
         const query = normalizeQuery(to.query)
         // @ts-expect-error: to is never
-        const hash = to.hash ?? ''
+        const hash = encodeHash(to.hash ?? '')
         // @ts-expect-error: to is never
         const path = to.path ?? '/'
         return {
           // type is never
           ...(to as any),
           ...NO_MATCH_LOCATION,
-          fullPath: NEW_stringifyURL(stringifyQuery, path, query, hash),
+          fullPath: stringifyURL(stringifyQuery, path, query, hash),
           path,
           query,
           hash,
@@ -254,23 +258,28 @@ export function createFixedResolver<
         ...to.params,
       }
       const path = record.path.build(params)
-      const hash =
+      // currentLocation.hash is already encoded, encodeHash is idempotent
+      const hash = encodeHash(
         record.hash?.build(params) ?? to.hash ?? currentLocation?.hash ?? ''
+      )
       let matched = buildMatched(record)
-      const query = Object.assign(
-        {
-          ...currentLocation?.query,
-          ...normalizeQuery(to.query),
-        },
-        ...matched.flatMap(record =>
-          record.query?.map(query => query.build(params))
+      // parser.set() can return non array values
+      const query = normalizeQuery(
+        assign(
+          {
+            ...currentLocation?.query,
+            ...normalizeQuery(to.query),
+          },
+          ...matched.flatMap(record =>
+            record.query?.map(query => query.build(params))
+          )
         )
       )
 
       const url: LocationNormalized = {
         // preserve other fields like `state` and `replace`
         ...to,
-        fullPath: NEW_stringifyURL(
+        fullPath: stringifyURL(
           stringifyQuery,
           path,
           query,
@@ -300,13 +309,14 @@ export function createFixedResolver<
       } else {
         const query = normalizeQuery(to.query)
         const path = resolveRelativePath(to.path, currentLocation?.path || '/')
+        const hash = encodeHash(to.hash || '')
         url = {
           // preserve other fields like `state` and `replace`
           ...to,
-          fullPath: NEW_stringifyURL(stringifyQuery, path, query, to.hash),
+          fullPath: stringifyURL(stringifyQuery, path, query, hash),
           path,
           query,
-          hash: to.hash || '',
+          hash,
         }
       }
 

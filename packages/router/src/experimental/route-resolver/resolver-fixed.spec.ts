@@ -47,17 +47,19 @@ const AB_PARAMS_PATH_MATCHER: MatcherPatternPath<{ a: string; b: string }> = {
   },
 }
 
-const AB_OPTIONAL_PATH_MATCHER: MatcherPatternPath<{ a: string; b?: string }> =
-  {
-    match(path) {
-      const match = path.match(/^\/([^/]+)(?:\/([^/]+))?$/)
-      if (!match) miss()
-      return { a: match[1], b: match[2] || '' }
-    },
-    build({ a, b }) {
-      return b ? `/${a}/${b}` : `/${a}`
-    },
-  }
+const AB_OPTIONAL_PATH_MATCHER: MatcherPatternPath<
+  { a: string; b: string | null },
+  { a: string; b?: string | null }
+> = {
+  match(path) {
+    const match = path.match(/^\/([^/]+)(?:\/([^/]+))?$/)
+    if (!match) miss()
+    return { a: match[1], b: match[2] ?? null }
+  },
+  build({ a, b }) {
+    return b ? `/${a}/${b}` : `/${a}`
+  },
+}
 
 const REPEATABLE_PARAM_MATCHER: MatcherPatternPath<{ p: string | string[] }> = {
   match(path) {
@@ -152,7 +154,7 @@ describe('fixed resolver', () => {
         expect(resolver.resolve('/?a=a&b=b#h')).toMatchObject({
           path: '/',
           params: {},
-          query: { a: 'a', b: 'b' },
+          query: { a: ['a'], b: ['b'] },
           hash: '#h',
         })
       })
@@ -163,7 +165,7 @@ describe('fixed resolver', () => {
           ...NO_MATCH_LOCATION,
           fullPath: '/bar?q=1#hash',
           path: '/bar',
-          query: { q: '1' },
+          query: { q: ['1'] },
           hash: '#hash',
           matched: [],
         })
@@ -177,13 +179,13 @@ describe('fixed resolver', () => {
         expect(resolver.resolve('/users/1?a=a&b=b#h')).toMatchObject({
           path: '/users/1',
           params: { id: 1 },
-          query: { a: 'a', b: 'b' },
+          query: { a: ['a'], b: ['b'] },
           hash: '#h',
         })
         expect(resolver.resolve('/users/54?a=a&b=b#h')).toMatchObject({
           path: '/users/54',
           params: { id: 54 },
-          query: { a: 'a', b: 'b' },
+          query: { a: ['a'], b: ['b'] },
           hash: '#h',
         })
       })
@@ -201,8 +203,8 @@ describe('fixed resolver', () => {
           params: { page: 100 },
           path: '/foo',
           query: {
-            page: '100',
-            b: 'b',
+            page: ['100'],
+            b: ['b'],
           },
           hash: '#h',
         })
@@ -221,7 +223,7 @@ describe('fixed resolver', () => {
           hash: '#bar',
           params: { hash: 'bar' },
           path: '/foo',
-          query: { a: 'a', b: 'b' },
+          query: { a: ['a'], b: ['b'] },
         })
       })
 
@@ -352,6 +354,26 @@ describe('fixed resolver', () => {
         })
       })
 
+      it('reuses the current location if passed', () => {
+        const resolver = createFixedResolver([
+          { name: 'ab', path: AB_PARAMS_PATH_MATCHER },
+        ])
+
+        const currentLocation = resolver.resolve('/A/B?q=1&q=2#h')
+
+        expect(
+          resolver.resolve(
+            { name: 'ab', params: { a: 'a', b: 'b' } },
+            currentLocation
+          )
+        ).toMatchObject({
+          fullPath: '/a/b?q=1&q=2#h',
+          params: { a: 'a', b: 'b' },
+          query: { q: ['1', '2'] },
+          hash: '#h',
+        })
+      })
+
       it('keeps params if not provided', () => {
         const resolver = createFixedResolver([
           { name: 'user-edit', path: USERS_ID_OTHER_PATH_MATCHER },
@@ -423,7 +445,7 @@ describe('fixed resolver', () => {
           name: 'page',
           path: '/',
           params: { page: 10, hash: 'current' },
-          query: { existing: 'value', page: '10' }, // matcher adds page to query
+          query: { existing: ['value'], page: ['10'] }, // matcher adds page to query
           hash: '#current', // matcher builds hash from params
           fullPath: '/?existing=value&page=10#current',
         })
@@ -433,7 +455,7 @@ describe('fixed resolver', () => {
           name: 'page',
           path: '/',
           params: { page: 10, hash: 'current' }, // from currentLocation
-          query: { existing: 'value', page: '10' }, // matcher builds with currentLocation params
+          query: { existing: ['value'], page: ['10'] }, // matcher builds with currentLocation params
           hash: '#current', // matcher builds with currentLocation params
           fullPath: '/?existing=value&page=10#current',
         })
@@ -592,7 +614,7 @@ describe('fixed resolver', () => {
           name: 'home',
           path: '/',
           params: {},
-          query: { foo: 'bar', baz: 'qux' },
+          query: { foo: ['bar'], baz: ['qux'] },
           hash: '',
           fullPath: '/?foo=bar&baz=qux',
         })
@@ -641,7 +663,7 @@ describe('fixed resolver', () => {
           name: 'home',
           path: '/',
           params: {},
-          query: { page: '1' },
+          query: { page: ['1'] },
           hash: '#top',
           fullPath: '/?page=1#top',
         })
@@ -663,7 +685,7 @@ describe('fixed resolver', () => {
           name: 'user-edit',
           path: '/users/posva/profile',
           params: { id: 'posva', other: 'profile' },
-          query: { tab: 'settings' },
+          query: { tab: ['settings'] },
           hash: '#bio',
           fullPath: '/users/posva/profile?tab=settings#bio',
         })
@@ -688,7 +710,7 @@ describe('fixed resolver', () => {
           name: 'search',
           path: '/',
           params: { page: 42 },
-          query: { page: '42', other: 'value' }, // matcher param overrides to.query
+          query: { page: ['42'], other: ['value'] }, // matcher param overrides to.query
           fullPath: '/?page=42&other=value',
         })
       })
@@ -762,7 +784,7 @@ describe('fixed resolver', () => {
           name: 'page',
           path: '/',
           params: { page: 5, hash: 'top' },
-          query: { page: '5', sort: 'name' }, // matcher overrides, regular query preserved
+          query: { page: ['5'], sort: ['name'] }, // matcher overrides, regular query preserved
           hash: '#top', // matcher overrides to.hash
           fullPath: '/?page=5&sort=name#top',
         })
@@ -858,7 +880,7 @@ describe('fixed resolver', () => {
           name: 'search',
           path: '/',
           params: { count: 10 },
-          query: { count: '10', other: 'value' },
+          query: { count: ['10'], other: ['value'] },
           hash: '',
           fullPath: '/?count=10&other=value',
           matched: expect.any(Array),
@@ -885,7 +907,7 @@ describe('fixed resolver', () => {
           name: 'page',
           path: '/',
           params: { count: 10, hash: 42 },
-          query: { count: '10', other: 'value' },
+          query: { count: ['10'], other: ['value'] },
           hash: '#42',
           fullPath: '/?count=10&other=value#42',
           matched: expect.any(Array),
@@ -967,7 +989,7 @@ describe('fixed resolver', () => {
           name: 'search',
           path: '/',
           params: { count: 20 },
-          query: { count: '20', other: 'value' },
+          query: { count: ['20'], other: ['value'] },
           fullPath: '/?count=20&other=value',
         })
       })
@@ -992,7 +1014,7 @@ describe('fixed resolver', () => {
           expect(resolver.resolve('/foo?foo=%23%2F%3F')).toMatchObject({
             path: '/foo',
             fullPath: '/foo?foo=%23%2F%3F',
-            query: { foo: '#/?' },
+            query: { foo: ['#/?'] },
           })
         })
 
@@ -1014,16 +1036,42 @@ describe('fixed resolver', () => {
             },
           ])
           expect(resolver.resolve('/?%23%2F%3F=%23%2F%3F')).toMatchObject({
-            params: { q: { '#/?': '#/?' } },
+            params: { q: { '#/?': ['#/?'] } },
           })
         })
 
-        it('decodes hash from a string', () => {
+        it('keeps the hash from a string as it is, like location.hash', () => {
           expect(resolver.resolve('/foo#%22')).toMatchObject({
             path: '/foo',
             fullPath: '/foo#%22',
-            hash: '#"',
+            hash: '#%22',
           })
+        })
+
+        it('keeps encoded reserved characters in the hash', () => {
+          expect(resolver.resolve('/foo#%26')).toMatchObject({
+            fullPath: '/foo#%26',
+            hash: '#%26',
+          })
+          expect(resolver.resolve('/foo#a=b%26c&d=e')).toMatchObject({
+            fullPath: '/foo#a=b%26c&d=e',
+            hash: '#a=b%26c&d=e',
+          })
+        })
+
+        it('resolving the fullPath of a resolved location is idempotent', () => {
+          for (const url of [
+            '/foo#%26',
+            '/foo#a=b%26c&d=e',
+            '/foo#%22%20%25',
+            '/foo#caf%C3%A9',
+            '/foo#100%',
+          ]) {
+            const location = resolver.resolve(url as `/${string}`)
+            const again = resolver.resolve(location.fullPath as `/${string}`)
+            expect(again.hash).toBe(location.hash)
+            expect(again.fullPath).toBe(location.fullPath)
+          }
         })
       })
 
@@ -1033,14 +1081,46 @@ describe('fixed resolver', () => {
             resolver.resolve({ path: '/foo', query: { foo: '"' } })
           ).toMatchObject({
             fullPath: '/foo?foo=%22',
-            query: { foo: '"' },
+            query: { foo: ['"'] },
           })
         })
 
-        it('encodes the hash', () => {
+        it('protects the hash like setting url.hash', () => {
           expect(resolver.resolve({ path: '/foo', hash: '#"' })).toMatchObject({
             fullPath: '/foo#%22',
-            hash: '#"',
+            hash: '#%22',
+          })
+          expect(
+            resolver.resolve({ path: '/foo', hash: '#a b' })
+          ).toMatchObject({
+            fullPath: '/foo#a%20b',
+            hash: '#a%20b',
+          })
+        })
+
+        it('keeps a pre-encoded hash as it is', () => {
+          expect(
+            resolver.resolve({ path: '/foo', hash: '#a=b%26c&d=e' })
+          ).toMatchObject({
+            fullPath: '/foo#a=b%26c&d=e',
+            hash: '#a=b%26c&d=e',
+          })
+        })
+
+        it('round trips a hash through the URL', () => {
+          const location = resolver.resolve({
+            path: '/foo',
+            hash: '#Hell 20% of es¶ña',
+          })
+          expect(location).toMatchObject({
+            fullPath: '/foo#Hell%2020%%20of%20es%C2%B6%C3%B1a',
+            hash: '#Hell%2020%%20of%20es%C2%B6%C3%B1a',
+          })
+          expect(
+            resolver.resolve(location.fullPath as `/${string}`)
+          ).toMatchObject({
+            fullPath: location.fullPath,
+            hash: location.hash,
           })
         })
       })
@@ -1119,7 +1199,7 @@ describe('fixed resolver', () => {
 
         expect(resolver.resolve({ path: '/foo' })).toMatchObject({
           name: 'optional',
-          params: { a: 'foo', b: '' },
+          params: { a: 'foo', b: null },
           path: '/foo',
         })
 
@@ -1140,11 +1220,11 @@ describe('fixed resolver', () => {
         ).toMatchObject({
           name: 'optional',
           path: '/b',
-          params: { a: 'b' },
+          params: { a: 'b', b: null },
         })
       })
 
-      it('keeps optional params passed as empty strings', () => {
+      it('normalizes optional params passed as empty strings', () => {
         const resolver = createFixedResolver([
           { name: 'optional', path: AB_OPTIONAL_PATH_MATCHER },
         ])
@@ -1154,7 +1234,7 @@ describe('fixed resolver', () => {
         ).toMatchObject({
           name: 'optional',
           path: '/b',
-          params: { a: 'b', b: '' },
+          params: { a: 'b', b: null },
         })
       })
     })
