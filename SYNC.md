@@ -21,3 +21,11 @@
 - 既有 `cacheComponentName` 保持 fullPath/path/自定义名称、独立释放及 revision 刷新契约。
 - 新增独立视图契约见 `packages/router/docs/detached-route-views.md`。
 - `RouterView detached` 与 DOM 容器移动是不同职责：应用始终保留同一承载树，管理 Teleport 目标、焦点、滚动容器和窗口操作。
+
+## 本次验证
+
+- 单元测试：87 文件，2061 项通过，19 skipped、15 todo。
+- `test:types` 和发布包构建通过；Chromium 相关浏览器回归 17 项通过。
+- 浏览器验证证实移动 DOM 会重置原生滚动偏移；示例宿主在移动前记录，并在 nextTick 后恢复。
+- 主动追加的独立 e2e 类型检查未全量通过：现有配置依赖的 vue-tsc 安装入口缺失，直接改用 tsgo 并修正命令行 rootDir/skipLibCheck 后，仍有既有 e2e 文件的 `__CI__` 全局声明缺失。本轮未修改这些无关配置；正式 `test:types` 已通过。
+- npm 发布未执行，Admin 与组件库尚未接入此机制。
