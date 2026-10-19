@@ -161,7 +161,13 @@ function getRouteCacheName(route: RouteLocationNormalizedLoaded) {
 - `package-try`：在 `main` 基础上应用 `vue-smart-router` 包名和发布配置。
 - 包版本尽量与对应的 Vue Router 上游版本保持一致。
 
-当前版本基于 Vue Router `5.3.1`。上游项目：[vuejs/router](https://github.com/vuejs/router)。
+当前源码已同步 Vue Router `5.4.0` 后的上游 `main`，基准提交为 `c97c8c40`。
+其中包含 5.4.0 正式版之后的 RouterView 路由上下文和渲染回调修复；不能据此认定
+官方 5.4.0 包已包含这些行为。上游项目：[vuejs/router](https://github.com/vuejs/router)。
+
+独立路由视图使用可选的 `RouterView detached`，适用于需要同时保留多个页面的应用。
+路由上下文、导航守卫、固定与恢复的生命周期及中英文示例见
+[独立路由视图文档](./packages/router/docs/detached-route-views.md)。
 
 ## License
 
