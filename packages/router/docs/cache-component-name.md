@@ -1,5 +1,8 @@
 # `cacheComponentName`：用「路径/自定义键」驱动 `<keep-alive include>`
 
+同时显示多个页面、固定页面与恢复时的实例和守卫约定见
+[独立路由视图](./detached-route-views.md)。缓存名称本身不提供独立路由上下文或窗口管理。
+
 `vue-smart-router` 在 `<router-view>` 上提供可选的 **`cacheComponentName`**，在内部为当前路由页面包一层**稳定壳组件**，壳的 **组件名（`name`）** 由你指定为 `fullPath`、`path` 或**自定义函数**的返回值。
 
 这样，`<keep-alive :include="...">` 可以按 **URL 或 `pageId`** 区分多开实例，而不是只认页面 SFC 上**同一个** `name`（与路由 `name: 'Xxx'` 容易撞名的问题）。

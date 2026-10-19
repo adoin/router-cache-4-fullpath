@@ -29,6 +29,7 @@ import {
   matchedRouteKey,
   viewDepthKey,
   routerViewLocationKey,
+  routerViewDetachedKey,
   routeLocationKey,
   routerViewOnRouteRenderedKey,
 } from './injectionSymbols'
@@ -49,6 +50,13 @@ export interface RouterViewProps {
    */
   // allow looser type for user facing api
   route?: RouteLocationNormalized
+  /**
+   * Display a secondary view without registering its instance or navigation
+   * guards with URL navigation. Inherited by nested views. Use with `route`
+   * to keep a pinned page independent of the current URL. Changing this prop
+   * does not recreate the page; the application owns its DOM placement.
+   */
+  detached?: boolean
   /**
    * When set, wraps the route component in a stable shell whose **component name** is
    * used by `<keep-alive :include> / :exclude>`. The inner page can stay the same
@@ -105,6 +113,7 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
       default: 'default',
     },
     route: Object as PropType<RouteLocationNormalizedLoaded>,
+    detached: Boolean,
     cacheComponentName: [String, Function] as PropType<
       | 'fullPath'
       | 'path'
@@ -121,6 +130,9 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
     __DEV__ && warnDeprecatedUsage()
 
     const injectedRoute = inject(routerViewLocationKey)!
+    const parentDetached = inject(routerViewDetachedKey, undefined)
+    const detached = computed(() => !!(parentDetached?.value || props.detached))
+    provide(routerViewDetachedKey, detached)
     const routeToDisplay = computed<RouteLocationNormalizedLoaded>(
       () => props.route || injectedRoute.value
     )
@@ -163,8 +175,22 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
     // watch at the same time the component instance, the route record we are
     // rendering, and the name
     watch(
-      () => [viewRef.value, matchedRouteRef.value, props.name] as const,
-      ([instance, to, name], [oldInstance, from, _oldName]) => {
+      () =>
+        [
+          viewRef.value,
+          matchedRouteRef.value,
+          props.name,
+          detached.value,
+        ] as const,
+      ([instance, to, name, isDetached], [oldInstance, from, oldName]) => {
+        // A secondary view must never overwrite the primary view's instance.
+        // Detaching releases only the registration owned by this view.
+        if (isDetached) {
+          if (from && from.instances[oldName] === oldInstance) {
+            from.instances[oldName] = null
+          }
+          return
+        }
         // copy reused instances
         if (to) {
           // this will update the instance for new instances as well as reused
@@ -227,7 +253,12 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
 
       const onVnodeUnmounted: VNodeProps['onVnodeUnmounted'] = vnode => {
         // remove the instance reference to prevent leak
-        if (vnode.component!.isUnmounted) {
+        if (
+          vnode.component!.isUnmounted &&
+          (matchedRoute.instances[currentName] === vnode.component!.proxy ||
+            matchedRoute.instances[currentName] ===
+              vnode.component!.exposeProxy)
+        ) {
           matchedRoute.instances[currentName] = null
         }
       }
