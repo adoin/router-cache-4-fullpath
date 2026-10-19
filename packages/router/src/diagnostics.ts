@@ -9,7 +9,7 @@ import { stringifyRoute } from './errors'
 /**
  * Runtime diagnostics catalog for Vue Router.
  *
- * Every entry has a stable `VUE_ROUTER_R####` code, a `why` that states the problem
+ * Every entry has a stable `VUE_ROUTER_X####` code, a `why` that states the problem
  * (the diagnosis only, never the remedy) and a `fix` that states the remedy
  * (only, never the diagnosis). They are complementary: the reporter prints
  * both, so neither repeats the other. The diagnosis substrings asserted by the
@@ -20,11 +20,32 @@ import { stringifyRoute } from './errors'
  * Codes are permanent: never rename or reuse one.
  * - `VUE_ROUTER_R0###` core runtime warnings
  * - `VUE_ROUTER_R1###` experimental data-loaders
+ * - `VUE_ROUTER_D0###` deprecations
  */
 export const diagnostics = /*#__PURE__*/ defineDiagnostics({
   // docsBase: code => `https://router.vuejs.org/errors/${code.toLowerCase()}`,
   reporters: [/*#__PURE__*/ createConsoleReporter()],
   codes: {
+    // --- experimental/route-resolver/matchers/matcher-pattern.ts ---
+    VUE_ROUTER_R0122: {
+      why: (p: { param: string; value: string }) =>
+        `The optional path param "${p.param}" is being removed with ${p.value}.`,
+      fix: 'Use null to remove an optional path param.',
+    },
+    // --- experimental/router.ts ---
+    VUE_ROUTER_D0001: {
+      why: (p: { name: string }) =>
+        `Route "${p.name}" uses beforeEnter, which is deprecated in the experimental router.`,
+      fix: 'Move the condition to the route meta field and check to.meta in router.beforeEach().',
+    },
+    // --- experimental/route-resolver/resolver-fixed.ts ---
+    VUE_ROUTER_D0002: {
+      why: (p: { key: string; value: string }) =>
+        `The query value of "${p.key}" is not an array (${p.value}). Non array query values are deprecated in the experimental router.`,
+      fix: (p: { key: string; value: string }) =>
+        `Wrap the value in an array: \`{ ${JSON.stringify(p.key)}: [${p.value}] }\`. Use undefined to remove the key.`,
+    },
+
     // --- router.ts ---
     VUE_ROUTER_R0001: {
       why: (p: { name: string }) =>
@@ -184,6 +205,17 @@ export const diagnostics = /*#__PURE__*/ defineDiagnostics({
         `Couldn't find element using selector "${p.el}" returned by scrollBehavior.`,
       fix: 'Return a selector that matches an existing element, or guard against missing elements.',
       docs: 'https://router.vuejs.org/guide/advanced/scroll-behavior.html',
+    },
+
+    // experimental/scroll-restoration.ts
+    VUE_ROUTER_R0043: {
+      why: (p: { key: string }) =>
+        `Several active useScrollRestoration() calls use the key "${p.key}" with different "capture" or "restore" options. They overwrite each other's saved entry.`,
+      fix: 'Give each call a different "key", or combine them if they are in the same component.',
+    },
+    VUE_ROUTER_R0044: {
+      why: 'No ScrollRestoration plugin is available to useScrollRestoration().',
+      fix: 'Install ScrollRestoration on the app before calling useScrollRestoration().',
     },
 
     // --- RouterLink.ts ---

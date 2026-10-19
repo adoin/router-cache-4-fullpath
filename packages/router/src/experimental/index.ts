@@ -1,4 +1,5 @@
 export { experimental_createRouter, normalizeRouteRecord } from './router'
+export type { EXPERIMENTAL_RouteRecordPropsOption } from './route-props'
 export type {
   EXPERIMENTAL_Router_Base,
   EXPERIMENTAL_Router,
@@ -12,6 +13,21 @@ export type {
   EXPERIMENTAL_RouteRecord_Matchable,
   EXPERIMENTAL_RouteRecordNormalized_Matchable,
 } from './router'
+
+export {
+  ScrollRestoration,
+  useScrollRestoration,
+  type ScrollRestorationPluginOptions,
+  type ScrollRestorationPosition,
+  type ScrollRestorationSessionEntry,
+  type UseScrollRestorationOptions,
+  SCROLL_RESTORATION_CAPTURE_DEFAULT,
+  SCROLL_RESTORATION_RESTORE_DEFAULT,
+  SCROLL_RESTORATION_SETUP_LISTENERS_DEFAULT,
+} from './scroll-restoration'
+
+export { onRouteRendered } from './on-route-rendered'
+export type { OnRouteRenderedCallback } from './on-route-rendered'
 
 export { createFixedResolver } from './route-resolver/resolver-fixed'
 export {
@@ -30,6 +46,8 @@ export type {
   MatcherPatternPathDynamic_ParamOptions,
 } from './route-resolver/matchers/matcher-pattern'
 
+export { MatcherPatternHashParam } from './route-resolver/matchers/matcher-pattern-hash'
+
 export {
   type MatcherPatternQuery,
   MatcherPatternQueryParam,
@@ -40,38 +58,29 @@ export {
   PARAM_PARSER_BOOL,
   type ParamParser,
   defineParamParser,
+  defineHashParamParser,
   defineParamParserRaw,
-  normalizeParamParser as _normalizeParamParser,
-  type ExtractParamParserType as _ExtractParamParserType,
 } from './route-resolver/matchers/param-parsers'
 
-export { miss, MatchMiss as _MatchMiss } from './route-resolver/matchers/errors'
-
-/**
- * Internal functions and types for the experimental router.
- * They should all be prefixed with `_` to avoid conflicts with the public API.
- */
+export { miss } from './route-resolver/matchers/errors'
 
 // Runtime exports (definePage macro)
 export {
   definePage,
-  _mergeRouteRecord,
   type DefinePage,
   type ParamParserType,
   type ParamParserType_Native,
-  type ParamParsers as _ParamParsers,
-  type ParamParsers_Native as _ParamParsers_Native,
   type ParamParserTypeOf,
+  type DefinePageParamRequiredOrDefault,
+  type DefinePageHashParamOptions,
+  type DefinePagePathParamOptions,
   type DefinePageQueryParamOptions,
-  type DefinePageQueryParamOptionsAny as _DefinePageQueryParamOptionsAny,
-  type PathParamNamesForFilePath as _PathParamNamesForFilePath,
 } from './runtime'
 
 // Data loaders exports
 export {
   // Core
   DataLoaderPlugin,
-  NavigationResult as _NavigationResult,
   reroute,
   useIsDataLoading,
   type DataLoaderPluginOptions,
@@ -138,3 +147,24 @@ export {
 //     children?: never
 //   }
 // }
+
+/**
+ * Internal functions and types for the experimental router.
+ * They should all be prefixed with `_` to avoid conflicts with the public API.
+ */
+export {
+  normalizeParamParser as _normalizeParamParser,
+  type ExtractParamParserType as _ExtractParamParserType,
+} from './route-resolver/matchers/param-parsers'
+export { MatchMiss as _MatchMiss } from './route-resolver/matchers/errors'
+export {
+  mergeRouteRecord as _mergeRouteRecord,
+  mergeRouteRecordViews as _mergeRouteRecordViews,
+  type ParamParsers as _ParamParsers,
+  type ParamParsers_Native as _ParamParsers_Native,
+  type DefinePageHashParamOptionsAny as _DefinePageHashParamOptionsAny,
+  type DefinePageQueryParamOptionsAny as _DefinePageQueryParamOptionsAny,
+  type PathParamNamesForFilePath as _PathParamNamesForFilePath,
+  type RoutePropsForFilePath as _RoutePropsForFilePath,
+} from './runtime'
+export { NavigationResult as _NavigationResult } from './data-loaders/entries/index'

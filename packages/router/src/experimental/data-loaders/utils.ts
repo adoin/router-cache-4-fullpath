@@ -1,4 +1,4 @@
-import type { LocationQuery } from '../query'
+import type { LocationQuery } from '../../query'
 import type { Router } from '../../router'
 import type { RouteLocationNormalizedLoaded } from '../../typed-routes'
 import type { DataLoaderEntryBase, UseDataLoader } from './createDataLoader'
@@ -59,8 +59,6 @@ export function withLoaderContext<P extends Promise<unknown>>(promise: P): P {
  */
 export type _PromiseMerged<PromiseType, RawType = PromiseType> = RawType &
   Promise<PromiseType>
-
-export const assign = Object.assign
 
 /**
  * Track the reads of a route and its properties

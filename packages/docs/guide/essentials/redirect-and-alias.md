@@ -45,6 +45,10 @@ When writing a `redirect`, you can omit the `component` option because it is nev
 
 ### Relative redirecting
 
+::: tip Experimental router
+In the [experimental router](../../experimental/router-resolver.md#Route-record-redirects), a route record redirect must return a named location or an absolute path. To keep params, query, or hash, copy them from `to`. Relative redirects returned by navigation guards resolve against `to`.
+:::
+
 It's also possible to redirect to a relative location:
 
 ```js
@@ -110,4 +114,4 @@ const routes = [
 
 **Note about SEO**: when using aliases, make sure to [define canonical links](https://support.google.com/webmasters/answer/139066?hl=en).
 
-<RuleKitLink />
+<!-- <RuleKitLink /> -->

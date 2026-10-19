@@ -1,8 +1,8 @@
-import { getLang } from '@vue-macros/common'
+import { getDefinePageImportId } from '../core/moduleConstants'
 import { PrefixTree, type TreeNode } from '../core/tree'
 import type { ImportsMap } from '../core/utils'
 import { type ResolvedOptions } from '../options'
-import { toStringLiteral, ts } from '../utils'
+import { encodeImportIdentifierPart, toStringLiteral, ts } from '../utils'
 import type { ParamParsersMap } from './generateParamParsers'
 import {
   generatePathParamsOptions,
@@ -160,17 +160,14 @@ export function generateRouteRecord({
   let recordDeclaration = ''
 
   // Handle definePage imports
-  const definePageDataList: string[] = []
+  const definePageDataList: Array<[viewName: string, importName: string]> = []
   if (node.needsDefinePageImport) {
     for (const [name, filePath] of node.value.components) {
       if (!node.fileNeedsDefinePageImport(filePath)) continue
-      const pageDataImport = `_definePage_${name}_${importsMap.size}`
-      definePageDataList.push(pageDataImport)
-      const lang = getLang(filePath)
+      const pageDataImport = `_definePage_${encodeImportIdentifierPart(name)}_${importsMap.size}`
+      definePageDataList.push([name, pageDataImport])
       importsMap.addDefault(
-        // TODO: apply the language used in the sfc
-        `${filePath}?definePage&` +
-          (lang === 'vue' ? 'vue&lang.tsx' : `lang.${lang}`),
+        getDefinePageImportId(filePath, options._framework),
         pageDataImport
       )
     }
@@ -205,11 +202,16 @@ export function generateRouteRecord({
       importsMap,
       paramParsersMap,
     })
+    const hashProperty = generateRouteRecordHash({
+      node,
+      importsMap,
+      paramParsersMap,
+    })
     const routeRecordObject = `{
   ${recordName}
   ${generateRouteRecordPath({ node, importsMap, paramParsersMap, parentVar, parentNode })}${
     queryProperty ? `\n  ${queryProperty}` : ''
-  }${formatMeta(node, '  ')}
+  }${hashProperty ? `\n  ${hashProperty}` : ''}${formatMeta(node, '  ')}
   ${recordComponents}${parentVar ? `\n  parent: ${parentVar},` : ''}
 }`
 
@@ -437,14 +439,14 @@ ${queryParams
  */
 function generateRouteRecordMerge(
   routeRecordObject: string,
-  definePageDataList: string[],
+  definePageDataList: Array<[viewName: string, importName: string]>,
   importsMap: ImportsMap
 ): string {
   if (definePageDataList.length === 0) {
     return routeRecordObject
   }
 
-  importsMap.add('vue-router/experimental', '_mergeRouteRecord')
+  importsMap.add('vue-router/experimental', '_mergeRouteRecordViews')
 
   // Re-indent the route object to be 4 spaces (2 levels from normalizeRouteRecord)
   const indentedRouteObject = routeRecordObject
@@ -454,8 +456,37 @@ function generateRouteRecordMerge(
     })
     .join('\n')
 
-  return `_mergeRouteRecord(
+  return `_mergeRouteRecordViews(
 ${indentedRouteObject},
-${definePageDataList.map(name => `    ${name}`).join(',\n')}
+    {
+${definePageDataList
+  .map(([viewName, name]) => `      ${toStringLiteral(viewName)}: ${name},`)
+  .join('\n')}
+    }
   )`
+}
+
+export function generateRouteRecordHash({
+  node,
+  importsMap,
+  paramParsersMap,
+}: {
+  node: TreeNode
+  importsMap: ImportsMap
+  paramParsersMap: ParamParsersMap
+}): string {
+  const param = node.value.hashParams[0]
+  if (!param) return ''
+
+  importsMap.add('vue-router/experimental', 'MatcherPatternHashParam')
+  const parser = generateParamParserOptions(param, importsMap, paramParsersMap)
+  const args = [toStringLiteral(param.paramName)]
+  if (parser || param.defaultValue !== undefined || param.required) {
+    args.push(parser || '{}')
+  }
+  if (param.defaultValue !== undefined || param.required) {
+    args.push(param.defaultValue ?? 'undefined')
+  }
+  if (param.required) args.push('true')
+  return `hash: new MatcherPatternHashParam(${args.join(', ')}),`
 }

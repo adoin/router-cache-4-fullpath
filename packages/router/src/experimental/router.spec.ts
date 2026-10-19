@@ -48,7 +48,7 @@ import {
   createWebHashHistory,
   loadRouteLocation,
 } from '../index'
-import { NavigationFailureType } from '../errors'
+import { isNavigationFailure, NavigationFailureType } from '../errors'
 import { components, tick, nextNavigation } from '../../__tests__/utils'
 import { START_LOCATION_NORMALIZED } from '../location'
 import {
@@ -144,6 +144,21 @@ const routeRecords: EXPERIMENTAL_RouteRecord_Matchable[] = [
     redirect: { name: 'home' },
   },
   {
+    name: 'param-redirect',
+    path: new MatcherPatternPathStatic('/param-redirect'),
+    redirect: { name: 'Param' },
+  },
+  {
+    name: 'relative-object-redirect',
+    path: new MatcherPatternPathStatic('/redirect/relative-object'),
+    redirect: { query: { a: '1' } },
+  },
+  {
+    name: 'relative-string-redirect',
+    path: new MatcherPatternPathStatic('/redirect/relative-string'),
+    redirect: 'target',
+  },
+  {
     name: 'home-before',
     path: new MatcherPatternPathStatic('/home-before'),
     components: { default: components.Home },
@@ -210,7 +225,7 @@ const routeRecords: EXPERIMENTAL_RouteRecord_Matchable[] = [
     name: 'optional',
     path: new MatcherPatternPathDynamic(
       /^\/optional(?:\/([^/]+))?$/,
-      { p: [] },
+      { p: [undefined, false, true] },
       ['optional', 1]
     ),
     components: { default: components.Bar },
@@ -273,7 +288,7 @@ const routeRecords: EXPERIMENTAL_RouteRecord_Matchable[] = [
     path: new MatcherPatternPathStatic('/inc-query-hash'),
     redirect: to => ({
       name: 'Foo',
-      query: { n: to.query.n + '-2' },
+      query: { n: [(to.query.n as string[])[0] + '-2'] },
       hash: to.hash + '-2',
     }),
   },
@@ -560,7 +575,41 @@ describe('Experimental Router', () => {
     await router.push({ name: 'optional', params: { p: 'a' } })
     await router.push({ name: 'optional', params: {} })
     expect(router.currentRoute.value.params).toEqual({ p: null })
+    expect('VUE_ROUTER_R0122').toHaveBeenWarnedTimes(1)
   })
+
+  it.each([null, undefined, ''])(
+    'removes an optional param with %s on relative navigation',
+    async p => {
+      const { router, history } = await newRouter()
+      await router.push({ name: 'optional', params: { p: 'a' } })
+      const current = router.currentRoute.value
+
+      expect(router.resolve({ params: {} }, current)).toMatchObject({
+        path: '/optional/a',
+        params: { p: 'a' },
+      })
+
+      const relative = router.resolve({ params: { p } }, current)
+      const named = router.resolve({ name: 'optional', params: { p } })
+      expect(relative).toMatchObject({
+        name: named.name,
+        path: '/optional',
+        fullPath: named.fullPath,
+        params: { p: null },
+      })
+      expect(current.params).toEqual({ p: 'a' })
+
+      await router.push(relative)
+      expect(router.currentRoute.value).toMatchObject({
+        name: 'optional',
+        path: '/optional',
+        params: { p: null },
+      })
+      expect(history.location).toBe('/optional')
+      if (p !== null) expect('VUE_ROUTER_R0122').toHaveBeenWarnedTimes(2)
+    }
+  )
 
   it('keeps consistent optional null param value', async () => {
     const { router } = await newRouter()
@@ -582,6 +631,7 @@ describe('Experimental Router', () => {
       p: null,
     })
     expect(router.resolve('/optional').params).toEqual({ p: null })
+    expect('VUE_ROUTER_R0122').toHaveBeenWarnedTimes(1)
   })
 
   it('does not fail for missing optional params', async () => {
@@ -602,9 +652,37 @@ describe('Experimental Router', () => {
   it('navigates to same route record but different query', async () => {
     const { router } = await newRouter()
     await router.push('/?q=1')
-    expect(router.currentRoute.value.query).toEqual({ q: '1' })
+    expect(router.currentRoute.value.query).toEqual({ q: ['1'] })
     await router.push('/?q=2')
-    expect(router.currentRoute.value.query).toEqual({ q: '2' })
+    expect(router.currentRoute.value.query).toEqual({ q: ['2'] })
+  })
+
+  it('warns when a raw query value is not an array', async () => {
+    const { router } = await newRouter()
+    await router.push({ path: '/', query: { a: '1', b: 2, c: null } })
+    expect(router.currentRoute.value.query).toEqual({
+      a: ['1'],
+      b: ['2'],
+      c: [null],
+    })
+    expect('VUE_ROUTER_D0002').toHaveBeenWarnedTimes(3)
+  })
+
+  it('does not warn with array or undefined raw query values', async () => {
+    const { router } = await newRouter()
+    await router.push({ path: '/', query: { a: ['1', 2, null], b: undefined } })
+    expect(router.currentRoute.value.query).toEqual({ a: ['1', '2', null] })
+    await router.push('/?q=1&q')
+    expect(router.currentRoute.value.query).toEqual({ q: ['1', null] })
+  })
+
+  it('treats an empty array query value as a missing key', async () => {
+    const { router } = await newRouter()
+    await router.push('/')
+    const failure = await router.push({ path: '/', query: { a: [] } })
+    expect(isNavigationFailure(failure, NavigationFailureType.duplicated)).toBe(
+      true
+    )
   })
 
   it('navigates to same route record but different hash', async () => {
@@ -615,16 +693,27 @@ describe('Experimental Router', () => {
     expect(router.currentRoute.value.hash).toBe('#two')
   })
 
-  it('does not double-decode a percent-encoded hash', async () => {
+  it('never decodes nor double-encodes a percent-encoded hash', async () => {
     const { router } = await newRouter()
-    // object push keeps the raw hash, encodes % in fullPath
+    // object push keeps pre-encoded sequences as they are, like url.hash
     await router.push({ path: '/', hash: '#%26' })
     expect(router.currentRoute.value.hash).toBe('#%26')
-    expect(router.currentRoute.value.fullPath).toBe('/#%2526')
-    // string push (what happens on reload) must decode exactly once
+    expect(router.currentRoute.value.fullPath).toBe('/#%26')
+    // string push (what happens on reload) keeps the hash as it is
     await router.push('/#%2526')
-    expect(router.currentRoute.value.hash).toBe('#%26')
+    expect(router.currentRoute.value.hash).toBe('#%2526')
     expect(router.currentRoute.value.fullPath).toBe('/#%2526')
+  })
+
+  // https://github.com/nuxt/nuxt/issues/32774
+  it('keeps an encoded hash when re-resolving a resolved route', async () => {
+    const { router } = await newRouter()
+    const resolved = router.resolve('/#a=1%26b=2')
+    expect(resolved.hash).toBe('#a=1%26b=2')
+    expect(resolved.fullPath).toBe('/#a=1%26b=2')
+    await router.replace({ ...resolved, force: true })
+    expect(router.currentRoute.value.hash).toBe('#a=1%26b=2')
+    expect(router.currentRoute.value.fullPath).toBe('/#a=1%26b=2')
   })
 
   it('throws if required params are missing', async () => {
@@ -652,7 +741,7 @@ describe('Experimental Router', () => {
       router.resolve({ name: 'Param', params: { p: [] } })
     ).toThrowError()
     expect(() =>
-      router.resolve({ name: 'optional', params: { p: [] } })
+      router.resolve({ name: 'optional', params: { p: ['a', 'b'] } })
     ).toThrowError()
   })
 
@@ -705,15 +794,31 @@ describe('Experimental Router', () => {
       router.resolve({
         name: 'catch-all',
         params: { pathMatch: 'some/path/with/slashes' },
-        query: { a: '1' },
+        query: { a: ['1'] },
         hash: '#hash',
       })
     ).toMatchObject({
       fullPath: '/some/path/with/slashes?a=1#hash',
       path: '/some/path/with/slashes',
-      query: { a: '1' },
+      query: { a: ['1'] },
       hash: '#hash',
     })
+  })
+
+  it('keeps slashes in catch-all params when replacing the hash', async () => {
+    const { router } = await newRouter()
+
+    await router.push('/some/path/with/slashes')
+    await router.replace({
+      name: 'catch-all',
+      params: router.currentRoute.value.params,
+      hash: '#something',
+    })
+
+    expect(router.currentRoute.value.fullPath).toBe(
+      '/some/path/with/slashes#something'
+    )
+    expect(router.currentRoute.value.path).toBe('/some/path/with/slashes')
   })
 
   it('keeps slashes in params containing slashes', async () => {
@@ -822,7 +927,11 @@ describe('Experimental Router', () => {
       const route = scope.run(() =>
         computed(() => {
           runs++
-          return router.resolve({ path: '/foo', query: { q: '1' }, hash: '#h' })
+          return router.resolve({
+            path: '/foo',
+            query: { q: ['1'] },
+            hash: '#h',
+          })
         })
       )!
       expect(route.value.fullPath).toBe('/foo?q=1#h')
@@ -877,10 +986,10 @@ describe('Experimental Router', () => {
       // spread the current location
       ...router.currentRoute.value,
       // then update some stuff, creating inconsistencies,
-      query: { a: '1' },
+      query: { a: ['1'] },
     })
     expect(resolved).toMatchObject({
-      query: { a: '1' },
+      query: { a: ['1'] },
       path: '/',
       fullPath: '/?a=1',
     })
@@ -1154,6 +1263,20 @@ describe('Experimental Router', () => {
   })
 
   describe('redirect', () => {
+    it('keeps target params when a guard redirects with only a query', async () => {
+      const { router } = await newRouter()
+      await router.push('/p/2')
+      router.beforeEach(to =>
+        to.path === '/p/1' && !to.query.page
+          ? { query: { page: ['2'] } }
+          : undefined
+      )
+
+      await router.push('/p/1')
+
+      expect(router.currentRoute.value.fullPath).toBe('/p/1?page=2')
+    })
+
     it('handles one redirect from route record', async () => {
       const { router } = await newRouter()
       await router.push('/foo')
@@ -1162,6 +1285,158 @@ describe('Experimental Router', () => {
       expect(loc.name).toBe('home')
       expect(loc.redirectedFrom).toMatchObject({
         path: '/home',
+      })
+    })
+
+    it('does not inherit params from the current route on a named redirect', async () => {
+      const { router } = await newRouter()
+      await router.push('/p/42')
+      expect(() => router.push('/param-redirect')).toThrow()
+      expect(router.currentRoute.value.fullPath).toBe('/p/42')
+    })
+
+    it('does not inherit query or hash from the current route on a named redirect', async () => {
+      const { router } = await newRouter()
+      await router.push('/foo?a=1#h')
+      await router.push('/home')
+      expect(router.currentRoute.value.fullPath).toBe('/')
+    })
+
+    it('does not inherit query or hash from the current route on a guard redirect', async () => {
+      const { router } = await newRouter()
+      await router.push('/foo?a=1#h')
+      router.beforeEach(to =>
+        to.name === 'Foo' ? { name: 'Param', params: { p: '1' } } : undefined
+      )
+      await router.push('/foo')
+      expect(router.currentRoute.value.fullPath).toBe('/p/1')
+    })
+
+    const relativeRedirects: [string, RouteLocationRaw, string][] = [
+      ['string', '2', '/p/2'],
+      ['path', { path: '2' }, '/p/2'],
+      ['query', { query: { page: ['2'] } }, '/p/1?page=2'],
+      ['params', { params: { p: '2' } }, '/p/2'],
+      ['hash', { hash: '#new' }, '/p/1#new'],
+    ]
+
+    describe.each(['initial', 'push', 'history'] as const)(
+      '%s navigation',
+      mode => {
+        it.each(relativeRedirects)(
+          'resolves a relative %s guard redirect against the target',
+          async (_type, redirect, expectedPath) => {
+            const history = createMemoryHistory()
+            const router = experimental_createRouter({
+              history,
+              resolver: createFixedResolver(experimentalRoutes),
+            })
+            if (mode === 'history') await router.push('/p/1')
+            if (mode !== 'initial') await router.push('/p/9')
+            router.beforeEach(to =>
+              to.fullPath === '/p/1' ? redirect : undefined
+            )
+
+            if (mode === 'history') {
+              const navigation = nextNavigation(router)
+              router.back()
+              await navigation
+            } else {
+              await router.push('/p/1')
+            }
+
+            expect(router.currentRoute.value.fullPath).toBe(expectedPath)
+            expect(history.location).toBe(expectedPath)
+            expect(router.currentRoute.value.redirectedFrom?.fullPath).toBe(
+              '/p/1'
+            )
+          }
+        )
+      }
+    )
+
+    it('keeps target query and hash in a relative guard redirect', async () => {
+      const { router, history } = await newRouter()
+      await router.push('/p/1?source=current#current')
+      router.beforeEach(to =>
+        to.path === '/foo' && !to.query.page
+          ? { query: { page: ['2'] } }
+          : undefined
+      )
+
+      await router.push('/foo?source=target#target')
+
+      expect(router.currentRoute.value.fullPath).toBe(
+        '/foo?source=target&page=2#target'
+      )
+      expect(history.location).toBe('/foo?source=target&page=2#target')
+    })
+
+    it('resolves a relative redirect passed to next against the target', async () => {
+      const { router, history } = await newRouter()
+      router.beforeEach((to, _from, next) => {
+        if (to.path === '/foo' && !to.query.page)
+          next({ query: { page: ['2'] } })
+        else next()
+      })
+
+      await router.push('/foo')
+
+      expect('VUE_ROUTER_R0025').toHaveBeenWarned()
+      expect(router.currentRoute.value.fullPath).toBe('/foo?page=2')
+      expect(history.location).toBe('/foo?page=2')
+    })
+
+    it('allows an explicitly resolved relative guard redirect', async () => {
+      const { router } = await newRouter()
+      await router.push('/p/1')
+      router.beforeEach(to =>
+        to.name === 'Foo' && !to.query.page
+          ? router.resolve({ query: { page: ['2'] } }, to)
+          : undefined
+      )
+
+      await router.push('/foo?a=1')
+
+      expect(router.currentRoute.value.fullPath).toBe('/foo?a=1&page=2')
+    })
+
+    it('allows an explicitly resolved relative string guard redirect', async () => {
+      const { router } = await newRouter()
+      router.beforeEach(to =>
+        to.path === '/users/posva' ? router.resolve('add', to) : undefined
+      )
+
+      await router.push('/users/posva')
+
+      expect(router.currentRoute.value.path).toBe('/users/add')
+    })
+
+    it('rejects a redirect without a name or a path', async () => {
+      const { router } = await newRouter()
+      expect(() => router.push('/redirect/relative-object')).toThrow()
+      expect('VUE_ROUTER_R0008').toHaveBeenWarned()
+    })
+
+    it('disallows a redirect to a relative location', async () => {
+      const { router } = await newRouter()
+      await router.push('/foo')
+      expect(() => router.push('/redirect/relative-string')).toThrow()
+      expect('VUE_ROUTER_R0008').toHaveBeenWarned()
+      expect(router.currentRoute.value.fullPath).toBe('/foo')
+    })
+
+    it('does not preserve query or hash on a plain redirect', async () => {
+      const { router } = await newRouter()
+      await router.push('/foo')
+
+      await router.push('/home?source=1#source')
+
+      expect(router.currentRoute.value).toMatchObject({
+        fullPath: '/',
+        query: {},
+        hash: '',
+        redirectedFrom: { fullPath: '/home?source=1#source' },
       })
     })
 
@@ -1195,7 +1470,7 @@ describe('Experimental Router', () => {
         name: 'Foo',
         path: '/foo',
         params: {},
-        query: { a: '2' },
+        query: { a: ['2'] },
         hash: '#b',
         redirectedFrom: expect.objectContaining({
           fullPath: '/to-foo-query',
@@ -1212,7 +1487,7 @@ describe('Experimental Router', () => {
         name: 'Foo',
         path: '/foo',
         params: {},
-        query: { hey: 'foo' },
+        query: { hey: ['foo'] },
         hash: '#fa',
         redirectedFrom: expect.objectContaining({
           fullPath: '/to-foo?hey=foo#fa',
@@ -1228,7 +1503,7 @@ describe('Experimental Router', () => {
       expect(router.currentRoute.value).toMatchObject({
         name: 'Param',
         params: { p: '1' },
-        query: { hey: 'foo' },
+        query: { hey: ['foo'] },
         hash: '#fa',
         redirectedFrom: expect.objectContaining({
           fullPath: '/to-p/1?hey=foo#fa',
@@ -1280,13 +1555,13 @@ describe('Experimental Router', () => {
       expect(loc).toMatchObject({
         name: 'Foo',
         query: {
-          n: '3-2',
+          n: ['3-2'],
         },
         hash: '#fa-2',
       })
       expect(loc.redirectedFrom).toMatchObject({
         fullPath: '/inc-query-hash?n=3#fa',
-        query: { n: '3' },
+        query: { n: ['3'] },
         hash: '#fa',
         path: '/inc-query-hash',
       })

@@ -60,13 +60,11 @@ import { RouterLink } from 'vue-router'
 export default {
   name: 'AppLink',
   inheritAttrs: false,
-
   props: {
     // add @ts-ignore if using TypeScript
     ...RouterLink.props,
     inactiveClass: String,
   },
-
   computed: {
     isExternalLink() {
       return typeof this.to === 'string' && this.to.startsWith('http')
@@ -124,7 +122,7 @@ export default {
 }
 ```
 
-<RuleKitLink />
+<!-- <RuleKitLink /> -->
 
 In practice, you might want to use your `AppLink` component for different parts of your application. e.g. using [Tailwind CSS](https://tailwindcss.com), you could create a `NavLink.vue` component with all the classes:
 

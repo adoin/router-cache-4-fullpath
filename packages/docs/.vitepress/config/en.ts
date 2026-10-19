@@ -1,5 +1,5 @@
 import type { DefaultTheme, LocaleSpecificConfig } from 'vitepress'
-import typedocSidebar from '../../api/typedoc-sidebar.json'
+import typedocSidebar from '../../api/typedoc-sidebar.json' with { type: 'json' }
 
 export const META_URL = 'https://router.vuejs.org'
 export const META_TITLE = 'Vue Router'
@@ -148,12 +148,20 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
               link: '/guide/advanced/router-view-slot.html',
             },
             {
+              text: 'Displaying a different route',
+              link: '/guide/advanced/router-view-route.html',
+            },
+            {
               text: 'Transitions',
               link: '/guide/advanced/transitions.html',
             },
             {
               text: 'Scroll Behavior',
               link: '/guide/advanced/scroll-behavior.html',
+            },
+            {
+              text: 'Scroll Restoration (experimental)',
+              link: '/experimental/scroll-restoration',
             },
             {
               text: 'Lazy Loading Routes',

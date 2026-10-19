@@ -94,6 +94,50 @@ describe('generateRouteRecord', () => {
     expect(generateRouteRecordSimple(tree)).toMatchSnapshot()
   })
 
+  it('generates valid definePage imports for any named view name', () => {
+    const tree = new PrefixTree(DEFAULT_OPTIONS)
+    tree.insert('foo', 'foo.vue')
+    tree.insert('foo@side-bar', 'foo@side-bar.vue')
+    const node = tree.insert('foo@nav.top', 'foo@nav.top.vue')
+    node.setDefinePageImport('foo@side-bar.vue', true)
+    node.setDefinePageImport('foo@nav.top.vue', true)
+
+    const importsMap = new ImportsMap()
+    const routes = generateRouteRecords(tree, DEFAULT_OPTIONS, importsMap)
+
+    expect(importsMap.toString()).toMatchInlineSnapshot(`
+      "import _definePage_side_2d_bar_0 from 'foo@side-bar.vue?definePage&vue&lang.tsx'
+      import _definePage_nav_2e_top_1 from 'foo@nav.top.vue?definePage&vue&lang.tsx'
+      import { _mergeRouteRecord } from 'vue-router/experimental'
+      "
+    `)
+    expect(routes).toContain('_definePage_side_2d_bar_0,\n')
+    expect(routes).toContain('_definePage_nav_2e_top_1\n')
+  })
+
+  it.each(['webpack', 'rspack'] as const)(
+    'keeps definePage imports away from vue-loader with %s',
+    framework => {
+      const tree = new PrefixTree(DEFAULT_OPTIONS)
+      tree.insert('foo', 'foo.vue').setDefinePageImport('foo.vue', true)
+      tree.insert('bar', 'bar.tsx').setDefinePageImport('bar.tsx', true)
+
+      const importsMap = new ImportsMap()
+      generateRouteRecords(
+        tree,
+        { ...DEFAULT_OPTIONS, _framework: framework },
+        importsMap
+      )
+
+      expect(importsMap.toString()).toMatchInlineSnapshot(`
+        "import _definePage_default_0 from 'bar.tsx?definePage&lang.tsx'
+        import { _mergeRouteRecord } from 'vue-router/experimental'
+        import _definePage_default_2 from 'foo.vue.definePage.tsx?definePage!=!foo.vue?definePage&vue&lang.tsx'
+        "
+      `)
+    }
+  )
+
   it('nested children', () => {
     const tree = new PrefixTree(DEFAULT_OPTIONS)
     tree.insert('a/a', 'a/a.vue')

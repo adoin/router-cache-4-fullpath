@@ -1,0 +1,1290 @@
+/**
+ * @vitest-environment happy-dom
+ */
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
+import {
+  defineComponent,
+  KeepAlive,
+  onBeforeUpdate,
+  ref,
+  useTemplateRef,
+} from 'vue'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { Diagnostic } from 'nostics'
+import { createMemoryHistory } from '../history/memory'
+import { RouterView } from '../RouterView'
+import { createRouter } from '../router'
+import type { RouteRecordRaw } from '../types'
+import type { ScrollRestorationPluginOptions } from './scroll-restoration'
+import {
+  SCROLL_RESTORATION_CAPTURE_DEFAULT,
+  SCROLL_RESTORATION_RESTORE_DEFAULT,
+  SCROLL_RESTORATION_SETUP_LISTENERS_DEFAULT,
+  ScrollRestoration,
+  useScrollRestoration,
+} from './scroll-restoration'
+import { mockWarn } from '../../__tests__/vitest-mock-warn'
+
+const Root = defineComponent({
+  components: { RouterView },
+  template: '<RouterView />',
+})
+
+const ScrollPage = defineComponent({
+  setup() {
+    useScrollRestoration()
+  },
+  template: '<main>Page</main>',
+})
+
+const EmptyPage = defineComponent({ template: '<main />' })
+const NeutralPage = defineComponent({ template: '<main>Neutral page</main>' })
+
+function mockWindowScroll() {
+  let left = 0
+  let top = 0
+
+  vi.spyOn(window, 'scrollTo').mockImplementation(
+    (optionsOrLeft?: ScrollToOptions | number, newTop?: number) => {
+      if (typeof optionsOrLeft === 'number') {
+        left = optionsOrLeft
+        top = newTop ?? top
+      } else {
+        left = optionsOrLeft?.left ?? left
+        top = optionsOrLeft?.top ?? top
+      }
+    }
+  )
+
+  vi.spyOn(window, 'scrollX', 'get').mockImplementation(() => left)
+  vi.spyOn(window, 'scrollY', 'get').mockImplementation(() => top)
+
+  return (newLeft: number, newTop: number) => {
+    left = newLeft
+    top = newTop
+  }
+}
+
+interface MountRouterOptions extends Partial<ScrollRestorationPluginOptions> {
+  root?: typeof Root
+  attachTo?: Element
+  // mount the app after this initial navigation
+  initialPath?: string
+}
+
+async function mountRouter(
+  routes: RouteRecordRaw[],
+  {
+    root = Root,
+    attachTo,
+    storageKeyPrefix,
+    initialPath,
+    setupListeners,
+    capture = SCROLL_RESTORATION_CAPTURE_DEFAULT,
+    restore = SCROLL_RESTORATION_RESTORE_DEFAULT,
+  }: MountRouterOptions = {}
+) {
+  const setScroll = mockWindowScroll()
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/', component: EmptyPage },
+      { path: '/neutral', component: NeutralPage },
+      ...routes,
+    ],
+  })
+
+  if (initialPath) {
+    await router.push(initialPath)
+    await router.isReady()
+  }
+
+  const wrapper = mount(root, {
+    attachTo,
+    global: {
+      plugins: [
+        [
+          ScrollRestoration,
+          {
+            router,
+            ...(storageKeyPrefix && { storageKeyPrefix }),
+            capture,
+            restore,
+            ...(setupListeners && { setupListeners }),
+          },
+        ],
+        router,
+      ],
+    },
+  })
+
+  async function navigate(path: string) {
+    await router.push(path)
+    await flushPromises()
+  }
+
+  return { navigate, router, setScroll, wrapper }
+}
+
+afterEach(() => {
+  // Restore the sessionStorage getter before clearing it.
+  vi.restoreAllMocks()
+  sessionStorage.clear()
+})
+enableAutoUnmount(afterEach)
+
+describe('useScrollRestoration', () => {
+  mockWarn()
+
+  it.each([
+    ['pagehide', undefined, 75],
+    ['visibilitychange', 'hidden', 75],
+    ['visibilitychange', 'visible', 0],
+  ] as const)(
+    'restores after %s with visibility %s',
+    async (event, visibility, expected) => {
+      const routes = [{ path: '/events', component: ScrollPage }]
+      const first = await mountRouter(routes)
+      await first.navigate('/events')
+      first.setScroll(0, 75)
+      if (visibility) {
+        vi.spyOn(document, 'visibilityState', 'get').mockReturnValue(visibility)
+      }
+      const target = event === 'pagehide' ? window : document
+      target.dispatchEvent(new Event(event))
+
+      first.wrapper.unmount()
+      first.setScroll(0, 150)
+      window.dispatchEvent(new Event('pagehide'))
+      document.dispatchEvent(new Event('visibilitychange'))
+      await first.navigate('/neutral')
+      vi.restoreAllMocks()
+
+      await mountRouter(routes, { initialPath: '/events' })
+      await flushPromises()
+      expect(window.scrollY).toBe(expected)
+    }
+  )
+
+  it.each(['scroll', 'pagehide', 'visibilitychange'])(
+    'uses custom scroll listeners when receiving %s',
+    async event => {
+      const routes = [{ path: '/custom', component: ScrollPage }]
+      const options: MountRouterOptions = {
+        setupListeners(capture, signal) {
+          window.addEventListener('scroll', () => capture(), { signal })
+        },
+      }
+      const first = await mountRouter(routes, options)
+      await first.navigate('/custom')
+      first.setScroll(0, 45)
+      vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+      const target = event === 'visibilitychange' ? document : window
+      target.dispatchEvent(new Event(event))
+
+      first.wrapper.unmount()
+      first.setScroll(0, 90)
+      window.dispatchEvent(new Event('scroll'))
+      vi.restoreAllMocks()
+
+      await mountRouter(routes, { ...options, initialPath: '/custom' })
+      await flushPromises()
+      expect(window.scrollY).toBe(event === 'scroll' ? 45 : 0)
+    }
+  )
+
+  it('captures the current route manually without navigation capture', async () => {
+    let captureNow!: () => void
+    const routes = [
+      { path: '/first', component: ScrollPage },
+      { path: '/second', component: ScrollPage },
+    ]
+    const options: MountRouterOptions = {
+      setupListeners: capture => {
+        captureNow = capture
+      },
+    }
+    const first = await mountRouter(routes, options)
+    await first.navigate('/first')
+    first.setScroll(0, 60)
+    await first.navigate('/second')
+    expect(sessionStorage.getItem('vue:scroll:/first')).toBeNull()
+    expect(sessionStorage.getItem('vue:scroll:/second')).toBeNull()
+    first.setScroll(0, 90)
+    captureNow()
+    expect(sessionStorage.getItem('vue:scroll:/first')).toBeNull()
+    first.wrapper.unmount()
+    vi.restoreAllMocks()
+
+    const { navigate } = await mountRouter(routes, {
+      ...options,
+      initialPath: '/second',
+    })
+    await flushPromises()
+    expect(window.scrollY).toBe(90)
+    await navigate('/first')
+    expect(window.scrollY).toBe(0)
+  })
+
+  it('captures a supplied route from a custom navigation listener', async () => {
+    const { navigate, setScroll } = await mountRouter(
+      [
+        { path: '/first', component: ScrollPage },
+        { path: '/second', component: ScrollPage },
+      ],
+      {
+        setupListeners(capture, signal, router) {
+          const remove = router.afterEach((_to, from, failure) => {
+            if (!failure) capture(from)
+          })
+          signal.addEventListener('abort', remove, { once: true })
+        },
+      }
+    )
+    await navigate('/first')
+    setScroll(0, 60)
+    await navigate('/second')
+    expect(JSON.parse(sessionStorage.getItem('vue:scroll:/first')!)).toEqual({
+      default: { left: 0, top: 60 },
+    })
+    expect(sessionStorage.getItem('vue:scroll:/second')).toBeNull()
+  })
+
+  it.each(['pagehide', 'visibilitychange', 'save-scroll'])(
+    'extends default capture triggers with a custom event: %s',
+    async event => {
+      const { navigate, setScroll } = await mountRouter(
+        [
+          { path: '/first', component: ScrollPage },
+          { path: '/second', component: ScrollPage },
+        ],
+        {
+          setupListeners(capture, signal, router) {
+            SCROLL_RESTORATION_SETUP_LISTENERS_DEFAULT(capture, signal, router)
+            window.addEventListener('save-scroll', () => capture(), { signal })
+          },
+        }
+      )
+      await navigate('/first')
+      setScroll(0, 60)
+      await navigate('/second')
+      setScroll(0, 90)
+      vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+      const target = event === 'visibilitychange' ? document : window
+      target.dispatchEvent(new Event(event))
+      expect(JSON.parse(sessionStorage.getItem('vue:scroll:/first')!)).toEqual({
+        default: { left: 0, top: 60 },
+      })
+      expect(JSON.parse(sessionStorage.getItem('vue:scroll:/second')!)).toEqual(
+        {
+          default: { left: 0, top: 90 },
+        }
+      )
+    }
+  )
+
+  it('preserves the saved root position on initial navigation', async () => {
+    const savedPosition = JSON.stringify({ default: { left: 0, top: 123 } })
+    sessionStorage.setItem('vue:scroll:/', savedPosition)
+    const ScrollRoot = defineComponent({
+      components: { RouterView },
+      setup() {
+        useScrollRestoration()
+      },
+      template: '<RouterView />',
+    })
+    const { router } = await mountRouter([], { root: ScrollRoot })
+
+    await router.isReady()
+    await flushPromises()
+    expect(window.scrollY).toBe(123)
+  })
+
+  it('throws a diagnostic when the plugin is missing', () => {
+    const Page = defineComponent({
+      setup() {
+        useScrollRestoration()
+      },
+      template: '<main />',
+    })
+
+    expect(() => mount(Page)).toThrow(Diagnostic)
+    expect('VUE_ROUTER_R0044').toHaveBeenWarned()
+  })
+
+  it('scrolls to a custom position on a new page without a saved entry', async () => {
+    const NewPage = defineComponent({
+      setup() {
+        useScrollRestoration()
+      },
+      template: '<main>New page</main>',
+    })
+    const { navigate, setScroll, wrapper } = await mountRouter(
+      [{ path: '/new-page', component: NewPage }],
+      {
+        restore: entry => window.scrollTo(0, entry?.default?.top ?? 135),
+      }
+    )
+
+    await navigate('/neutral')
+    setScroll(0, 40)
+    await navigate('/new-page')
+
+    expect(wrapper.text()).toBe('New page')
+    expect(window.scrollY).toBe(135)
+  })
+
+  it('scrolls to the top on a new page without a saved entry', async () => {
+    const NewPage = defineComponent({
+      setup() {
+        useScrollRestoration()
+      },
+      template: '<main>New page</main>',
+    })
+    const { navigate, setScroll, wrapper } = await mountRouter([
+      { path: '/new-page', component: NewPage },
+    ])
+
+    await navigate('/neutral')
+    setScroll(20, 40)
+    await navigate('/new-page')
+
+    expect(wrapper.text()).toBe('New page')
+    expect({ left: window.scrollX, top: window.scrollY }).toEqual({
+      left: 0,
+      top: 0,
+    })
+  })
+
+  it('scrolls to a new hash target and later restores its saved position', async () => {
+    const Page = defineComponent({
+      setup() {
+        useScrollRestoration()
+      },
+      template:
+        '<main><div id="details">Details</div><div id="details:advanced">Advanced</div></main>',
+    })
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
+        return {
+          left: 0,
+          top:
+            this.id === 'details'
+              ? 180
+              : this.id === 'details:advanced'
+                ? 220
+                : 0,
+        } as DOMRect
+      }
+    )
+    const { navigate, setScroll, wrapper } = await mountRouter(
+      [{ path: '/page', component: Page }],
+      { attachTo: document.body }
+    )
+
+    await navigate('/neutral')
+    setScroll(0, 40)
+    await navigate('/page#details')
+
+    expect(wrapper.get('#details').text()).toBe('Details')
+    expect(window.scrollY).toBe(180)
+
+    setScroll(0, 300)
+    await navigate('/neutral')
+    setScroll(0, 0)
+    await navigate('/page#details')
+
+    expect(window.scrollY).toBe(300)
+
+    setScroll(20, 55)
+    await navigate('/page#details%3Aadvanced')
+
+    expect(window.scrollY).toBe(220)
+
+    setScroll(20, 55)
+    await navigate('/page#missing')
+
+    expect({ left: window.scrollX, top: window.scrollY }).toEqual({
+      left: 0,
+      top: 0,
+    })
+  })
+
+  it('shares a scroll position between pages with the same key', async () => {
+    const PageA = defineComponent({
+      setup() {
+        useScrollRestoration({ key: 'shared-pages' })
+      },
+      template: '<main>Page A</main>',
+    })
+    const PageB = defineComponent({
+      setup() {
+        useScrollRestoration({ key: 'shared-pages' })
+      },
+      template: '<main>Page B</main>',
+    })
+    const { navigate, setScroll, wrapper } = await mountRouter([
+      { path: '/a', component: PageA },
+      { path: '/b', component: PageB },
+    ])
+
+    await navigate('/a')
+    setScroll(40, 120)
+
+    await navigate('/neutral')
+    setScroll(0, 0)
+
+    expect(wrapper.text()).toBe('Neutral page')
+    expect({ left: window.scrollX, top: window.scrollY }).toEqual({
+      left: 0,
+      top: 0,
+    })
+
+    await navigate('/b')
+
+    expect(wrapper.text()).toBe('Page B')
+    expect({ left: window.scrollX, top: window.scrollY }).toEqual({
+      left: 40,
+      top: 120,
+    })
+  })
+
+  it('lets a nested manual call own the key of a parent call', async () => {
+    const Parent = defineComponent({
+      components: { RouterView },
+      setup() {
+        useScrollRestoration({ key: 'nested-pages' })
+      },
+      template: '<main>Parent<RouterView /></main>',
+    })
+    const Child = defineComponent({
+      setup() {
+        return useScrollRestoration({ key: 'nested-pages', manual: true })
+      },
+      template: '<section>Child</section>',
+    })
+    const { navigate, setScroll, wrapper } = await mountRouter([
+      {
+        path: '/parent',
+        component: Parent,
+        children: [
+          { path: 'a', component: Child },
+          { path: 'b', component: Child },
+        ],
+      },
+    ])
+
+    await navigate('/parent/a')
+    setScroll(30, 90)
+    await navigate('/neutral')
+    setScroll(0, 0)
+    await navigate('/parent/b')
+
+    expect({ left: window.scrollX, top: window.scrollY }).toEqual({
+      left: 0,
+      top: 0,
+    })
+
+    wrapper.findComponent(Child).vm.scroll()
+    expect({ left: window.scrollX, top: window.scrollY }).toEqual({
+      left: 30,
+      top: 90,
+    })
+  })
+
+  it('lets a pending async page own the key of its parent before capturing', async () => {
+    const pending = Promise.withResolvers<void>()
+    const Parent = defineComponent({
+      components: { RouterView },
+      setup() {
+        useScrollRestoration({ key: 'async-page' })
+      },
+      template: `<main><RouterView v-slot="{ Component }">
+        <Suspense><component :is="Component" /></Suspense>
+      </RouterView></main>`,
+    })
+    const Child = defineComponent({
+      async setup() {
+        useScrollRestoration({
+          key: 'async-page',
+          capture: () => ({ default: { top: 999 } }),
+        })
+        await pending.promise
+      },
+      template: '<section>Child</section>',
+    })
+    const { navigate, setScroll } = await mountRouter([
+      {
+        path: '/async-parent',
+        component: Parent,
+        children: [{ path: 'child', component: Child }],
+      },
+    ])
+
+    setScroll(0, 77)
+    await navigate('/async-parent/child')
+    // the parent does not restore the page it does not own
+    expect(window.scrollY).toBe(77)
+
+    // the pending page cannot capture yet: the parent does
+    window.dispatchEvent(new Event('pagehide'))
+    setScroll(0, 12)
+    pending.resolve()
+    await flushPromises()
+    expect(window.scrollY).toBe(77)
+
+    await navigate('/neutral')
+    expect(
+      JSON.parse(sessionStorage.getItem('vue:scroll:async-page')!)
+    ).toEqual({ default: { top: 999 } })
+  })
+
+  it('does not restore a pending async descendant', async () => {
+    const Child = defineComponent({
+      async setup() {
+        useScrollRestoration({
+          key: 'pending-widget',
+          restore: () => window.scrollTo(0, 999),
+        })
+        await new Promise(() => {})
+      },
+      template: '<section>Widget</section>',
+    })
+    const Parent = defineComponent({
+      components: { Child },
+      setup() {
+        useScrollRestoration({ key: 'pending-widget' })
+      },
+      template: '<main><Suspense><Child /></Suspense></main>',
+    })
+    const { navigate, setScroll } = await mountRouter([
+      { path: '/pending-widget', component: Parent },
+    ])
+
+    setScroll(0, 77)
+    await navigate('/pending-widget')
+    expect(window.scrollY).toBe(77)
+  })
+
+  it('releases the key when a pending async page is abandoned', async () => {
+    const Parent = defineComponent({
+      components: { RouterView },
+      setup() {
+        useScrollRestoration({
+          key: 'abandoned-page',
+          restore: () => window.scrollTo(0, 123),
+        })
+      },
+      template: `<main><RouterView v-slot="{ Component }">
+        <Suspense><component :is="Component" /></Suspense>
+      </RouterView></main>`,
+    })
+    const Child = defineComponent({
+      async setup() {
+        useScrollRestoration({ key: 'abandoned-page' })
+        await new Promise(() => {})
+      },
+      template: '<section>Pending child</section>',
+    })
+    const { navigate } = await mountRouter([
+      {
+        path: '/abandoned-parent',
+        component: Parent,
+        children: [
+          { path: 'pending', component: Child },
+          { path: 'ready', component: NeutralPage },
+        ],
+      },
+    ])
+
+    await navigate('/abandoned-parent/pending')
+    await navigate('/abandoned-parent/ready')
+    expect(window.scrollY).toBe(123)
+  })
+
+  it('lets a nested call override the capture and restore of a parent call', async () => {
+    const Parent = defineComponent({
+      components: { RouterView },
+      setup() {
+        useScrollRestoration({
+          key: 'same-key',
+          capture: () => ({ default: { left: 0, top: 10 } }),
+          restore: () => window.scrollTo({ left: 0, top: 500 }),
+        })
+      },
+      template: '<main>Parent<RouterView /></main>',
+    })
+    const Child = defineComponent({
+      setup() {
+        useScrollRestoration({
+          key: 'same-key',
+          capture: () => ({ default: { left: 0, top: 90 } }),
+        })
+      },
+      template: '<section>Child</section>',
+    })
+    const { navigate, setScroll } = await mountRouter([
+      {
+        path: '/same-key',
+        component: Parent,
+        children: [
+          { path: 'a', component: Child },
+          { path: 'b', component: Child },
+        ],
+      },
+    ])
+
+    await navigate('/same-key/a')
+    await navigate('/neutral')
+    setScroll(0, 0)
+    await navigate('/same-key/b')
+
+    expect(window.scrollY).toBe(90)
+    expect('VUE_ROUTER_R0043').not.toHaveBeenWarned()
+  })
+
+  it('warns when sibling calls share a key with different capture or restore', async () => {
+    const First = defineComponent({
+      setup() {
+        useScrollRestoration({
+          key: 'same-key',
+          capture: () => ({ default: { left: 0, top: 10 } }),
+        })
+      },
+      template: '<section>First</section>',
+    })
+    const Second = defineComponent({
+      setup() {
+        useScrollRestoration({
+          key: 'same-key',
+          capture: () => ({ default: { left: 0, top: 90 } }),
+        })
+      },
+      template: '<section>Second</section>',
+    })
+    const Page = defineComponent({
+      components: { First, Second },
+      template: '<main><First /><Second /></main>',
+    })
+    const { navigate, setScroll } = await mountRouter([
+      { path: '/same-key/:id', component: Page },
+    ])
+
+    await navigate('/same-key/a')
+    await navigate('/neutral')
+    expect('VUE_ROUTER_R0043').toHaveBeenWarned()
+
+    setScroll(0, 0)
+    await navigate('/same-key/b')
+    // the last capture wins
+    expect(window.scrollY).toBe(90)
+  })
+
+  it('restores a parent call when a nested call resolves a different key', async () => {
+    const Parent = defineComponent({
+      components: { RouterView },
+      setup() {
+        useScrollRestoration({ key: 'parent-only' })
+      },
+      template: '<main>Parent<RouterView /></main>',
+    })
+    const Child = defineComponent({
+      setup() {
+        const scroller = useTemplateRef<HTMLElement>('scroller')
+        useScrollRestoration({
+          key: to => `child:${to.path}`,
+          capture: () => ({ default: { top: scroller.value!.scrollTop } }),
+          restore: entry => {
+            scroller.value!.scrollTop = entry?.default?.top ?? 0
+          },
+        })
+      },
+      template: '<div ref="scroller" />',
+    })
+    const { navigate, setScroll } = await mountRouter([
+      {
+        path: '/parent-only',
+        component: Parent,
+        children: [
+          { path: 'a', component: Child },
+          { path: 'b', component: Child },
+        ],
+      },
+    ])
+
+    await navigate('/parent-only/a')
+    setScroll(0, 70)
+    await navigate('/neutral')
+    setScroll(0, 0)
+    await navigate('/parent-only/b')
+
+    expect(window.scrollY).toBe(70)
+  })
+
+  it('shares a parent position with a nested call using the same key', async () => {
+    const Parent = defineComponent({
+      components: { RouterView },
+      setup() {
+        useScrollRestoration({ key: 'parent-page' })
+      },
+      template: '<main>Parent content<RouterView /></main>',
+    })
+    const Child = defineComponent({
+      setup() {
+        useScrollRestoration({ key: 'parent-page' })
+      },
+      template: '<section>Child content</section>',
+    })
+    const { navigate, setScroll, wrapper } = await mountRouter([
+      {
+        path: '/parent',
+        component: Parent,
+        children: [{ path: 'child', component: Child }],
+      },
+    ])
+
+    await navigate('/parent')
+    setScroll(20, 80)
+
+    await navigate('/neutral')
+    setScroll(0, 0)
+    await navigate('/parent/child')
+
+    expect(wrapper.text()).toContain('Child content')
+    expect({ left: window.scrollX, top: window.scrollY }).toEqual({
+      left: 20,
+      top: 80,
+    })
+  })
+
+  it('shares a nested position with a parent call using the same key', async () => {
+    const Parent = defineComponent({
+      components: { RouterView },
+      setup() {
+        useScrollRestoration({ key: 'nested-owner' })
+      },
+      template: '<main>Parent<RouterView /></main>',
+    })
+    const Child = defineComponent({
+      setup() {
+        useScrollRestoration({ key: 'nested-owner' })
+      },
+      template: '<section>Child</section>',
+    })
+    const { navigate, setScroll } = await mountRouter([
+      {
+        path: '/nested-owner',
+        component: Parent,
+        children: [{ path: 'child', component: Child }],
+      },
+    ])
+
+    await navigate('/nested-owner/child')
+    setScroll(0, 95)
+    await navigate('/neutral')
+    setScroll(0, 0)
+    await navigate('/nested-owner')
+
+    expect(window.scrollY).toBe(95)
+  })
+
+  it('restores nested calls with different keys independently', async () => {
+    const Parent = defineComponent({
+      components: { RouterView },
+      setup() {
+        const scroller = useTemplateRef<HTMLElement>('parent-scroller')
+        useScrollRestoration({
+          key: 'parent-key',
+          capture: () => ({ default: { top: scroller.value!.scrollTop } }),
+          restore: entry => {
+            // first visit: nothing saved yet
+            if (!entry) return
+            expect(entry.default?.top).toBeTypeOf('number')
+            scroller.value!.scrollTop = entry.default!.top!
+          },
+        })
+      },
+      template: `
+        <main>
+          <div ref="parent-scroller" data-testid="parent-scroller" />
+          <RouterView />
+        </main>
+      `,
+    })
+    const Child = defineComponent({
+      setup() {
+        const scroller = useTemplateRef<HTMLElement>('child-scroller')
+        useScrollRestoration({
+          key: 'child-key',
+          capture: () => ({ default: { top: scroller.value!.scrollTop } }),
+          restore: entry => {
+            // first visit: nothing saved yet
+            if (!entry) return
+            expect(entry.default?.top).toBeTypeOf('number')
+            scroller.value!.scrollTop = entry.default!.top!
+          },
+        })
+      },
+      template: '<div ref="child-scroller" data-testid="child-scroller" />',
+    })
+    const { navigate, wrapper } = await mountRouter([
+      {
+        path: '/different-keys',
+        component: Parent,
+        children: [
+          { path: 'a', component: Child },
+          { path: 'b', component: Child },
+        ],
+      },
+    ])
+
+    await navigate('/different-keys/a')
+    wrapper.get('[data-testid="parent-scroller"]').element.scrollTop = 35
+    wrapper.get('[data-testid="child-scroller"]').element.scrollTop = 75
+    await navigate('/neutral')
+    await navigate('/different-keys/b')
+
+    expect(
+      wrapper.get('[data-testid="parent-scroller"]').element.scrollTop
+    ).toBe(35)
+    expect(
+      wrapper.get('[data-testid="child-scroller"]').element.scrollTop
+    ).toBe(75)
+  })
+
+  it('uses path and hash but not query for the default key', async () => {
+    const Search = defineComponent({
+      setup() {
+        useScrollRestoration()
+      },
+      template: '<main>Search</main>',
+    })
+    const { navigate, setScroll } = await mountRouter([
+      { path: '/search', component: Search },
+    ])
+
+    await navigate('/search?q=shoes')
+    setScroll(10, 70)
+    await navigate('/neutral')
+    setScroll(0, 0)
+    await navigate('/search?q=shirts')
+
+    expect({ left: window.scrollX, top: window.scrollY }).toEqual({
+      left: 10,
+      top: 70,
+    })
+
+    await navigate('/neutral')
+    setScroll(0, 0)
+    await navigate('/search?q=shirts#details')
+
+    expect({ left: window.scrollX, top: window.scrollY }).toEqual({
+      left: 0,
+      top: 0,
+    })
+  })
+
+  it('captures and restores multiple named positions', async () => {
+    const Page = defineComponent({
+      setup() {
+        const first = useTemplateRef<HTMLElement>('first')
+        const second = useTemplateRef<HTMLElement>('second')
+
+        useScrollRestoration({
+          key: 'multiple',
+          capture: () => ({
+            first: { top: first.value!.scrollTop },
+            second: { top: second.value!.scrollTop },
+          }),
+          restore: entry => {
+            // first visit: nothing saved yet
+            if (!entry) return
+            expect(entry.first?.top).toBeTypeOf('number')
+            expect(entry.second?.top).toBeTypeOf('number')
+            first.value!.scrollTop = entry.first!.top!
+            second.value!.scrollTop = entry.second!.top!
+          },
+        })
+      },
+      template: `
+        <main>
+          <div ref="first" data-testid="first" />
+          <div ref="second" data-testid="second" />
+        </main>
+      `,
+    })
+    const { navigate, wrapper } = await mountRouter([
+      { path: '/multiple', component: Page },
+    ])
+
+    await navigate('/multiple')
+    wrapper.get('[data-testid="first"]').element.scrollTop = 30
+    wrapper.get('[data-testid="second"]').element.scrollTop = 90
+    await navigate('/neutral')
+    await navigate('/multiple')
+
+    expect(wrapper.get('[data-testid="first"]').element.scrollTop).toBe(30)
+    expect(wrapper.get('[data-testid="second"]').element.scrollTop).toBe(90)
+  })
+
+  it('isolates positions with storageKeyPrefix', async () => {
+    const routes = [{ path: '/prefixed', component: ScrollPage }]
+    const first = await mountRouter(routes, {
+      storageKeyPrefix: 'custom-scroll:',
+    })
+    await first.navigate('/prefixed')
+    first.setScroll(0, 40)
+    await first.navigate('/neutral')
+    first.wrapper.unmount()
+    vi.restoreAllMocks()
+
+    const second = await mountRouter(routes, { initialPath: '/prefixed' })
+    await flushPromises()
+    expect(window.scrollY).toBe(0)
+    second.wrapper.unmount()
+    vi.restoreAllMocks()
+
+    await mountRouter(routes, {
+      storageKeyPrefix: 'custom-scroll:',
+      initialPath: '/prefixed',
+    })
+    await flushPromises()
+    expect(window.scrollY).toBe(40)
+  })
+
+  it('restores once when a reused component updates', async () => {
+    const ReusedPage = defineComponent({
+      setup() {
+        const updates = ref(0)
+        onBeforeUpdate(() => window.scrollTo(0, 0))
+        useScrollRestoration({ key: 'reused' })
+        return { updates }
+      },
+      template: `
+        <main>
+          {{ $route.params.id }}
+          <button data-testid="update" @click="updates++">Update</button>
+        </main>
+      `,
+    })
+    const { navigate, setScroll, wrapper } = await mountRouter([
+      { path: '/reused/:id', component: ReusedPage },
+    ])
+
+    await navigate('/reused/one')
+    setScroll(0, 60)
+    await navigate('/reused/two')
+
+    expect(wrapper.text()).toContain('two')
+    expect(window.scrollY).toBe(60)
+
+    setScroll(0, 15)
+    await wrapper.get('[data-testid="update"]').trigger('click')
+    expect(window.scrollY).toBe(15)
+  })
+
+  it('does not restore when a kept component updates after navigation', async () => {
+    const Sidebar = defineComponent({
+      setup() {
+        const clicks = ref(0)
+        useScrollRestoration({ key: 'kept-parent' })
+        return { clicks }
+      },
+      template:
+        '<button data-testid="update" @click="clicks++">{{ clicks }}</button>',
+    })
+    const Parent = defineComponent({
+      components: { RouterView, Sidebar },
+      template: '<main><Sidebar /><RouterView /></main>',
+    })
+    const { navigate, setScroll, wrapper } = await mountRouter([
+      {
+        path: '/kept-parent',
+        component: Parent,
+        children: [
+          { path: 'a', component: EmptyPage },
+          { path: 'b', component: EmptyPage },
+        ],
+      },
+    ])
+
+    await navigate('/kept-parent/a')
+    setScroll(0, 50)
+    await navigate('/kept-parent/b')
+    setScroll(0, 10)
+    await wrapper.get('[data-testid="update"]').trigger('click')
+
+    expect(window.scrollY).toBe(10)
+  })
+
+  it.each(['page', 'root'] as const)(
+    'restores the initial navigation with a %s registration',
+    async registration => {
+      const ScrollRoot = defineComponent({
+        components: { RouterView },
+        setup() {
+          useScrollRestoration()
+        },
+        template: '<RouterView />',
+      })
+      const root = registration === 'root' ? ScrollRoot : Root
+      const component = registration === 'page' ? ScrollPage : NeutralPage
+      const routes = [{ path: '/initial', component }]
+      const first = await mountRouter(routes, { root })
+      await first.navigate('/initial')
+      first.setScroll(0, 70)
+      vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+      document.dispatchEvent(new Event('visibilitychange'))
+      first.wrapper.unmount()
+      vi.restoreAllMocks()
+
+      const { wrapper } = await mountRouter(routes, {
+        root,
+        initialPath: '/initial',
+      })
+      await flushPromises()
+
+      expect(wrapper.text()).toBe(
+        registration === 'page' ? 'Page' : 'Neutral page'
+      )
+      expect(window.scrollY).toBe(70)
+    }
+  )
+
+  it('removes the saved entry when capture returns null', async () => {
+    let shouldCapture = true
+    const Page = defineComponent({
+      setup() {
+        useScrollRestoration({
+          key: 'nullable',
+          capture: () =>
+            shouldCapture
+              ? { default: { left: window.scrollX, top: window.scrollY } }
+              : null,
+        })
+      },
+      template: '<main>Page</main>',
+    })
+    const { navigate, setScroll } = await mountRouter([
+      { path: '/nullable', component: Page },
+    ])
+
+    await navigate('/nullable')
+    setScroll(0, 80)
+    await navigate('/neutral')
+    setScroll(0, 0)
+    await navigate('/nullable')
+    expect(window.scrollY).toBe(80)
+
+    shouldCapture = false
+    await navigate('/neutral')
+    setScroll(0, 0)
+    await navigate('/nullable')
+
+    expect(window.scrollY).toBe(0)
+  })
+
+  it('restores the current route on clicks without deleting its saved entry', async () => {
+    const ManualPage = defineComponent({
+      setup() {
+        return useScrollRestoration({ manual: true })
+      },
+      template:
+        '<button data-testid="restore" @click="scroll">Restore</button>',
+    })
+    const { navigate, setScroll, wrapper } = await mountRouter([
+      { path: '/kept-entry', component: ManualPage },
+    ])
+
+    await navigate('/kept-entry')
+    setScroll(0, 65)
+    await navigate('/neutral')
+    setScroll(0, 0)
+    await navigate('/kept-entry')
+
+    expect(window.scrollY).toBe(0)
+    await wrapper.get('[data-testid="restore"]').trigger('click')
+    expect(window.scrollY).toBe(65)
+    setScroll(0, 0)
+    await wrapper.get('[data-testid="restore"]').trigger('click')
+    expect(window.scrollY).toBe(65)
+  })
+
+  it('resolves manual when restoration runs', async () => {
+    const manual = ref(true)
+    const KeepAliveRoot = defineComponent({
+      components: { KeepAlive, RouterView },
+      template: `
+        <RouterView v-slot="{ Component }">
+          <KeepAlive>
+            <component :is="Component" />
+          </KeepAlive>
+        </RouterView>
+      `,
+    })
+    const Page = defineComponent({
+      setup() {
+        useScrollRestoration({
+          key: 'reactive-manual',
+          manual: () => manual.value,
+        })
+      },
+      template: '<main>Page</main>',
+    })
+    const { navigate, setScroll } = await mountRouter(
+      [{ path: '/reactive-manual', component: Page }],
+      { root: KeepAliveRoot }
+    )
+
+    await navigate('/reactive-manual')
+    setScroll(0, 75)
+    await navigate('/neutral')
+    setScroll(0, 0)
+    manual.value = false
+    await navigate('/reactive-manual')
+
+    expect(window.scrollY).toBe(75)
+  })
+
+  it('captures and restores a reactivated KeepAlive component', async () => {
+    const KeepAliveRoot = defineComponent({
+      components: { KeepAlive, RouterView },
+      template: `
+        <RouterView v-slot="{ Component }">
+          <KeepAlive>
+            <component :is="Component" />
+          </KeepAlive>
+        </RouterView>
+      `,
+    })
+    const KeptPage = defineComponent({
+      setup() {
+        useScrollRestoration({ key: 'kept' })
+      },
+      template: '<main>Kept page</main>',
+    })
+    const { navigate, setScroll, wrapper } = await mountRouter(
+      [{ path: '/kept', component: KeptPage }],
+      { root: KeepAliveRoot }
+    )
+
+    await navigate('/kept')
+    setScroll(0, 110)
+    await navigate('/neutral')
+    setScroll(0, 0)
+    await navigate('/kept')
+
+    expect(wrapper.text()).toBe('Kept page')
+    expect(window.scrollY).toBe(110)
+  })
+
+  it('keeps the current owner after a failed navigation', async () => {
+    const Page = defineComponent({
+      setup() {
+        useScrollRestoration({ key: 'failed-navigation' })
+      },
+      template: '<main>Page</main>',
+    })
+    const { navigate, router, setScroll } = await mountRouter([
+      { path: '/failure', component: Page },
+    ])
+
+    await navigate('/failure')
+    setScroll(0, 20)
+    const removeGuard = router.beforeResolve(() => false)
+    await navigate('/neutral')
+    removeGuard()
+
+    setScroll(0, 45)
+    await navigate('/neutral')
+    setScroll(0, 0)
+    await navigate('/failure')
+
+    expect(window.scrollY).toBe(45)
+  })
+
+  it('ignores malformed sessionStorage entries', async () => {
+    const Page = defineComponent({
+      setup() {
+        useScrollRestoration({ key: 'malformed' })
+      },
+      template: '<main>Page</main>',
+    })
+
+    for (const malformed of ['{', '42', 'null', '[]', '"text"']) {
+      sessionStorage.setItem('test:malformed', malformed)
+      const { navigate, setScroll, wrapper } = await mountRouter(
+        [{ path: '/malformed', component: Page }],
+        { storageKeyPrefix: 'test:' }
+      )
+
+      setScroll(0, 0)
+      await navigate('/malformed')
+      expect(wrapper.text()).toBe('Page')
+      expect(window.scrollY).toBe(0)
+
+      // replaced by the next capture
+      setScroll(0, 40)
+      await navigate('/neutral')
+      setScroll(0, 0)
+      await navigate('/malformed')
+      expect(window.scrollY).toBe(40)
+
+      wrapper.unmount()
+      vi.restoreAllMocks()
+    }
+  })
+
+  it('ignores unavailable sessionStorage', async () => {
+    vi.spyOn(window, 'sessionStorage', 'get').mockImplementation(() => {
+      throw new DOMException('Blocked', 'SecurityError')
+    })
+    const Page = defineComponent({
+      setup() {
+        useScrollRestoration()
+      },
+      template: '<main>Page</main>',
+    })
+
+    const { navigate, wrapper } = await mountRouter([
+      { path: '/unavailable', component: Page },
+    ])
+    await navigate('/unavailable')
+
+    expect(wrapper.text()).toBe('Page')
+  })
+
+  it('restores the latest position after replacing the forward branch', async () => {
+    const Page = defineComponent({
+      setup() {
+        useScrollRestoration()
+      },
+      template: '<main>Page</main>',
+    })
+    const { navigate, router, setScroll } = await mountRouter([
+      { path: '/b', component: Page },
+    ])
+
+    async function go(delta: number) {
+      router.go(delta)
+      await flushPromises()
+    }
+
+    await navigate('/')
+    await navigate('/b')
+    setScroll(0, 1000)
+    // go back, then push a new entry that reuses the same URL: the forward
+    // branch is discarded but the key is shared by design
+    await go(-1)
+    await navigate('/b')
+    // revisiting the same URL restores its saved entry
+    expect(window.scrollY).toBe(1000)
+
+    setScroll(0, 2000)
+    await navigate('/')
+    await go(-1)
+
+    // the latest capture must win, not the stale 1000 from the old branch
+    expect(window.scrollY).toBe(2000)
+  })
+})

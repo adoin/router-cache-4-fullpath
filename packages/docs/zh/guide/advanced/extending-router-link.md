@@ -60,13 +60,11 @@ import { RouterLink } from 'vue-router'
 export default {
   name: 'AppLink',
   inheritAttrs: false,
-
   props: {
     // 如果使用 TypeScript，请添加 @ts-ignore
     ...RouterLink.props,
     inactiveClass: String,
   },
-
   computed: {
     isExternalLink() {
       return typeof this.to === 'string' && this.to.startsWith('http')
@@ -124,7 +122,7 @@ export default {
 }
 ```
 
-<RuleKitLink />
+<!-- <RuleKitLink /> -->
 
 在实践中，你可能希望将你的 `AppLink` 组件用于应用程序的不同部分。例如，使用 [Tailwind CSS](https://tailwindcss.com)，你可以用所有的类创建一个 `NavLink.vue` 组件：
 

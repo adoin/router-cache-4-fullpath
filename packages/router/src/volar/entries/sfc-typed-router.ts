@@ -1,4 +1,4 @@
-import { relative } from 'pathe'
+import { basename, relative } from 'pathe'
 import type { VueLanguagePlugin } from '@vue/language-core'
 import { replaceSourceRange, toString } from 'muggle-string'
 import { augmentVlsCtx } from '../utils/augment-vls-ctx'
@@ -60,7 +60,27 @@ const plugin: VueLanguagePlugin<{ options?: { rootDir?: string } }> = ({
       const useRouteNameType = `import('vue-router/auto-routes')._RouteNamesForFilePath<'${escapedFilePath}'>`
       const useRouteNameTypeParam = `<${useRouteNameType}>`
 
-      const definePageFilePathTypeParam = `<'${escapedFilePath}'>`
+      // the page component imports itself to type check `props`
+      const escapedSelfImport = `./${basename(fileName)}`
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+      const definePageTypeParams = `<'${escapedFilePath}'>`
+      // the self import is only added when needed because it is costly
+      const definePageWithPropsTypeParams = `<'${escapedFilePath}', typeof import('${escapedSelfImport}').default>`
+
+      const routePropsType = `import('vue-router/experimental')._RoutePropsForFilePath<'${escapedFilePath}'>`
+
+      // `definePage()` can come after `defineProps()`
+      const hasPropsTrue =
+        !!sfc.scriptSetup &&
+        !sfc.scriptSetup.lang.startsWith('js') &&
+        sfc.scriptSetup.ast.statements.some(
+          statement =>
+            ts.isExpressionStatement(statement) &&
+            isDefinePageCall(statement.expression) &&
+            getPropsOption(statement.expression)?.kind ===
+              ts.SyntaxKind.TrueKeyword
+        )
 
       if (sfc.scriptSetup) {
         visit(sfc.scriptSetup.ast)
@@ -118,22 +138,58 @@ const plugin: VueLanguagePlugin<{ options?: { rootDir?: string } }> = ({
             useRouteNameTypeParam
           )
         } else if (
-          ts.isCallExpression(node) &&
-          ts.isIdentifier(node.expression) &&
-          ts.idText(node.expression) === 'definePage' &&
+          isDefinePageCall(node) &&
           !node.typeArguments &&
           node.arguments.length === 1 &&
           !sfc.scriptSetup!.lang.startsWith('js')
         ) {
           // Inject the file path so `definePage`'s `params.path` keys can be
-          // narrowed to this file's actual path params.
+          // narrowed to this file's actual path params, and the component
+          // type so `props` is checked against its props.
+          const props = getPropsOption(node)
           replaceSourceRange(
             embeddedCode.content,
             sfc.scriptSetup!.name,
             node.expression.end,
             node.expression.end,
-            definePageFilePathTypeParam
+            props && props.kind !== ts.SyntaxKind.FalseKeyword
+              ? definePageWithPropsTypeParams
+              : definePageTypeParams
           )
+        } else if (
+          hasPropsTrue &&
+          ts.isCallExpression(node) &&
+          ts.isIdentifier(node.expression) &&
+          ts.idText(node.expression) === 'defineProps' &&
+          !node.arguments.length
+        ) {
+          // `props: true` passes the route params as props
+          const [typeArg] = node.typeArguments ?? []
+          if (typeArg) {
+            const { start } = getStartEnd(typeArg, sfc.scriptSetup!.ast)
+            replaceSourceRange(
+              embeddedCode.content,
+              sfc.scriptSetup!.name,
+              start,
+              start,
+              `${routePropsType} & (`
+            )
+            replaceSourceRange(
+              embeddedCode.content,
+              sfc.scriptSetup!.name,
+              typeArg.end,
+              typeArg.end,
+              `)`
+            )
+          } else {
+            replaceSourceRange(
+              embeddedCode.content,
+              sfc.scriptSetup!.name,
+              node.expression.end,
+              node.expression.end,
+              `<${routePropsType}>`
+            )
+          }
         } else {
           ts.forEachChild(node, visit)
         }
@@ -159,6 +215,34 @@ const plugin: VueLanguagePlugin<{ options?: { rootDir?: string } }> = ({
         augmentVlsCtx(embeddedCode.content, vlsCtxAugmentations)
       }
     },
+  }
+
+  function isDefinePageCall(node: ts.Node): node is ts.CallExpression {
+    return (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      ts.idText(node.expression) === 'definePage'
+    )
+  }
+
+  /**
+   * Returns the value of `props` in `definePage({ props })`.
+   */
+  function getPropsOption(
+    definePageCall: ts.CallExpression
+  ): ts.Expression | undefined {
+    const [arg] = definePageCall.arguments
+    if (!arg || !ts.isObjectLiteralExpression(arg)) return undefined
+    for (const prop of arg.properties) {
+      if (
+        ts.isPropertyAssignment(prop) &&
+        ts.isIdentifier(prop.name) &&
+        ts.idText(prop.name) === 'props'
+      ) {
+        return prop.initializer
+      }
+    }
+    return undefined
   }
 
   function getStartEnd(node: ts.Node, ast: ts.SourceFile) {

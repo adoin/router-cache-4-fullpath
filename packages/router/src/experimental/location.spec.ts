@@ -28,7 +28,7 @@ describe('parseURL', () => {
       fullPath: '/foo?f=foo#hash',
       path: '/foo',
       hash: '#hash',
-      query: { f: 'foo' },
+      query: { f: ['foo'] },
     })
   })
 
@@ -37,7 +37,7 @@ describe('parseURL', () => {
       fullPath: '/?f=foo',
       path: '/',
       hash: '',
-      query: { f: 'foo' },
+      query: { f: ['foo'] },
     })
   })
 
@@ -64,7 +64,7 @@ describe('parseURL', () => {
       fullPath: '/parent/foo?f=foo#hash',
       path: '/parent/foo',
       hash: '#hash',
-      query: { f: 'foo' },
+      query: { f: ['foo'] },
     })
   })
 
@@ -73,7 +73,7 @@ describe('parseURL', () => {
       fullPath: '/parent/bar?f=foo',
       path: '/parent/bar',
       hash: '',
-      query: { f: 'foo' },
+      query: { f: ['foo'] },
     })
   })
 
@@ -92,8 +92,8 @@ describe('parseURL', () => {
       path: '/foo',
       hash: '',
       query: {
-        a: 'one',
-        b: 'two',
+        a: ['one'],
+        b: ['two'],
       },
     })
   })
@@ -112,7 +112,7 @@ describe('parseURL', () => {
       fullPath: '/foo?a=one#bar',
       path: '/foo',
       hash: '#bar',
-      query: { a: 'one' },
+      query: { a: ['one'] },
     })
   })
 
@@ -136,7 +136,7 @@ describe('parseURL', () => {
       fullPath: '/foo/?a=two#?a=one',
       path: '/foo/',
       hash: '#?a=one',
-      query: { a: 'two' },
+      query: { a: ['two'] },
     })
   })
 
@@ -231,7 +231,7 @@ describe('parseURL', () => {
       fullPath: '/parent/bar?o=o',
       path: '/parent/bar',
       hash: '',
-      query: { o: 'o' },
+      query: { o: ['o'] },
     })
   })
 
@@ -240,5 +240,31 @@ describe('parseURL', () => {
     originalParseURL(parseQuery, '/?é=é&é=a')
     expect(parseQuery).toHaveBeenCalledTimes(1)
     expect(parseQuery).toHaveBeenCalledWith('é=é&é=a')
+  })
+
+  describe('hash', () => {
+    it('keeps the hash as it appears in the URL, like location.hash', () => {
+      expect(parseURL('/foo#%22%20%25')).toMatchObject({
+        fullPath: '/foo#%22%20%25',
+        hash: '#%22%20%25',
+      })
+      expect(parseURL('/foo#caf%C3%A9')).toMatchObject({
+        fullPath: '/foo#caf%C3%A9',
+        hash: '#caf%C3%A9',
+      })
+      expect(parseURL('/foo#%26')).toMatchObject({
+        fullPath: '/foo#%26',
+        hash: '#%26',
+      })
+      // userland structure like OAuth fragments is preserved
+      expect(parseURL('/foo#a=b%26c&d=e')).toMatchObject({
+        fullPath: '/foo#a=b%26c&d=e',
+        hash: '#a=b%26c&d=e',
+      })
+      expect(parseURL('/foo#100%')).toMatchObject({
+        fullPath: '/foo#100%',
+        hash: '#100%',
+      })
+    })
   })
 })

@@ -1,5 +1,5 @@
 import { type LocationQueryRaw } from '../query'
-import { encodeQueryValue as _encodeQueryValue } from '../../encoding'
+import { encodeQueryValue as _encodeQueryValue } from '../encoding'
 import type { MatcherParamsFormatted } from './matchers/matcher-pattern'
 import type { _RouteRecordProps } from '../../typed-routes'
 import type { LocationNormalized } from '../../location'
@@ -40,13 +40,12 @@ export interface EXPERIMENTAL_Resolver_Base<TRecord> {
 
   /**
    * Resolves a location by its name. Any required params or query must be
-   * passed in the `options` argument.
+   * passed in the `options` argument. If `currentLocation` is passed, its
+   * `params`, `query`, and `hash` are reused, `location` takes precedence.
    */
   resolve(
     location: ResolverLocationAsNamed,
-    // TODO: is this type strictness useful?
-    currentLocation?: undefined
-    // currentLocation?: undefined | NEW_LocationResolved<TMatcherRecord>
+    currentLocation?: ResolverLocationResolved<TRecord> | undefined
   ): ResolverLocationResolved<TRecord>
 
   /**
@@ -99,6 +98,22 @@ export type MatcherLocationRaw =
   | ResolverLocationAsPathAbsolute
   | ResolverLocationAsPathRelative
   | ResolverLocationAsRelative
+
+/**
+ * Checks if a location is absolute, meaning it has a `name` or an absolute `path`.
+ *
+ * @param to - The location to check.
+ * @returns `true` if the location is absolute, `false` otherwise.
+ */
+export const isAbsoluteLocation = (
+  to: MatcherLocationRaw
+): to is
+  | ResolverLocationAsNamed
+  | ResolverLocationAsPathAbsolute
+  | `/${string}` =>
+  typeof to === 'string'
+    ? to.startsWith('/')
+    : to.name != null || !!to.path?.startsWith('/')
 
 /**
  * Returned location object by {@link EXPERIMENTAL_Resolver_Base['resolve']}.

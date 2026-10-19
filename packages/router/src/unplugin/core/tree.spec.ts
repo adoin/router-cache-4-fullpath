@@ -54,6 +54,7 @@ describe('Tree', () => {
       rawSegment: '[id=int]',
       params: [
         {
+          type: 'path',
           paramName: 'id',
           parser: 'int',
         },
@@ -72,6 +73,7 @@ describe('Tree', () => {
       rawSegment: '[id=int]+',
       params: [
         {
+          type: 'path',
           paramName: 'id',
           parser: 'int',
           repeatable: true,
@@ -92,6 +94,7 @@ describe('Tree', () => {
       rawSegment: '[[id=int]]',
       params: [
         {
+          type: 'path',
           paramName: 'id',
           parser: 'int',
           optional: true,
@@ -112,6 +115,7 @@ describe('Tree', () => {
       rawSegment: '[[id=int]]+',
       params: [
         {
+          type: 'path',
           paramName: 'id',
           parser: 'int',
           repeatable: true,
@@ -133,6 +137,7 @@ describe('Tree', () => {
       rawSegment: 'a-[id=int]-b',
       params: [
         {
+          type: 'path',
           paramName: 'id',
           parser: 'int',
         },
@@ -319,6 +324,7 @@ describe('Tree', () => {
         isSplat: false,
         modifier: '',
         optional: false,
+        type: 'path',
         paramName: 'id',
         repeatable: false,
       }),
@@ -331,6 +337,7 @@ describe('Tree', () => {
         isSplat: false,
         modifier: '',
         optional: false,
+        type: 'path',
         paramName: 'id',
         repeatable: false,
       }),
@@ -348,6 +355,7 @@ describe('Tree', () => {
         isSplat: false,
         modifier: '',
         optional: false,
+        type: 'path',
         paramName: 'id',
         repeatable: false,
       }),
@@ -359,6 +367,7 @@ describe('Tree', () => {
         isSplat: false,
         modifier: '',
         optional: false,
+        type: 'path',
         paramName: 'id',
         repeatable: false,
       }),
@@ -371,6 +380,7 @@ describe('Tree', () => {
         isSplat: false,
         modifier: '',
         optional: false,
+        type: 'path',
         paramName: 'a',
         repeatable: false,
       }),
@@ -383,6 +393,7 @@ describe('Tree', () => {
         isSplat: false,
         modifier: '',
         optional: false,
+        type: 'path',
         paramName: 'id',
         repeatable: false,
       }),
@@ -396,6 +407,7 @@ describe('Tree', () => {
       rawSegment: '[id]+',
       params: [
         {
+          type: 'path',
           paramName: 'id',
           repeatable: true,
           optional: false,
@@ -414,6 +426,7 @@ describe('Tree', () => {
       rawSegment: '[[id]]+',
       params: [
         {
+          type: 'path',
           paramName: 'id',
           repeatable: true,
           optional: true,
@@ -432,6 +445,7 @@ describe('Tree', () => {
       rawSegment: '[[id]]',
       params: [
         {
+          type: 'path',
           paramName: 'id',
           repeatable: false,
           optional: true,
@@ -727,6 +741,7 @@ describe('Tree', () => {
     })
     expect(node.params).toHaveLength(1)
     expect(node.params[0]).toMatchObject({
+      type: 'path',
       paramName: 'a',
       isSplat: false,
       modifier: '',
@@ -878,6 +893,7 @@ describe('Tree', () => {
 
       expect(node.pathParams).toEqual([
         expect.objectContaining({
+          type: 'path',
           paramName: 'chapters',
           parser: 'int',
           modifier: '+',
@@ -886,6 +902,7 @@ describe('Tree', () => {
           isSplat: false,
         }),
         expect.objectContaining({
+          type: 'path',
           paramName: 'tags',
           modifier: '*',
           optional: true,
@@ -893,6 +910,7 @@ describe('Tree', () => {
           isSplat: false,
         }),
         expect.objectContaining({
+          type: 'path',
           paramName: 'path',
           modifier: '',
           optional: false,
@@ -1345,6 +1363,12 @@ describe('Tree', () => {
       })
     })
 
+    it('keeps hex character codes in segments with params', () => {
+      checkRegexp('[id][x+2E]json', '/^\\/([^/]+?)\\.json$/i', {
+        matcherParts: [[1, '.', 'json']],
+      })
+    })
+
     it('works with a catch all route', () => {
       checkRegexp('[...all]', '/^\\/(.*)$/i', {
         matcherParts: [0],
@@ -1499,24 +1523,28 @@ describe('Tree', () => {
 
       expect(node.queryParams).toEqual([
         {
+          type: 'query',
           paramName: 'search',
           parser: null,
           format: null,
           defaultValue: undefined,
         },
         {
+          type: 'query',
           paramName: 'limit',
           parser: 'int',
           format: null,
           defaultValue: '10',
         },
         {
+          type: 'query',
           paramName: 'tags',
           parser: 'bool',
           format: null,
           defaultValue: undefined,
         },
         {
+          type: 'query',
           paramName: 'other',
           parser: null,
           format: null,
@@ -1576,12 +1604,14 @@ describe('Tree', () => {
       expect(node.params).toHaveLength(3)
       expect(node.params[0]).toMatchObject({ paramName: 'id' }) // path param
       expect(node.params[1]).toMatchObject({
+        type: 'query',
         paramName: 'tab',
         parser: null,
         format: null,
         defaultValue: undefined,
       }) // query param
       expect(node.params[2]).toMatchObject({
+        type: 'query',
         paramName: 'expand',
         parser: 'bool',
         format: null,
@@ -1613,6 +1643,7 @@ describe('Tree', () => {
       })
 
       expect(node.pathParams[0]).toMatchObject({
+        type: 'path',
         paramName: 'when',
         parser: 'date',
       })
@@ -1652,9 +1683,137 @@ describe('Tree', () => {
       })
 
       expect(node.pathParams[0]).toMatchObject({
+        type: 'path',
         paramName: 'when',
         parser: null,
       })
+    })
+  })
+
+  describe('Path param custom regexp from definePage', () => {
+    it('keeps the regexp source in the param', () => {
+      const tree = new PrefixTree(RESOLVED_OPTIONS)
+      const node = tree.insert('[org]', '[org].vue')
+      node.setCustomRouteBlock('[org].vue', {
+        params: { path: { org: { re: '@\\w+' } } },
+      })
+
+      expect(node.pathParams).toEqual([
+        expect.objectContaining({ paramName: 'org', re: '@\\w+' }),
+      ])
+    })
+
+    it('defaults the regexp to null', () => {
+      const tree = new PrefixTree(RESOLVED_OPTIONS)
+      const node = tree.insert('[org]', '[org].vue')
+      node.setCustomRouteBlock('[org].vue', {
+        params: { path: { org: { re: null } } },
+      })
+
+      expect(node.pathParams).toEqual([
+        expect.objectContaining({ paramName: 'org', re: null }),
+      ])
+      expect(tree.insert('[id]', '[id].vue').pathParams).toEqual([
+        expect.objectContaining({ paramName: 'id', re: null }),
+      ])
+    })
+
+    it('keeps the parser along the regexp', () => {
+      const tree = new PrefixTree(RESOLVED_OPTIONS)
+      const node = tree.insert('users/[id]', 'users/[id].vue')
+      node.setCustomRouteBlock('users/[id].vue', {
+        params: { path: { id: { parser: 'int', re: '\\d{3}' } } },
+      })
+
+      expect(node.pathParams[0]).toMatchObject({ parser: 'int', re: '\\d{3}' })
+    })
+
+    it('keeps the filename parser when only the regexp is set', () => {
+      const tree = new PrefixTree(RESOLVED_OPTIONS)
+      const node = tree.insert('[id=int]', '[id=int].vue')
+      node.setCustomRouteBlock('[id=int].vue', {
+        params: { path: { id: { re: '\\d+' } } },
+      })
+
+      expect(node.pathParams[0]).toMatchObject({ parser: 'int', re: '\\d+' })
+      expect('VUE_ROUTER_B0021').not.toHaveBeenWarned()
+    })
+
+    it('ignores regexps with capturing groups', () => {
+      const tree = new PrefixTree(RESOLVED_OPTIONS)
+      const node = tree.insert('[org]', '[org].vue')
+      node.setCustomRouteBlock('[org].vue', {
+        params: { path: { org: { re: '(@)\\w+' } } },
+      })
+
+      expect(node.pathParams[0]).toMatchObject({ re: null })
+      expect('VUE_ROUTER_B0023').toHaveBeenWarned()
+    })
+
+    it('ignores invalid regexps', () => {
+      const tree = new PrefixTree(RESOLVED_OPTIONS)
+      const node = tree.insert('[org]', '[org].vue')
+      node.setCustomRouteBlock('[org].vue', {
+        params: { path: { org: { re: '[a-' } } },
+      })
+
+      expect(node.pathParams[0]).toMatchObject({ re: null })
+      expect('VUE_ROUTER_B0023').toHaveBeenWarned()
+    })
+
+    it('ignores regexps that match an empty value', () => {
+      const tree = new PrefixTree(RESOLVED_OPTIONS)
+      const node = tree.insert('[org]', '[org].vue')
+      node.setCustomRouteBlock('[org].vue', {
+        params: { path: { org: { re: 'a*' } } },
+      })
+
+      expect(node.pathParams[0]).toMatchObject({ re: null })
+      expect('VUE_ROUTER_B0023').toHaveBeenWarned()
+    })
+
+    it('warns when a repeatable param regexp can match a slash', () => {
+      const tree = new PrefixTree(RESOLVED_OPTIONS)
+      const node = tree.insert('[parts]+', '[parts]+.vue')
+      node.setCustomRouteBlock('[parts]+.vue', {
+        params: { path: { parts: { re: '.+' } } },
+      })
+
+      // the regexp is kept
+      expect(node.pathParams[0]).toMatchObject({ re: '.+' })
+      expect('VUE_ROUTER_B0024').toHaveBeenWarned()
+    })
+
+    it('does not warn when a repeatable param regexp cannot match a slash', () => {
+      const tree = new PrefixTree(RESOLVED_OPTIONS)
+      const node = tree.insert('[parts]+', '[parts]+.vue')
+      node.setCustomRouteBlock('[parts]+.vue', {
+        params: { path: { parts: { re: '[^/]+' } } },
+      })
+
+      expect(node.pathParams[0]).toMatchObject({ re: '[^/]+' })
+      expect('VUE_ROUTER_B0024').not.toHaveBeenWarned()
+    })
+
+    it('does not warn when a non repeatable param regexp can match a slash', () => {
+      const tree = new PrefixTree(RESOLVED_OPTIONS)
+      const node = tree.insert('[org]', '[org].vue')
+      node.setCustomRouteBlock('[org].vue', {
+        params: { path: { org: { re: '.+' } } },
+      })
+
+      expect(node.pathParams[0]).toMatchObject({ re: '.+' })
+      expect('VUE_ROUTER_B0024').not.toHaveBeenWarned()
+    })
+
+    it('generates a valid regexp with unescaped slashes in the source', () => {
+      const tree = new PrefixTree(RESOLVED_OPTIONS)
+      const node = tree.insert('[org]', '[org].vue')
+      node.setCustomRouteBlock('[org].vue', {
+        params: { path: { org: { re: 'a/b' } } },
+      })
+
+      expect(node.regexp).toBe('/^\\/(a\\/b)$/i')
     })
   })
 
@@ -1798,6 +1957,7 @@ describe('Tree', () => {
       if (node.value.isParam()) {
         expect(node.value.pathParams).toHaveLength(1)
         expect(node.value.pathParams[0]).toMatchObject({
+          type: 'path',
           paramName: 'pathMatch',
         })
       }
@@ -1811,6 +1971,7 @@ describe('Tree', () => {
       if (node.value.isParam()) {
         expect(node.value.pathParams).toHaveLength(1)
         expect(node.value.pathParams[0]).toMatchObject({
+          type: 'path',
           paramName: 'pathMatch',
         })
       }
@@ -1824,6 +1985,7 @@ describe('Tree', () => {
       if (node.value.isParam()) {
         expect(node.value.pathParams).toHaveLength(1)
         expect(node.value.pathParams[0]).toMatchObject({
+          type: 'path',
           paramName: 'pathMatch',
         })
       }
@@ -1838,6 +2000,7 @@ describe('Tree', () => {
         expect(node.value.pathParams).toHaveLength(3)
         expect(node.value.pathParams[0]).toMatchObject({ paramName: 'a' })
         expect(node.value.pathParams[1]).toMatchObject({
+          type: 'path',
           paramName: 'pathMatch',
         })
         expect(node.value.pathParams[2]).toMatchObject({ paramName: 'b' })

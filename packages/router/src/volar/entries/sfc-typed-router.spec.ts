@@ -68,4 +68,118 @@ describe('sfc-typed-router volar plugin', () => {
     const code = `type R = ReturnType<typeof useRoute>`
     expect(transform(code, { lang: 'js' })).toBe(code)
   })
+
+  it('injects the file path and the page component into `definePage()`', () => {
+    const out = transform(`definePage({ props: true })`)
+    expect(out).toBe(
+      `definePage<'src/pages/users/sub-[first]-[second].vue', typeof import('./sub-[first]-[second].vue').default>({ props: true })`
+    )
+  })
+
+  it('escapes quotes in the `definePage()` self import', () => {
+    const out = transform(`definePage({ props: true })`, {
+      fileName: `/app/src/pages/it's-fine.vue`,
+    })
+    expect(out).toBe(
+      `definePage<'src/pages/it\\'s-fine.vue', typeof import('./it\\'s-fine.vue').default>({ props: true })`
+    )
+  })
+
+  it('injects the page component for every `props` form but `false`', () => {
+    for (const props of ['to => to.params', '{ a: 1 }']) {
+      expect(transform(`definePage({ props: ${props} })`)).toContain(
+        `typeof import('./sub-[first]-[second].vue').default>`
+      )
+    }
+  })
+
+  it('only injects the file path into `definePage()` without props', () => {
+    for (const code of [`definePage({})`, `definePage({ props: false })`]) {
+      expect(transform(code)).toBe(
+        code.replace(
+          'definePage(',
+          `definePage<'src/pages/users/sub-[first]-[second].vue'>(`
+        )
+      )
+    }
+  })
+
+  it('leaves `definePage()` with type arguments untouched', () => {
+    const code = `definePage<'a.vue'>({})`
+    expect(transform(code)).toBe(code)
+  })
+
+  describe('defineProps() with `props: true`', () => {
+    const ROUTE_PROPS = `import('vue-router/experimental')._RoutePropsForFilePath<'src/pages/users/sub-[first]-[second].vue'>`
+
+    /** Gets the `defineProps()` statement out of the transformed code. */
+    function transformProps(
+      code: string,
+      opts?: Parameters<typeof transform>[1]
+    ) {
+      return transform(code, opts).split('\n')[0]
+    }
+
+    it('adds the route props as the type argument', () => {
+      expect(
+        transformProps(
+          `const props = defineProps()\ndefinePage({ props: true })`
+        )
+      ).toBe(`const props = defineProps<${ROUTE_PROPS}>()`)
+    })
+
+    it('intersects the route props with an inline type argument', () => {
+      expect(
+        transformProps(
+          `const props = defineProps<{ myProp: string; other: number }>()\ndefinePage({ props: true })`
+        )
+      ).toBe(
+        `const props = defineProps<${ROUTE_PROPS} & ({ myProp: string; other: number })>()`
+      )
+    })
+
+    it('intersects the route props with combined type references', () => {
+      expect(
+        transformProps(
+          `const props = defineProps<A & Omit<B, 'c'> | C>()\ndefinePage({ props: true })`
+        )
+      ).toBe(
+        `const props = defineProps<${ROUTE_PROPS} & (A & Omit<B, 'c'> | C)>()`
+      )
+    })
+
+    it('works with withDefaults() and definePage() first', () => {
+      expect(
+        transform(
+          `definePage({ props: true })\nconst props = withDefaults(defineProps<Props>(), { a: 1 })`
+        ).split('\n')[1]
+      ).toBe(
+        `const props = withDefaults(defineProps<${ROUTE_PROPS} & (Props)>(), { a: 1 })`
+      )
+    })
+
+    it('does nothing without `props: true`', () => {
+      for (const code of [
+        `const props = defineProps()\ndefinePage({ props: false })`,
+        `const props = defineProps()\ndefinePage({ props: to => to.params })`,
+        `const props = defineProps()\ndefinePage({})`,
+        `const props = defineProps()`,
+      ]) {
+        expect(transformProps(code)).toBe(code.split('\n')[0])
+      }
+    })
+
+    it('leaves runtime props declarations untouched', () => {
+      expect(
+        transformProps(
+          `const props = defineProps(['a'])\ndefinePage({ props: true })`
+        )
+      ).toBe(`const props = defineProps(['a'])`)
+    })
+
+    it('does nothing in a js script', () => {
+      const code = `const props = defineProps()\ndefinePage({ props: true })`
+      expect(transform(code, { lang: 'js' })).toBe(code)
+    })
+  })
 })

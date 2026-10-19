@@ -7,22 +7,18 @@ import {
   type NavigationFailure,
 } from '../errors'
 import type { ShallowRef } from 'vue'
-import {
-  nextTick,
-  shallowReactive,
-  shallowRef,
-  unref,
-  warn,
-  type App,
-} from 'vue'
+import { nextTick, shallowRef, unref, warn, type App } from 'vue'
 import {
   NavigationType,
   type HistoryState,
   type RouterHistory,
 } from '../history/common'
-import type { PathParserOptions } from '../matcher'
-import type { experimental_parseQuery as originalParseQuery } from './query'
-import { stringifyQuery as originalStringifyQuery } from '../query'
+// `parseQuery` and `stringifyQuery` are only read by the classic router, so
+// they are typed after the classic query, whose values can also be scalars
+import {
+  stringifyQuery as originalStringifyQuery,
+  type parseQuery as originalParseQuery,
+} from '../query'
 import type { Router } from '../router'
 import {
   type _ScrollPositionNormalized,
@@ -34,7 +30,6 @@ import {
 } from '../scrollBehavior'
 import type {
   _NavigationGuardResolved,
-  _RouteRecordProps,
   NavigationGuard,
   NavigationGuardWithThis,
   NavigationHookAfter,
@@ -58,7 +53,11 @@ import type {
   RouteMeta,
 } from '../types'
 import { useCallbacks } from '../utils/callbacks'
-import { isSameRouteLocation, START_LOCATION_NORMALIZED } from '../location'
+import {
+  createReactiveRoute,
+  isSameRouteLocation,
+  START_LOCATION_NORMALIZED,
+} from '../location'
 import { assign, isArray, isBrowser, noop } from '../utils'
 import {
   extractChangingRecords,
@@ -77,6 +76,7 @@ import type {
   EXPERIMENTAL_ResolverRecord_Matchable,
   EXPERIMENTAL_ResolverFixed,
 } from './route-resolver/resolver-fixed'
+import { isAbsoluteLocation } from './route-resolver/resolver-abstract'
 import type {
   ResolverLocationAsNamed,
   ResolverLocationAsPathRelative,
@@ -84,6 +84,15 @@ import type {
   ResolverLocationResolved,
 } from './route-resolver/resolver-abstract'
 import type { DataLoaderExtensions } from './data-loaders/meta-extensions'
+import { diagnostics } from '../diagnostics'
+import type { PathParserOptions } from '../matcher'
+import type {
+  EXPERIMENTAL_RouteRecordPropsOption,
+  RouteLocationForRecordName,
+  RouteRecordPropsViews,
+} from './route-props'
+import type { RecordName } from './route-resolver/resolver-abstract'
+import type { RouteLocationNormalizedLoadedGeneric } from '../typed-routes'
 
 /**
  * resolve, reject arguments of Promise constructor
@@ -96,6 +105,8 @@ export type _OnReadyCallback = [() => void, (reason?: any) => void]
 //   extends Omit<_RouteLocationResolved<Name>, 'matched'> {
 //   matched: EXPERIMENTAL_RouteRecordNormalized[]
 // }
+
+// TODO: completely remove the PathParserOptions extends here
 
 /**
  * Options to initialize a {@link Router} instance.
@@ -131,6 +142,10 @@ export interface EXPERIMENTAL_RouterOptions_Base extends PathParserOptions {
    *   // `savedPosition` can be null if there isn't one
    * }
    * ```
+   *
+   * @deprecated Use `ScrollRestoration` and `useScrollRestoration()` from
+   * `vue-router/experimental` instead. See the
+   * [migration guide](https://router.vuejs.org/experimental/scroll-restoration.html#migrating-from-scrollbehavior).
    */
   scrollBehavior?: RouterScrollBehavior
 
@@ -150,6 +165,10 @@ export interface EXPERIMENTAL_RouterOptions_Base extends PathParserOptions {
    *   stringifyQuery: qs.stringify,
    * })
    * ```
+   *
+   * @deprecated this option is ignored in favor of using a custom resolver
+   * that handles query parsing and adds a `$query` property to the params. See
+   * the [TODO: migration guide](https://router.vuejs.org/experimental/query-parsing.html#migrating-from-parsequery-and-stringifyquery).
    */
   parseQuery?: typeof originalParseQuery
 
@@ -220,11 +239,12 @@ export interface EXPERIMENTAL_RouteRecord_Base extends EXPERIMENTAL_ResolverReco
    */
   aliasOf?: EXPERIMENTAL_RouteRecordNormalized | null
 
-  // TODO:
   /**
-   * Allow passing down params as props to the component rendered by `router-view`.
+   * Pass props to the components of `components`, one entry per view name.
+   * Use {@link normalizeRouteRecord} to type check them against the route
+   * params and the props of each component.
    */
-  // props?: _RouteRecordProps | Record<string, _RouteRecordProps>
+  props?: Record<string, EXPERIMENTAL_RouteRecordPropsOption>
 }
 
 export interface EXPERIMENTAL_RouteRecord_Redirect
@@ -278,7 +298,10 @@ export interface EXPERIMENTAL_RouteRecordNormalized_Base {
    */
   mods: Record<string, unknown>
 
-  props: Record<string, _RouteRecordProps>
+  /**
+   * Props passed to each view. Empty if no view receives props.
+   */
+  props: Record<string, EXPERIMENTAL_RouteRecordPropsOption>
 
   /**
    * Registered leave guards
@@ -304,6 +327,7 @@ export interface EXPERIMENTAL_RouteRecordNormalized_Group
     EXPERIMENTAL_RouteRecordNormalized_Base,
     EXPERIMENTAL_RouteRecord_Group {
   meta: RouteMeta
+  props: Record<string, EXPERIMENTAL_RouteRecordPropsOption>
 }
 
 export interface EXPERIMENTAL_RouteRecordNormalized_Redirect
@@ -311,6 +335,7 @@ export interface EXPERIMENTAL_RouteRecordNormalized_Redirect
     EXPERIMENTAL_RouteRecordNormalized_Base,
     EXPERIMENTAL_RouteRecord_Redirect {
   meta: RouteMeta
+  props: Record<string, EXPERIMENTAL_RouteRecordPropsOption>
 }
 
 export interface EXPERIMENTAL_RouteRecordNormalized_Components
@@ -318,6 +343,7 @@ export interface EXPERIMENTAL_RouteRecordNormalized_Components
     EXPERIMENTAL_RouteRecordNormalized_Base,
     EXPERIMENTAL_RouteRecord_Components {
   meta: RouteMeta
+  props: Record<string, EXPERIMENTAL_RouteRecordPropsOption>
 }
 
 export type EXPERIMENTAL_RouteRecordNormalized_Matchable =
@@ -328,17 +354,67 @@ export type EXPERIMENTAL_RouteRecordNormalized =
   | EXPERIMENTAL_RouteRecordNormalized_Matchable
   | EXPERIMENTAL_RouteRecordNormalized_Group
 
-export function normalizeRouteRecord(
-  record: EXPERIMENTAL_RouteRecord_Group
+/**
+ * Replaces `props` and `components` of a record type with typed versions.
+ *
+ * @internal
+ */
+export type RouteRecordWithTypedProps<
+  TRecord,
+  Location extends RouteLocationNormalizedLoadedGeneric,
+  Components,
+> = TRecord extends unknown
+  ? Omit<TRecord, 'props' | 'components'> &
+      (TRecord extends { components: unknown }
+        ? { components: Components }
+        : { components?: Components }) & {
+        props?: RouteRecordPropsViews<Location, Components>
+      }
+  : never
+
+/**
+ * Normalizes a route record so it can be passed to a resolver. The `props`
+ * option is type checked against the props of each component in
+ * `components` and against the params of the route (and its children) when
+ * the route is named in the typed route map.
+ *
+ * @param record - route record to normalize
+ */
+export function normalizeRouteRecord<
+  Components extends Record<string, RawRouteComponent> = {},
+>(
+  record: RouteRecordWithTypedProps<
+    EXPERIMENTAL_RouteRecord_Group,
+    RouteLocationNormalizedLoadedGeneric,
+    Components
+  >
 ): EXPERIMENTAL_RouteRecordNormalized_Group
-export function normalizeRouteRecord(
-  record: EXPERIMENTAL_RouteRecord_Matchable
+export function normalizeRouteRecord<
+  const Name extends RecordName,
+  Components extends Record<string, RawRouteComponent> = {},
+>(
+  record: RouteRecordWithTypedProps<
+    EXPERIMENTAL_RouteRecord_Matchable,
+    RouteLocationForRecordName<Name>,
+    Components
+  > & { name: Name }
 ): EXPERIMENTAL_RouteRecordNormalized_Matchable
 export function normalizeRouteRecord(
-  record: EXPERIMENTAL_RouteRecord_Matchable | EXPERIMENTAL_RouteRecord_Group
+  record: RouteRecordWithTypedProps<EXPERIMENTAL_RouteRecordRaw, any, any>
 ):
   | EXPERIMENTAL_RouteRecordNormalized_Matchable
   | EXPERIMENTAL_RouteRecordNormalized_Group {
+  if (
+    __DEV__ &&
+    !record.aliasOf &&
+    'beforeEnter' in record &&
+    record.beforeEnter
+  ) {
+    diagnostics.VUE_ROUTER_D0001({
+      name: record.name == null ? '(unnamed)' : String(record.name),
+    })
+  }
+
   // we can't define mods if we want to call defineProperty later
   const normalizedRecord:
     | Omit<EXPERIMENTAL_RouteRecordNormalized_Matchable, 'mods'>
@@ -352,7 +428,7 @@ export function normalizeRouteRecord(
     // NOTE: not having the property changes nothing
     // parent: null,
     // aliasOf: null,
-    ...record,
+    ...(record as EXPERIMENTAL_RouteRecordRaw),
     // FIXME: to be removed
     instances: {},
     leaveGuards: new Set(),
@@ -368,28 +444,6 @@ export function normalizeRouteRecord(
   return normalizedRecord as
     | EXPERIMENTAL_RouteRecordNormalized_Matchable
     | EXPERIMENTAL_RouteRecordNormalized_Group
-}
-
-/**
- * Merges route record objects for the experimental resolver format.
- * This function is specifically designed to work with objects that will be passed to normalizeRouteRecord().
- *
- * @internal
- *
- * @param main - main route record object
- * @param routeRecords - route records to merge (from definePage imports)
- * @returns merged route record object
- */
-export function mergeRouteRecord(
-  main: EXPERIMENTAL_RouteRecordNormalized,
-  // TODO: actual type
-  ...routeRecords: Partial<EXPERIMENTAL_RouteRecordNormalized>[]
-) {
-  for (const record of routeRecords) {
-    main.meta = { ...main.meta, ...record.meta }
-    main.props = { ...main.props, ...record.props }
-  }
-  return main
 }
 
 // TODO: probably need some generic types
@@ -413,6 +467,8 @@ export interface EXPERIMENTAL_RouterOptions extends EXPERIMENTAL_RouterOptions_B
 
 /**
  * Router base instance.
+ *
+ * Relative navigation guard redirects are resolved against the target location.
  *
  * @experimental This version is not stable, it's meant to replace {@link Router} in the future.
  */
@@ -736,11 +792,21 @@ export function experimental_createRouter(
   ): RouteLocationRaw | void {
     const redirect = to.matched.at(-1)?.redirect
     if (redirect) {
-      return resolver.resolve(
-        // @ts-expect-error: TODO: allow redirect to return the first argument of resolve or a tuple consisting of the arguments?
-        typeof redirect === 'function' ? redirect(to, from) : redirect,
-        from
-      )
+      const target =
+        typeof redirect === 'function' ? redirect(to, from) : redirect
+      if (
+        __DEV__ &&
+        !isAbsoluteLocation(
+          // @ts-expect-error: FIXME: Should be fixable after merging experimental code and making location types stricter
+          target
+        )
+      ) {
+        throw diagnostics.VUE_ROUTER_R0008({
+          target: JSON.stringify(target, null, 2),
+          to: to.fullPath,
+        })
+      }
+      return target
     }
   }
 
@@ -761,7 +827,7 @@ export function experimental_createRouter(
       return pushWithRedirect(
         {
           // @ts-expect-error: FIXME: refactor location types
-          ...resolve(shouldRedirect, currentRoute.value),
+          ...resolve(shouldRedirect),
           state:
             typeof shouldRedirect === 'object'
               ? assign({}, data, shouldRedirect.state)
@@ -816,15 +882,22 @@ export function experimental_createRouter(
           if (
             isNavigationFailure(failure, ErrorTypes.NAVIGATION_GUARD_REDIRECT)
           ) {
+            // navigation guards can return a relative location and we need to resolve it against the target location
+            const redirectTo = resolve(
+              // @ts-expect-error: FIXME: refactor location types
+              failure.to,
+              // relative guard redirects are relative to the target location
+              isAbsoluteLocation(
+                // @ts-expect-error: FIXME: refactor location types to stricter
+                failure.to
+              )
+                ? undefined
+                : toLocation
+            )
             if (
               __DEV__ &&
               // we are redirecting to the same location we were already at
-              isSameRouteLocation(
-                stringifyQuery,
-                // @ts-expect-error: FIXME: failure.to should not contain relative locations
-                resolve(failure.to),
-                toLocation
-              ) &&
+              isSameRouteLocation(stringifyQuery, redirectTo, toLocation) &&
               // and we have done it a couple of times
               redirectedFrom &&
               // @ts-expect-error: added only in dev
@@ -843,8 +916,7 @@ export function experimental_createRouter(
 
             return pushWithRedirect(
               {
-                // @ts-expect-error: FIXME: refactor location types
-                ...resolve(failure.to, currentRoute.value),
+                ...redirectTo,
                 state:
                   typeof failure.to === 'object'
                     ? assign({}, data, failure.to.state)
@@ -1139,8 +1211,14 @@ export function experimental_createRouter(
             pushWithRedirect(
               assign(
                 resolve(
-                  // @ts-expect-error: to should be an absolute location
-                  (error as NavigationRedirectError).to
+                  // @ts-expect-error: FIXME: refactor location types
+                  (error as NavigationRedirectError).to,
+                  isAbsoluteLocation(
+                    // @ts-expect-error: FIXME: refactor location types to stricter
+                    (error as NavigationRedirectError).to
+                  )
+                    ? undefined
+                    : toLocation
                 ),
                 {
                   force: true,
@@ -1369,17 +1447,9 @@ export function experimental_createRouter(
         })
       }
 
-      const reactiveRoute = {} as RouteLocationNormalizedLoaded
-      for (const key in START_LOCATION_NORMALIZED) {
-        Object.defineProperty(reactiveRoute, key, {
-          get: () => currentRoute.value[key as keyof RouteLocationNormalized],
-          enumerable: true,
-        })
-      }
-
       // @ts-expect-error: FIXME: refactor with new types once it's possible
       app.provide(routerKey, router)
-      app.provide(routeLocationKey, shallowReactive(reactiveRoute))
+      app.provide(routeLocationKey, createReactiveRoute(currentRoute))
       app.provide(routerViewLocationKey, currentRoute)
 
       installedApps.add(app)

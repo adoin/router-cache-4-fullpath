@@ -4,11 +4,13 @@ import { resolveOptions } from '../options'
 import {
   generateRouteResolver,
   generateRouteRecord,
+  generateRouteRecordHash,
   generateRouteRecordQuery,
 } from './generateRouteResolver'
 import { ImportsMap } from '../core/utils'
 import type { ParamParsersMap } from './generateParamParsers'
 import { generateAliasWarnings } from './generateAliasWarnings'
+import type { CustomRouteBlockHashParamOptions } from '../core/customBlock'
 
 const DEFAULT_OPTIONS = resolveOptions({})
 let DEFAULT_STATE: Parameters<typeof generateRouteRecord>[0]['state'] = {
@@ -1256,7 +1258,7 @@ describe('generateRouteResolver', () => {
       "
 
       const __route_0 = normalizeRouteRecord(
-        _mergeRouteRecord(
+        _mergeRouteRecordViews(
           {
             name: '/profile',
             path: new MatcherPatternPathStatic('/profile'),
@@ -1264,7 +1266,9 @@ describe('generateRouteResolver', () => {
               'default': () => import('profile.vue')
             },
           },
-          _definePage_default_0
+          {
+            'default': _definePage_default_0,
+          }
         )
       )
 
@@ -1295,6 +1299,48 @@ describe('generateRouteResolver', () => {
     // Should only import ?definePage for dashboard.vue, not dashboard@sidebar.vue
     expect(resolver).toContain('_definePage_default_')
     expect(resolver).not.toContain('_definePage_sidebar_')
+  })
+
+  it('generates valid definePage imports for any named view name', () => {
+    const tree = new PrefixTree(DEFAULT_OPTIONS)
+    tree.insert('dashboard', 'dashboard.vue')
+    const dashboardNode = tree.insert(
+      'dashboard@side-bar',
+      'dashboard@side-bar.vue'
+    )
+    dashboardNode.setDefinePageImport('dashboard@side-bar.vue', true)
+
+    const importsMap = new ImportsMap()
+    const resolver = generateRouteResolver(
+      tree,
+      DEFAULT_OPTIONS,
+      importsMap,
+      new Map()
+    )
+
+    expect(importsMap.toString()).toContain(
+      `import _definePage_side_2d_bar_0 from 'dashboard@side-bar.vue?definePage&vue&lang.tsx'`
+    )
+    expect(resolver).toContain(`'side-bar': _definePage_side_2d_bar_0,`)
+  })
+
+  it('indexes definePage imports by view name', () => {
+    const tree = new PrefixTree(DEFAULT_OPTIONS)
+    const dashboardNode = tree.insert('dashboard', 'dashboard.vue')
+    tree.insert('dashboard@sidebar', 'dashboard@sidebar.vue')
+    dashboardNode.setDefinePageImport('dashboard.vue', true)
+    dashboardNode.setDefinePageImport('dashboard@sidebar.vue', true)
+
+    const resolver = generateRouteResolver(
+      tree,
+      DEFAULT_OPTIONS,
+      new ImportsMap(),
+      new Map()
+    )
+
+    expect(resolver).toContain(`_mergeRouteRecordViews(`)
+    expect(resolver).toContain(`'default': _definePage_default_0,`)
+    expect(resolver).toContain(`'sidebar': _definePage_sidebar_1,`)
   })
 
   it('includes query property in route records with query params', () => {
@@ -1736,5 +1782,150 @@ describe('generateRouteResolver', () => {
       expect(resolver).toContain('_normalized_PARAM_PARSER__uuid')
       expect(resolver).not.toContain('_normalized_PARAM_PARSER__slug')
     })
+  })
+})
+
+describe('generated hash params', () => {
+  function generateHash(options: string | CustomRouteBlockHashParamOptions) {
+    const node = new PrefixTree(DEFAULT_OPTIONS).insert('page', 'page.vue')
+    node.value.setEditOverride('params', { hash: { section: options } })
+    return generateRouteRecordHash({
+      node,
+      importsMap: new ImportsMap(),
+      paramParsersMap: new Map(),
+    })
+  }
+
+  it('generates a hash param without options', () => {
+    expect(generateHash('section')).toMatchInlineSnapshot(
+      `"hash: new MatcherPatternHashParam('section'),"`
+    )
+  })
+
+  it('generates native parsers', () => {
+    expect(generateHash({ parser: 'int' })).toMatchInlineSnapshot(
+      `"hash: new MatcherPatternHashParam('section', PARAM_PARSER_INT),"`
+    )
+    expect(generateHash({ parser: 'bool' })).toMatchInlineSnapshot(
+      `"hash: new MatcherPatternHashParam('section', PARAM_PARSER_BOOL),"`
+    )
+  })
+
+  it('generates required and default options', () => {
+    expect(generateHash({ required: true })).toMatchInlineSnapshot(
+      `"hash: new MatcherPatternHashParam('section', {}, undefined, true),"`
+    )
+    expect(generateHash({ default: "'overview'" })).toMatchInlineSnapshot(
+      `"hash: new MatcherPatternHashParam('section', {}, 'overview'),"`
+    )
+    expect(
+      generateHash({ parser: 'int', default: '() => 42' })
+    ).toMatchInlineSnapshot(
+      `"hash: new MatcherPatternHashParam('section', PARAM_PARSER_INT, () => 42),"`
+    )
+  })
+
+  it('includes the hash param and a custom parser in the resolver', () => {
+    const tree = new PrefixTree(DEFAULT_OPTIONS)
+    const node = tree.insert('page', 'page.vue')
+    node.value.setEditOverride('params', {
+      hash: { section: { parser: 'section', required: true } },
+    })
+    const importsMap = new ImportsMap()
+    const resolver = generateRouteResolver(
+      tree,
+      DEFAULT_OPTIONS,
+      importsMap,
+      new Map([
+        [
+          'section',
+          {
+            name: 'section',
+            typeName: 'Param_section',
+            absolutePath: '/src/params/section.ts',
+            relativePath: './src/params/section.ts',
+            isRaw: true,
+          },
+        ],
+      ])
+    )
+
+    expect(resolver).toMatchInlineSnapshot(`
+      "
+      const _normalized_PARAM_PARSER__section = _normalizeParamParser(PARAM_PARSER__section)
+
+      const __route_0 = normalizeRouteRecord({
+        name: '/page',
+        path: new MatcherPatternPathStatic('/page'),
+        hash: new MatcherPatternHashParam('section', _normalized_PARAM_PARSER__section, undefined, true),
+        components: {
+          'default': () => import('page.vue')
+        },
+      })
+
+      export const resolver = createFixedResolver([
+        __route_0,  // /page
+      ])
+      "
+    `)
+    expect(importsMap.toString()).toContain('MatcherPatternHashParam')
+    expect(importsMap.toString()).toContain("from '/src/params/section.ts'")
+  })
+})
+
+describe('path params custom regexp', () => {
+  it('uses the custom regexp in the generated path matcher', () => {
+    const tree = new PrefixTree(DEFAULT_OPTIONS)
+    tree
+      .insert('orgs/[org]', 'orgs/[org].vue')
+      .setCustomRouteBlock('orgs/[org].vue', {
+        params: { path: { org: { re: '@\\w+' } } },
+      })
+    tree
+      .insert('tags/[tags]+', 'tags/[tags]+.vue')
+      .setCustomRouteBlock('tags/[tags]+.vue', {
+        params: { path: { tags: { re: '[a-z]+' } } },
+      })
+
+    expect(
+      generateRouteResolver(tree, DEFAULT_OPTIONS, new ImportsMap(), new Map())
+    ).toMatchInlineSnapshot(`
+      "
+      const __route_0 = normalizeRouteRecord({
+        name: '/orgs/[org]',
+        path: new MatcherPatternPathDynamic(
+          /^\\/orgs\\/(@\\w+)$/i,
+          {
+            org: [/* no parser */],
+          },
+          ["orgs",1],
+          /* trailingSlash */
+        ),
+        components: {
+          'default': () => import('orgs/[org].vue')
+        },
+      })
+
+      const __route_1 = normalizeRouteRecord({
+        name: '/tags/[tags]+',
+        path: new MatcherPatternPathDynamic(
+          /^\\/tags\\/((?:[a-z]+)(?:\\/(?:[a-z]+))*)$/i,
+          {
+            tags: [/* no parser */, /* repeatable: */ true],
+          },
+          ["tags",1],
+          /* trailingSlash */
+        ),
+        components: {
+          'default': () => import('tags/[tags]+.vue')
+        },
+      })
+
+      export const resolver = createFixedResolver([
+        __route_0,  // /orgs/:org
+        __route_1,  // /tags/:tags+
+      ])
+      "
+    `)
   })
 })

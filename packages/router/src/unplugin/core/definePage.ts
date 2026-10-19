@@ -21,10 +21,19 @@ import { walkAST } from 'ast-walker-scope'
 import { diagnostics } from '../diagnostics'
 import type { ParsedStaticImport } from 'mlly'
 import { findStaticImports, parseStaticImport } from 'mlly'
-import type { CustomRouteBlock } from './customBlock'
+import type {
+  CustomRouteBlock,
+  CustomRouteBlockPathParamOptions,
+  CustomRouteBlockQueryParamOptions,
+} from './customBlock'
 
 const MACRO_DEFINE_PAGE = 'definePage'
 export const MACRO_DEFINE_PAGE_QUERY = /[?&]definePage\b/
+
+/**
+ * `definePage()` properties read at build time by {@link extractDefinePageInfo}.
+ */
+const STATIC_PROPERTIES = new Set(['name', 'path', 'alias', 'params'])
 
 /**
  * Generate the ast from a code string and an id. Works with SFC and non-SFC files.
@@ -82,9 +91,15 @@ function getNodeSource(
 export function definePageTransform({
   code,
   id,
+  getRoutePropNames,
 }: {
   code: string
   id: string
+  /**
+   * Returns the names of the params passed as props to the page file
+   * `filePath` by `definePage({ props: true })`.
+   */
+  getRoutePropNames?: (filePath: string) => string[]
 }): Thenable<TransformResult> {
   // are we extracting only the definePage object
   const isExtractingDefinePage = MACRO_DEFINE_PAGE_QUERY.test(id)
@@ -143,8 +158,6 @@ export function definePageTransform({
 
     const scriptBindings = ast.body ? getIdentifiers(ast.body) : []
 
-    // TODO: remove information that was extracted already like name, path, params
-
     // this will throw if a property from the script setup is used in definePage
     try {
       checkInvalidScopeReference(routeRecord, MACRO_DEFINE_PAGE, scriptBindings)
@@ -163,6 +176,32 @@ export function definePageTransform({
     s.remove(0, offset + routeRecord.start!)
     s.prepend(`export default `)
 
+    // extracted at build time (or invalid), so only dead weight in the bundle
+    const strippedProps = new Set<Node>()
+    if (routeRecord.type === 'ObjectExpression') {
+      const props = routeRecord.properties
+      props.forEach((prop, i) => {
+        if (
+          prop.type === 'ObjectProperty' &&
+          !prop.computed &&
+          STATIC_PROPERTIES.has(
+            prop.key.type === 'Identifier'
+              ? prop.key.name
+              : prop.key.type === 'StringLiteral'
+                ? prop.key.value
+                : ''
+          )
+        ) {
+          strippedProps.add(prop)
+          // up to the next property or `}` to also remove the comma
+          s.remove(
+            offset + prop.start!,
+            offset + (props[i + 1]?.start ?? routeRecord.end! - 1)
+          )
+        }
+      })
+    }
+
     // find all static imports and filter out the ones that are not used
     const staticImports = findStaticImports(code)
 
@@ -171,8 +210,10 @@ export function definePageTransform({
 
     walkAST(routeRecord, {
       enter(node) {
-        // skip literal keys from object properties
-        if (
+        if (strippedProps.has(node)) {
+          this.skip()
+          // skip literal keys from object properties
+        } else if (
           this.parent?.type === 'ObjectProperty' &&
           this.parent.key === node &&
           // still track computed keys [a + b]: 1
@@ -233,8 +274,77 @@ export function definePageTransform({
       s.remove(offset + node.start!, offset + node.end!)
     }
 
+    if (getRoutePropNames && hasPropsTrue(definePageNode)) {
+      const propNames = getRoutePropNames(id)
+      if (propNames.length) {
+        declareRouteProps(s, ast, offset, propNames)
+      }
+    }
+
     return generateTransform(s, id)
   }
+}
+
+/**
+ * Checks if a `definePage()` call has `props: true`.
+ */
+function hasPropsTrue(definePageNode: CallExpression): boolean {
+  const routeRecord = definePageNode.arguments[0]
+  return (
+    routeRecord?.type === 'ObjectExpression' &&
+    routeRecord.properties.some(
+      prop =>
+        prop.type === 'ObjectProperty' &&
+        !prop.computed &&
+        ((prop.key.type === 'Identifier' && prop.key.name === 'props') ||
+          (prop.key.type === 'StringLiteral' && prop.key.value === 'props')) &&
+        prop.value.type === 'BooleanLiteral' &&
+        prop.value.value
+    )
+  )
+}
+
+/**
+ * Declares the route params passed by `definePage({ props: true })` in
+ * `defineProps()` before Vue compiles the SFC. Without this, Vue would pass
+ * the params as attrs because the injected types only exist for TypeScript.
+ * Runtime declarations like `defineProps(['a'])` are left untouched.
+ *
+ * @param s - MagicString of the SFC
+ * @param ast - ast of the script setup
+ * @param offset - offset of the script setup in the SFC
+ * @param propNames - names of the params passed as props
+ */
+function declareRouteProps(
+  s: MagicString,
+  ast: Program,
+  offset: number,
+  propNames: string[]
+) {
+  walkAST(ast, {
+    enter(node) {
+      if (!isCallOf(node, 'defineProps') || node.arguments.length) return
+      this.skip()
+
+      // babel 7 uses `typeParameters`
+      const typeArg = (
+        node.typeArguments ??
+        (node as { typeParameters?: typeof node.typeArguments }).typeParameters
+      )?.params[0]
+      if (typeArg) {
+        // `?:` keeps the optionality and runtime types of the props declared
+        // by the user. Vue ignores `any` in intersections
+        s.prependLeft(
+          offset + typeArg.start!,
+          `{ ${propNames.map(name => `${JSON.stringify(name)}?: any`).join('; ')} } & (`
+        )
+        s.appendRight(offset + typeArg.end!, `)`)
+      } else {
+        // right before the closing parenthesis
+        s.appendLeft(offset + node.end! - 1, JSON.stringify(propNames))
+      }
+    },
+  })
 }
 
 type DefinePageParamsInfo = NonNullable<CustomRouteBlock['params']>
@@ -355,6 +465,11 @@ function extractParamsInfo(
         prop.value.type === 'ObjectExpression'
       ) {
         params.path = extractPathParams(prop.value, id)
+      } else if (
+        prop.key.name === 'hash' &&
+        prop.value.type === 'ObjectExpression'
+      ) {
+        params.hash = extractHashParams(prop.value, source, offset)
       }
     }
   }
@@ -380,73 +495,13 @@ function extractQueryParams(
           parser: prop.value.value,
         }
       } else if (prop.value.type === 'ObjectExpression') {
-        // Full form: param: { parser: 'int', default: 1, format: 'value' }
-        const paramInfo: (typeof queryParams)[string] = {}
-
-        for (const paramProp of prop.value.properties) {
-          if (
-            paramProp.type === 'ObjectProperty' &&
-            paramProp.key.type === 'Identifier'
-          ) {
-            if (
-              paramProp.key.name === 'parser' &&
-              paramProp.value.type === 'StringLiteral'
-            ) {
-              paramInfo.parser = paramProp.value.value
-            } else if (
-              paramProp.key.name === 'format' &&
-              paramProp.value.type === 'StringLiteral'
-            ) {
-              paramInfo.format = paramProp.value.value as 'value' | 'array'
-            } else if (
-              paramProp.key.name === 'required' &&
-              paramProp.value.type === 'BooleanLiteral'
-            ) {
-              paramInfo.required = paramProp.value.value
-            } else if (paramProp.key.name === 'default') {
-              if (typeof paramProp.value.extra?.raw === 'string') {
-                paramInfo.default = paramProp.value.extra.raw
-              } else if (paramProp.value.type === 'NumericLiteral') {
-                paramInfo.default = String(paramProp.value.value)
-              } else if (paramProp.value.type === 'StringLiteral') {
-                paramInfo.default = JSON.stringify(paramProp.value.value)
-              } else if (paramProp.value.type === 'BooleanLiteral') {
-                paramInfo.default = String(paramProp.value.value)
-              } else if (paramProp.value.type === 'NullLiteral') {
-                paramInfo.default = 'null'
-              } else if (
-                paramProp.value.type === 'UnaryExpression' &&
-                (paramProp.value.operator === '-' ||
-                  paramProp.value.operator === '+' ||
-                  paramProp.value.operator === '!' ||
-                  paramProp.value.operator === '~') &&
-                paramProp.value.argument.type === 'NumericLiteral'
-              ) {
-                // support negative numeric literals: -1, -1.5
-                paramInfo.default = `${paramProp.value.operator}${paramProp.value.argument.value}`
-              } else if (paramProp.value.type === 'ArrowFunctionExpression') {
-                const expression = getNodeSource(
-                  source,
-                  paramProp.value,
-                  offset
-                )
-                if (expression == null) {
-                  diagnostics.VUE_ROUTER_B0006({
-                    paramName,
-                    type: paramProp.value.type,
-                  })
-                } else {
-                  paramInfo.default = expression
-                }
-              } else {
-                diagnostics.VUE_ROUTER_B0006({
-                  paramName,
-                  type: paramProp.value.type,
-                })
-              }
-            }
-          }
-        }
+        const paramInfo = extractParamOptions(
+          prop.value,
+          paramName,
+          source,
+          offset,
+          true
+        )
 
         queryParams[paramName] = paramInfo
       }
@@ -456,6 +511,108 @@ function extractQueryParams(
   return queryParams
 }
 
+function extractParamOptions(
+  optionsObj: ObjectExpression,
+  paramName: string,
+  source: string,
+  offset: number,
+  includeFormat: boolean
+): CustomRouteBlockQueryParamOptions {
+  const paramInfo: CustomRouteBlockQueryParamOptions = {}
+  for (const paramProp of optionsObj.properties) {
+    if (
+      paramProp.type === 'ObjectProperty' &&
+      paramProp.key.type === 'Identifier'
+    ) {
+      if (
+        paramProp.key.name === 'parser' &&
+        paramProp.value.type === 'StringLiteral'
+      ) {
+        paramInfo.parser = paramProp.value.value
+      } else if (
+        includeFormat &&
+        paramProp.key.name === 'format' &&
+        paramProp.value.type === 'StringLiteral'
+      ) {
+        paramInfo.format = paramProp.value.value as 'value' | 'array'
+      } else if (
+        paramProp.key.name === 'required' &&
+        paramProp.value.type === 'BooleanLiteral'
+      ) {
+        paramInfo.required = paramProp.value.value
+      } else if (paramProp.key.name === 'default') {
+        if (typeof paramProp.value.extra?.raw === 'string') {
+          paramInfo.default = paramProp.value.extra.raw
+        } else if (paramProp.value.type === 'NumericLiteral') {
+          paramInfo.default = String(paramProp.value.value)
+        } else if (paramProp.value.type === 'StringLiteral') {
+          paramInfo.default = JSON.stringify(paramProp.value.value)
+        } else if (paramProp.value.type === 'BooleanLiteral') {
+          paramInfo.default = String(paramProp.value.value)
+        } else if (paramProp.value.type === 'NullLiteral') {
+          paramInfo.default = 'null'
+        } else if (
+          paramProp.value.type === 'UnaryExpression' &&
+          (paramProp.value.operator === '-' ||
+            paramProp.value.operator === '+' ||
+            paramProp.value.operator === '!' ||
+            paramProp.value.operator === '~') &&
+          paramProp.value.argument.type === 'NumericLiteral'
+        ) {
+          // support negative numeric literals: -1, -1.5
+          paramInfo.default = `${paramProp.value.operator}${paramProp.value.argument.value}`
+        } else if (paramProp.value.type === 'ArrowFunctionExpression') {
+          const expression = getNodeSource(source, paramProp.value, offset)
+          if (expression == null) {
+            diagnostics.VUE_ROUTER_B0006({
+              paramName,
+              type: paramProp.value.type,
+            })
+          } else {
+            paramInfo.default = expression
+          }
+        } else {
+          diagnostics.VUE_ROUTER_B0006({
+            paramName,
+            type: paramProp.value.type,
+          })
+        }
+      }
+    }
+  }
+  return paramInfo
+}
+
+function extractHashParams(
+  hashObj: ObjectExpression,
+  source: string,
+  offset: number
+): NonNullable<DefinePageInfo['params']>['hash'] {
+  const hashParams: NonNullable<DefinePageInfo['params']>['hash'] = {}
+  for (const prop of hashObj.properties) {
+    if (
+      prop.type === 'ObjectProperty' &&
+      !prop.computed &&
+      (prop.key.type === 'Identifier' || prop.key.type === 'StringLiteral')
+    ) {
+      const name =
+        prop.key.type === 'Identifier' ? prop.key.name : prop.key.value
+      if (prop.value.type === 'StringLiteral') {
+        hashParams[name] = prop.value.value
+      } else if (prop.value.type === 'ObjectExpression') {
+        hashParams[name] = extractParamOptions(
+          prop.value,
+          name,
+          source,
+          offset,
+          false
+        )
+      }
+    }
+  }
+  return hashParams
+}
+
 function extractPathParams(
   pathObj: ObjectExpression,
   _id: string
@@ -463,13 +620,32 @@ function extractPathParams(
   const pathParams: NonNullable<DefinePageInfo['params']>['path'] = {}
 
   for (const prop of pathObj.properties) {
-    if (
-      prop.type === 'ObjectProperty' &&
-      prop.key.type === 'Identifier' &&
-      prop.value.type === 'StringLiteral'
-    ) {
+    if (prop.type !== 'ObjectProperty' || prop.key.type !== 'Identifier') {
+      continue
+    }
+    if (prop.value.type === 'StringLiteral') {
       // TODO: we should check if the value is a valid parser type
       pathParams[prop.key.name] = prop.value.value
+    } else if (prop.value.type === 'ObjectExpression') {
+      const options: CustomRouteBlockPathParamOptions = {}
+      for (const optionProp of prop.value.properties) {
+        if (
+          optionProp.type !== 'ObjectProperty' ||
+          optionProp.key.type !== 'Identifier'
+        ) {
+          continue
+        }
+        const { name } = optionProp.key
+        const { value } = optionProp
+        if (name === 'parser') {
+          if (value.type === 'StringLiteral') options.parser = value.value
+          else if (value.type === 'NullLiteral') options.parser = null
+        } else if (name === 're') {
+          if (value.type === 'RegExpLiteral') options.re = value.pattern
+          else if (value.type === 'NullLiteral') options.re = null
+        }
+      }
+      pathParams[prop.key.name] = options
     }
   }
 
@@ -555,14 +731,13 @@ function generateFilteredImportStatement(
 
   let namedImportListCode = ''
   for (const importName in namedImports) {
-    if (usedIds.has(importName)) {
+    const localName = namedImports[importName]
+    if (usedIds.has(localName)) {
       // add comma if we have more than one named import
       namedImportListCode += namedImportListCode ? `, ` : ''
 
       namedImportListCode +=
-        importName === namedImports[importName]
-          ? importName
-          : `${importName} as ${namedImports[importName]}`
+        importName === localName ? importName : `${importName} as ${localName}`
     }
   }
 

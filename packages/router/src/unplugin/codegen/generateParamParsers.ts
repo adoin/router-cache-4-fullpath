@@ -1,4 +1,4 @@
-import type { TreePathParam, TreeQueryParam } from '../core/treeNodeValue'
+import type { TreeParam, TreePathParam } from '../core/treeNodeValue'
 import type { ImportsMap } from '../core/utils'
 import type { PrefixTree } from '../core/tree'
 import { toStringLiteral } from '../utils'
@@ -172,6 +172,7 @@ export function isRawParamParserSource(
           spec.type === 'ExportSpecifier' &&
           spec.exported.type === 'Identifier' &&
           spec.exported.name === 'parser' &&
+          spec.local.type === 'Identifier' &&
           rawLocals.has(spec.local.name)
         ) {
           isRaw = true
@@ -313,7 +314,7 @@ export function generateParamParsersTypesDeclarations(
 }
 
 export function generateParamsTypes(
-  params: (TreePathParam | TreeQueryParam)[],
+  params: TreeParam[],
   parparsersMap: ParamParsersMap
 ): Array<string | null> {
   return params.map(param => {
@@ -331,7 +332,7 @@ export function generateParamsTypes(
 }
 
 export function generateParamParserOptions(
-  param: TreePathParam | TreeQueryParam,
+  param: TreeParam,
   importsMap: ImportsMap,
   paramParsers: ParamParsersMap
 ): string {

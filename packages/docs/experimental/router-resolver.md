@@ -55,6 +55,121 @@ declare module 'vue-router' {
 }
 ```
 
+## Query values are arrays
+
+In the experimental router, every key in `route.query` has an array value. A key without a value gives `[null]`, and a missing key is `undefined`:
+
+```ts
+// /search?q=vue&tag=a&tag=b&debug
+route.query.q // ['vue']
+route.query.tag // ['a', 'b']
+route.query.debug // [null]
+route.query.page // undefined
+```
+
+When you navigate, also pass arrays. A non array value still works, but it shows a deprecation warning in development:
+
+```ts
+router.push({ query: { q: ['vue'] } }) // [!code ++]
+router.push({ query: { q: 'vue' } }) // [!code --]
+```
+
+An empty array is the same as a missing key: `{ tag: [] }` and `{}` give the same location.
+
+## Navigation and redirects
+
+Relative string locations passed to `router.push()`, `router.replace()`, or `router.resolve()` use the current route as their base:
+
+```ts
+// Current route: /users/posva
+router.push('add') // /users/add
+```
+
+Relative object locations need an explicit current location. Resolve them first, then navigate:
+
+```ts
+const target = router.resolve(
+  { query: { page: ['2'] } },
+  router.currentRoute.value
+)
+router.push(target)
+```
+
+### Navigation guard redirects
+
+Relative redirects returned by navigation guards use the **target route (`to`)** as their base. This also applies to initial navigation and back/forward navigation:
+
+```ts
+router.beforeEach(to => {
+  if (to.path === '/users/posva') return 'add'
+})
+// Navigating to /users/posva redirects to /users/add.
+```
+
+An object redirect without a `name` or `path` keeps the target's params, query, and hash unless the redirect overrides them:
+
+```ts
+router.beforeEach(to => {
+  if (to.path === '/search' && !to.query.page) {
+    return { query: { page: ['2'] } }
+  }
+})
+// /search?q=vue#results redirects to /search?q=vue&page=2#results.
+```
+
+Named redirects and absolute paths do not inherit params, query, or hash. Supply any required params when returning a named route.
+
+### Route record redirects
+
+A route record's `redirect` must return a named location or an absolute path (starting with `/`). It does not inherit params, query, or hash from the navigation target or current route. Copy values from `to` when you need to keep them:
+
+```ts
+// In a page's definePage() call
+definePage({
+  redirect: to => ({
+    path: '/search',
+    query: to.query,
+    hash: to.hash,
+  }),
+})
+```
+
+## Passing params as props
+
+Use `props` in `definePage()` to pass props to the page component. It applies only to the view of the page component. For example, `props` in `index@sidebar.vue` applies to the `sidebar` view:
+
+```vue
+<!-- src/pages/users/[userId=int].vue -->
+<script setup lang="ts">
+defineProps<{ userId: number; page: number }>()
+
+definePage({
+  params: {
+    query: { page: { parser: 'int', default: 1 } },
+  },
+  // pass route.params (path, query, and hash params) as props
+  props: true,
+})
+</script>
+```
+
+`props` accepts these values:
+
+- `true`: pass `route.params` as props **and automatically types `defineProps()`**. This includes the query and hash params.
+- `false`: pass no props, same as not declaring `props`.
+- An object: pass these static props.
+- A function: receives the route location and returns the props.
+
+```ts
+definePage({
+  props: to => ({ userId: to.params.userId, page: to.params.page + 1 }),
+})
+```
+
+With the `sfc-typed-router` Volar plugin, TypeScript checks `props` against the params of the route and against the props of the page component. In the example above, `props: true` gives an error if the component declares a required prop that the params do not supply, or if the types do not match (e.g. `userId: string` with the `int` parser).
+
+With `props: true`, the plugin also adds the params of the route to the type of `defineProps()`, so `defineProps<{ extra?: string }>()` is typed as `defineProps<RouteParams & { extra?: string }>()`. At build time, the Vite plugin also declares the params in `defineProps()`, so Vue passes them as props instead of attrs. Runtime declarations like `defineProps(['extra'])` are left untouched: list the params there yourself.
+
 ## With Data Loaders
 
 If you use [Data Loaders](../data-loaders/), install the plugin **before** the router:

@@ -40,8 +40,8 @@ export { DEFAULT_OPTIONS }
 export { AutoExportLoaders } from '../experimental/data-loaders/auto-exports'
 export type { AutoExportLoadersOptions } from '../experimental/data-loaders/auto-exports'
 
-export default createUnplugin<Options | undefined>((opt = {}, _meta) => {
-  const options = resolveOptions(opt)
+export default createUnplugin<Options | undefined>((opt = {}, meta) => {
+  const options = resolveOptions({ ...opt, _framework: meta.framework })
   const ctx = createRoutesContext(options)
 
   function getVirtualId(id: string) {
@@ -72,13 +72,9 @@ export default createUnplugin<Options | undefined>((opt = {}, _meta) => {
 
       resolveId: {
         filter: {
-          id: {
-            include: [
-              new RegExp(`^${MODULE_ROUTES_PATH}$`),
-              new RegExp(`^${MODULE_RESOLVER_PATH}$`),
-              routeBlockQueryRE,
-            ],
-          },
+          id: new RegExp(
+            `^${MODULE_ROUTES_PATH}$|^${MODULE_RESOLVER_PATH}$|${routeBlockQueryRE.source}`
+          ),
         },
         handler(id) {
           // vue-router/auto-routes

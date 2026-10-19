@@ -15,9 +15,34 @@ If you're using [nested routes](./nested-routes), any links to ancestor routes w
 
 Other route properties, such as the [`query`](../../api/interfaces/RouteLocationBase.html#query), are not taken into account.
 
-The path doesn't necessarily need to be a perfect match. For example, using an [`alias`](./redirect-and-alias#Alias) would still be considered a match, so long as it resolves to the same route record and `params`.
+Note that **the path doesn't necessarily need to be a perfect match**. For example, using an [`alias`](./redirect-and-alias#Alias) would still be considered a match, so long as it resolves to the same route record and `params`.
 
 If a route has a [`redirect`](./redirect-and-alias#Redirect), it won't be followed when checking whether a link is active.
+
+Similarly, sharing the same path isn't enough:
+
+```js
+const routes = [
+  { path: '/users', component: UserList },
+  { path: '/users/:id', component: UserDetails },
+]
+```
+
+Being at `/users/1` will make a link to `/users/1` active, but a link to `/users` will not be active because the route records are unrelated (no nesting).
+
+If you want the `/users` to be active on `/users/1`, the simplest option is to nest them:
+
+```js
+const routes = [
+  {
+    path: '/users',
+    children: [
+      { path: '', component: UserList },
+      { path: ':id', component: UserDetails },
+    ],
+  },
+]
+```
 
 ## Exact active links
 
@@ -53,7 +78,7 @@ Then consider these two links:
 
 If the current location path is `/user/erina/role/admin` then these would both be considered _active_, so the class `router-link-active` would be applied to both links. But only the second link would be considered _exact_, so only that second link would have the class `router-link-exact-active`.
 
-<RuleKitLink />
+<!-- <RuleKitLink /> -->
 
 ## Configuring the classes
 
